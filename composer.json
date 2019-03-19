@@ -1,0 +1,20 @@
+{
+    "name": "TRMEngine",
+    "description": "Start little framework TRMEngine.",
+    "authors": [
+        {
+            "name": "TRM",
+            "email": "trm@mail.ru"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0"
+    },
+    "require-dev": {
+        "symfony/http-foundation": "3.4.x-dev",
+        "symfony/routing": "3.4.x-dev"
+    },
+	"autoload": {
+        "psr-4": {"TRMEngine\\": ""}
+    }
+}
