@@ -1,14 +1,17 @@
 <?php
 
-namespace TRMEngine\TRMPipeLine;
+namespace TRMEngine\PipeLine;
 
 use Symfony\Component\HttpFoundation\Request;
-
-use TRMEngine\TRMPipeLine\MiddlewareInterface;
-use TRMEngine\TRMPipeLine\RequestHandlerInterface;
+use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
- *
+ * создает посредника, который будет выполнятся, 
+ * только если в объекте Request путь начинается (или полностью совпадает, в зависимости от метода сравнения)
+ * с заданным префиксом  
+ * 
  * @author TRM
  */
 class TRMPathMiddlewareDecorator implements MiddlewareInterface
@@ -65,7 +68,7 @@ public function __construct( $Prefix, MiddlewareInterface $Middleware, $CompareM
  * 
  * @param Request $Request
  * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $Handler
- * @return \Symfony\Component\HttpFoundation\Response
+ * @return Response
  */
 public function process(Request $Request, RequestHandlerInterface $Handler )
 {

@@ -1,0 +1,363 @@
+<?php
+
+namespace TRMEngine\Helpers;
+
+/**
+ * класс, в котором собраны некоторые полезные функции в виде статическиъ методов - библиотека
+ */
+class TRMLib
+{
+/**
+ * DefaultDebugStringColor - цвет текста отладочной информации по умолчанию, используется в функции debugPrint и dp
+ */
+const DefaultDebugTextColor = "red";
+/**
+ * DefaultInfoTextColor - цвет текста информационного сообщения по умолчанию, используется в функции ip
+ */
+const DefaultInfoTextColor = "blue";
+/**
+ * DefaultStringTextColor - цвет текста простых строк по умолчанию, используется в функции sp
+ */
+const DefaultStringTextColor = "green";
+/**
+ * DefaultArrayTextColor - цвет текста массивов по умолчанию, используется в функции ap
+ */
+const DefaultArrayTextColor = "gray";
+
+/**
+ * счетчик распечатанных блоков отладочной информации
+ */
+static public $DebugBlocksCounter = 0;
+
+/**
+ * выводит отладочную тнформацию в виде таблицы стека вызовов
+ * 
+ * @param array $arr - должен передаваться массив возвращаемый debug_backtrace()
+ */
+protected static function printDebugTrace( array $arr )
+{
+    echo "<table border='1' style='border: 1px solid black; border-collapse: collapse;'>";
+    echo "<tr><th>№</th><th>Стек вызова</th><th>Аргументы</th></tr>";
+    foreach ($arr as $num => $item)
+    {
+        echo "<tr>";
+        echo "<td>$num</td>";
+        echo "<td style='vertical-align: top;'>";
+        if(array_key_exists("file", $item) ) { self::sp("Имя файла: " . $item["file"]); }
+        if(array_key_exists("line", $item) ) { self::sp("Номер строки: " . $item["line"]); }
+        if(array_key_exists("class", $item) ) { self::sp("Класс: " . $item["class"]); }
+        if(array_key_exists("object", $item) ) { self::sp("Объект:"); self::ip( $item["object"]); }
+        if(array_key_exists("type", $item) ) { self::sp("Тип вызова функции: " . $item["type"]); }
+//            Если это вызов метода объекта, будет выведено [->].
+//            Если это вызов статического метода класса, то [::].
+//            Если это простой вызов функции, не выводится ничего.
+        if(array_key_exists("function", $item) ) { self::sp("Функция: " . $item["function"]); }
+        echo "</td>";
+
+        echo "<td style='vertical-align: top;'>";
+        // array 	При нахождении внутри функции, будет выведен список аргументов этой функции. Если внутри включаемого файла, будет выведен список включаемых файлов. 
+        if(array_key_exists("args", $item) ) { self::ap($item["args"]); }
+        echo "</td>";
+
+        echo "</tr>";
+    }
+    echo "</table>";
+}
+
+/**
+ * функция для вывода отладочной информации
+ * 
+ * @param string $str - строка для вывода
+ * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ * @param boolean $traceflag - флаг, который указывает выводить или нет информацию из стека вызовов
+ */
+public static function dp($str, $color = self::DefaultDebugTextColor, $traceflag = false )
+{
+    if( defined("DEBUG") )
+    {
+        echo "<div class='trm_debug_info_div' style='width: 100%;'><strong>[Debug block(" . self::$DebugBlocksCounter++ . ")]</strong>";
+        self::debugPrint($str, $color);
+        if($traceflag) { self::printDebugTrace( debug_backtrace(), $color); }
+        echo "</div>";
+    }
+}
+
+/**
+ * Печатает содержимое строки $str в цвете $color в спец. тэгах <pre>...</pre> 
+ * только если определена константа DEBUG
+ * 
+ * @param string $str - строка для вывода
+ * @param string $color - цвет текста
+ */
+public static function debugPrint($str, $color = self::DefaultDebugTextColor )
+{
+    if( defined("DEBUG") )
+    {
+        echo "<pre style='color: {$color};'>";
+        var_dump( $str );
+        echo "</pre>";
+    }
+}
+
+/**
+ * функция для вывода информации в тегах <pre>
+ * 
+ * @param mixed $str - строка для вывода
+ * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ */
+public static function ip( $str, $color = self::DefaultInfoTextColor )
+{
+    echo "<pre style='color: {$color};'>";
+    var_dump( $str );
+    echo "</pre>";
+}
+
+/**
+ * функция для вывода массива
+ * 
+ * @param array $arr - строка для вывода
+ * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ */
+public static function ap( array $arr, $color = self::DefaultArrayTextColor )
+{
+    echo "<pre style='color: {$color};'>";
+    print_r( $arr );
+    echo "</pre>";
+}
+
+/**
+ * функция для вывода строки
+ * 
+ * @param string $str - строка для вывода
+ * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ */
+public static function sp( $str, $color = self::DefaultStringTextColor )
+{
+    echo "<pre style='color: {$color};'>{$str}</pre>";
+}
+
+/**
+ * русские названия в английский транслит с заменой пробелов на минусы - 
+ * 
+ * @param string $s - строка с русскими буквами, которые будут заменены на английский аналог
+ * @param boolean $specialforurl - если этот флаг установлен в true, тогда комбинация 100х100 с русским хэ, поменяется на 100x100 с английским икс!
+ * @param string $charset - набор символов. поумолчанию устанавливается в "windows-1251"
+ * @return string - строка в траслитерации без кирилических символов
+ */
+public static function translit($s, $specialforurl=false, $charset = "windows-1251")
+{
+    $s = (string) $s; // преобразуем в строковое значение
+    $s = strip_tags($s); // убираем HTML-теги
+    $s = str_replace(array("\n", "\r"), "-", $s); // убираем перевод каретки
+
+    // меняет русский х на английский X если включен флаг specialforurl для комбинация с цифрами, например для размеров 100х100
+    if($specialforurl) 
+    {
+      $s = preg_replace("/([0-9]+)х([0-9]+)/U", '$1x$2', $s);
+    }
+
+    // $s = function_exists('mb_strtolower') ? mb_strtolower($s, 'UTF-8') : strtolower($s); // переводим строку в нижний регистр (иногда надо задать локаль)
+    $s = mb_strtolower($s, $charset);
+    $s = strtr($s, array('а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'zh','з'=>'z','и'=>'i','й'=>'j','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'h','ц'=>'c','ч'=>'ch','ш'=>'sh','щ'=>'shch','ы'=>'y','э'=>'e','ю'=>'yu','я'=>'ya','ъ'=>'','ь'=>''));
+    $s = preg_replace("/[^0-9a-z-_]/i", "-", $s); // очищаем строку от недопустимых символов
+    $s = preg_replace("/\-\-+/", '-', $s); // удаляем повторяющиеся знаки -
+    $s = trim($s, "-");
+    return $s; // возвращаем результат
+}
+
+/**
+ * конвертирует массив (или одну строку),
+ * в массиве конвертируются только строковые значения,
+ * вызывается рекурсивно для всех дочерних элементов
+ * 
+ * @param array|string &$array - ссылка на массив или строку, в результате выполнения функции меняется его содержимое
+ * @param type $from - кодировка из которой конвертируется
+ * @param type $to - кодировка в которую конвертируется
+ * @return array|string - конвертированный массив или строка
+ */
+public static function conv(&$array, $from = "utf-8", $to = "windows-1251")
+{
+//    if( empty($array) ) { return $array; }
+
+    if( !empty($array) && $from !== $to )
+    {
+        if( is_array($array) )
+        {
+            foreach($array as $key => $param )
+            {
+                $array[$key] = TRMLib::conv ($array[$key], $from, $to);
+            }
+        }
+        elseif(is_string($array) )
+        {
+            $array = iconv($from, $to, $array);
+        }
+    }
+
+    return $array;
+}
+
+/**
+ * Функция конвертации массива в XML объект.
+ * На вход подается мульти-вложенный массив,
+ * на выходе получается строка с валидным xml с помощью рекурсии
+ *
+ * @param array $data
+ * @param string $rootNodeName - назвение коневого (или очередного в рекурсии) xml-узла
+ * @param SimpleXMLElement $xml - используется рекурсивно
+ * 
+ * @return string XML - возвращает XML в виде строки
+ */
+public static function convertArrayToXml($data, $rootNodeName = 'data', $xml=null)
+{
+    if ($xml == null)
+    {
+        $xml = simplexml_load_string("<?xml version=\"1.0\" encoding=\"utf-8\"?><$rootNodeName />");
+    }
+
+    //цикл перебора массива 
+    foreach($data as $key => $value)
+    {
+        // нельзя применять числовое название полей в XML
+        if (is_numeric($key))
+        {
+            // поэтому делаем их строковыми по образцу unknownNode_123...
+            $key = "unknownNode_{$key}";
+        }
+
+        // удаляем не латинские символы и не цифры
+        $key = preg_replace('/[^a-z0-9]/i', '', $key);
+
+        // если значение массива также является массивом то вызываем себя рекурсивно
+        if (is_array($value))
+        {
+            // добавляет пустой узел XML и возвращает объект SimpleXMLElement (точнее ссылку на него)
+            $node = $xml->addChild($key);
+            // рекурсивный вызов
+            self::convertArraytoXml($value, $rootNodeName, $node);
+        }
+        else
+        {
+            // добавляем один узел, 
+            // преобразуя возможные символы в соответсвующие HTML-коды функцией htmlentities (например кавычки, апострофы и т.д.)
+            $value = htmlentities($value);
+            // добавляет узел XML с данными
+            $xml->addChild($key,$value);
+        }
+
+    }
+
+    return $xml->asXML();
+}
+
+/**
+ * ПОЛИФИЛ!!!
+ * Returns the values from a single column of the input array, identified by
+ * the $columnKey.
+ *
+ * Optionally, you may provide an $indexKey to index the values in the returned
+ * array by the values from the $indexKey column in the input array.
+ *
+ * @param array $input A multi-dimensional array (record set) from which to pull
+ *                     a column of values.
+ * @param mixed $columnKey The column of values to return. This value may be the
+ *                         integer key of the column you wish to retrieve, or it
+ *                         may be the string key name for an associative array.
+ * @param mixed $indexKey (Optional.) The column to use as the index/keys for
+ *                        the returned array. This value may be the integer key
+ *                        of the column, or it may be the string key name.
+ * @return array
+ */
+public static function array_column($input = null, $columnKey = null, $indexKey = null)
+{
+    // Using func_get_args() in order to check for proper number of
+    // parameters and trigger errors exactly as the built-in array_column()
+    // does in PHP 5.5.
+    $argc = func_num_args();
+    $params = func_get_args();
+
+    if ($argc < 2)
+    {
+            trigger_error("array_column() expects at least 2 parameters, {$argc} given", E_USER_WARNING);
+            return null;
+    }
+
+    if (!is_array($params[0]))
+    {
+            trigger_error( 'array_column() expects parameter 1 to be array, ' . gettype($params[0]) . ' given', E_USER_WARNING );
+            return null;
+    }
+
+    if (!is_int($params[1])
+            && !is_float($params[1])
+            && !is_string($params[1])
+            && $params[1] !== null
+            && !(is_object($params[1]) && method_exists($params[1], '__toString')) )
+    {
+            trigger_error('array_column(): The column key should be either a string or an integer', E_USER_WARNING);
+            return false;
+    }
+
+    if (isset($params[2])
+            && !is_int($params[2])
+            && !is_float($params[2])
+            && !is_string($params[2])
+            && !(is_object($params[2]) && method_exists($params[2], '__toString')) )
+    {
+            trigger_error('array_column(): The index key should be either a string or an integer', E_USER_WARNING);
+            return false;
+    }
+
+    $paramsInput = $params[0];
+    $paramsColumnKey = ($params[1] !== null) ? (string) $params[1] : null;
+    $paramsIndexKey = null;
+
+    if (isset($params[2]))
+    {
+            if (is_float($params[2]) || is_int($params[2])) { $paramsIndexKey = (int) $params[2]; }
+            else { $paramsIndexKey = (string) $params[2]; }
+    }
+
+    $resultArray = array();
+
+    foreach ($paramsInput as $row)
+    {
+            $key = $value = null;
+            $keySet = $valueSet = false;
+
+            if ($paramsIndexKey !== null && array_key_exists($paramsIndexKey, $row))
+            {
+                    $keySet = true;
+                    $key = (string) $row[$paramsIndexKey];
+            }
+
+            if ($paramsColumnKey === null)
+            {
+                    $valueSet = true;
+                    $value = $row;
+            }
+            elseif (is_array($row) && array_key_exists($paramsColumnKey, $row))
+            {
+                    $valueSet = true;
+                    $value = $row[$paramsColumnKey];
+            }
+
+            if ($valueSet)
+            {
+                    if ($keySet)
+                    {
+                            $resultArray[$key] = $value;
+                    }
+                    else
+                    {
+                            $resultArray[] = $value;
+
+                    }
+            }
+    }
+
+    return $resultArray;
+}
+
+
+} // TRMLib

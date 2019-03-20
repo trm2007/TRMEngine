@@ -2,14 +2,13 @@
 namespace TRMEngine;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
-
-use TRMEngine\Exceptions\TRMExceptionPathNotFound;
-
-use TRMEngine\TRMPipeLine\RequestHandlerInterface;
+use TRMEngine\Exceptions\TRMPathNotFoundedException;
 use TRMEngine\TRMPipeLine\MiddlewareInterface;
+use TRMEngine\TRMPipeLine\RequestHandlerInterface;
 
 /**
  * класс для выбора контроллера и Action для данного пути
@@ -31,7 +30,7 @@ const DefaultActionName = "Index";
  */
 public static $CurrentPath = array();
 /**
- * @var Symfony\Component\HttpFoundation\Request - массивы _GET, _POST, _SERVER и т.д.
+ * @var Request - массивы _GET, _POST, _SERVER и т.д.
  */
 public $Request;
 
@@ -88,10 +87,10 @@ public function process( Request $Request, RequestHandlerInterface $Handler )
     {
         $parameters = $Matcher->match( $Context->getPathInfo() );
     }
-    catch(Symfony\Component\Routing\Exception\ResourceNotFoundException $e)
+    catch(ResourceNotFoundException $e)
     {
-        \TRMLib::debugPrint( "Не найден маршрут" . $e->getMessage() );
-        throw new TRMExceptionPathNotFound( $Request->getUri() );
+        //TRMLib::debugPrint( "Не найден маршрут" . $e->getMessage() );
+        throw new TRMPathNotFoundedException( $Request->getUri() );
     }
     
     $this->generateCurrentPathFromParameters($parameters);

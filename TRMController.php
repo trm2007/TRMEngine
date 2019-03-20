@@ -2,19 +2,16 @@
 namespace TRMEngine;
 
 use Symfony\Component\HttpFoundation\Request;
+use TRMEngine\Exceptions\TRMNoActionException;
+use TRMEngine\Exceptions\TRMNoControllerException;
 
-use TRMEngine\Exceptions\NoControllerException;
-use TRMEngine\Exceptions\NoActionException;
 /**
  * базовый класс для всех контроллеров
  */
 abstract class TRMController
 {
 const DefaultPageName = "page";
-/**
- * @var array сюда сохраняется весь массив данных (controller - actinon - param - ...) из PathFinder-a
- */
-protected $path;
+
 /**
  * @var Request - объект запроса от клиента
  */
@@ -38,7 +35,6 @@ protected $CurrentAction = '';
  */
 protected $CurrentControllerName = '';
 
-protected $ConfigArray; //ссылка на массив с конфигурационными данными
 
 public function __construct(Request $Request)
 {
@@ -47,13 +43,13 @@ public function __construct(Request $Request)
     $this->CurrentControllerName = $this->Request->attributes->get("controller");
     if( empty($this->CurrentControllerName) )
     {
-        throw new NoControllerException( __METHOD__ . " Не правильно проинициализирован Controller", 404);
+        throw new TRMNoControllerException( __METHOD__ . " Неправильно проинициализирован Controller", 404);
     }
     // для удобства выделяем имя Action в отдельную переменную
     $this->CurrentActionName = $this->Request->attributes->get("action");
     if( !isset($this->CurrentActionName) )
     {
-        throw new NoActionException( __METHOD__ . " Не указан Action", 404);
+        throw new TRMNoActionException( __METHOD__ . " Не указан Action", 404);
     }
 
     // а так же для удобства выделяем номер страницы (для пагинации) в отдельную переменную

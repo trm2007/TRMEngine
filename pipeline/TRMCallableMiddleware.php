@@ -1,8 +1,12 @@
 <?php
 
-namespace TRMEngine\TRMPipeLine;
+namespace TRMEngine\PipeLine;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\PipeLine\Exceptions\TRMMiddlewareBadResponseException;
+use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
  * реализация посредника для выполнения обработки запроса с помощью обычной функции,
@@ -20,13 +24,14 @@ public function __construct( callable $MiddleWare )
 {
     $this->MiddleWare = $MiddleWare;
 }
+
 /**
  * {@inheritDoc}
  * 
  * @param Request $Request
  * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $Handler
  * @return Response
- * @throws Exception
+ * @throws TRMMiddlewareBadResponseException
  */
 public function process( Request $Request, RequestHandlerInterface $Handler )
 {
@@ -34,7 +39,7 @@ public function process( Request $Request, RequestHandlerInterface $Handler )
     $Response = $MiddleWare($Request, $Handler);
     if( !($Response instanceof Response) )
     {
-        throw new Exception( __METHOD__ . " Обработчик возвращает объект отличный от Response" ); //$this->MiddleWare);
+        throw new TRMMiddlewareBadResponseException( __METHOD__  ); 
     }
     return $Response;
 }

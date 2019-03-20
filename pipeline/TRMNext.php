@@ -1,8 +1,10 @@
 <?php
 
-namespace TRMEngine\TRMPipeLine;
+namespace TRMEngine\PipeLine;
 
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
  * класс для обработки стека вызовов посредников из очереди
@@ -20,15 +22,15 @@ final class TRMNext implements RequestHandlerInterface
 private $LastAction;
 /**
  * очередь посредников
- * @var \SplQueue
+ * @var SplQueue
  */
 private $Queue;
 
 /**
- * @param \SplQueue $Queue - очередь с объектами Middleware, внутри опустошается, поэтому сюда нужно передавать клон 
+ * @param SplQueue $Queue - очередь с объектами Middleware, внутри опустошается, поэтому сюда нужно передавать клон 
  * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $LastAction - последний Middleware, который будет вызван если очередь пуста
  */
-public function __construct( \SplQueue $Queue, RequestHandlerInterface $LastAction )
+public function __construct( SplQueue $Queue, RequestHandlerInterface $LastAction )
 {
     $this->Queue = $Queue;
     $this->LastAction = $LastAction;
@@ -41,7 +43,7 @@ public function __construct( \SplQueue $Queue, RequestHandlerInterface $LastActi
  * 
  * @param Request $Request
  * 
- * @return \Symfony\Component\HttpFoundation\Response
+ * @return Response
  */
 public function handle( Request $Request )
 {

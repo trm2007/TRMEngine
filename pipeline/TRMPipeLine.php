@@ -1,50 +1,12 @@
 <?php
 
-namespace TRMEngine\TRMPipeLine;
+namespace TRMEngine\PipeLine;
 
 use Symfony\Component\HttpFoundation\Request;
-
-/**
- * Handles a server request and produces a response.
- *
- * An HTTP request handler process an HTTP request in order to produce an
- * HTTP response.
- */
-interface RequestHandlerInterface
-{
-    /**
-     * Handles a request and produces a response.
-     *
-     * May call other collaborating code to generate the response.
-     * 
-     * @param Request $Request
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function handle( Request $Request ); //: ResponseInterface;
-}
-
-/**
- * Participant in processing a server request and response.
- *
- * An HTTP middleware component participates in processing an HTTP message:
- * by acting on the request, generating the response, or forwarding the
- * request to a subsequent middleware and possibly acting on its response.
- */
-interface MiddlewareInterface
-{
-    /**
-     * Process an incoming server request.
-     *
-     * Processes an incoming server request in order to produce a response.
-     * If unable to produce the response itself, it may delegate to the provided
-     * request handler to do so.
-     * 
-     * @param Request $Request
-     * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $Handler
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function process( Request $Request, RequestHandlerInterface $Handler ); //: ResponseInterface;
-}
+use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
+use TRMEngine\PipeLine\TRMNext;
 
 
 /**
@@ -57,7 +19,7 @@ class TRMPipeLine implements RequestHandlerInterface, MiddlewareInterface
 {
 /**
  * очередь объектов для типа MiddlewareInterface, каждый из которых реализует механизм посредника
- * @var \SplQueue
+ * @var SplQueue
  */
 protected $PipeLine;
 /**
@@ -73,7 +35,7 @@ private $LastAction;
  */
 public function __construct( RequestHandlerInterface $LastAction )
 {
-    $this->PipeLine = new \SplQueue();
+    $this->PipeLine = new SplQueue();
     $this->LastAction = $LastAction;
 }
 
@@ -103,7 +65,7 @@ public function pipe( MiddlewareInterface $MiddleWare )
  * тем самым клонируется и очередь, и уже внутри опустошается...
  * 
  * @param Request $Request
- * @return \Symfony\Component\HttpFoundation\Response
+ * @return Response
  * @throws Exception - если попытаться вызвать этот обработчик для пустой очереди, то выбрасывается исключение,
  * так как задача TRMPipeLine обеспечить вызов обработчиков по цепочки из заранее сформированной очереди,
  * никаких других действий для обработк $Request не производится!
@@ -134,7 +96,7 @@ public function handle( Request $Request )
  * 
  * @param Request $Request
  * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $LastAction
- * @return \Symfony\Component\HttpFoundation\Response
+ * @return Response
  */
 public function process( Request $Request, RequestHandlerInterface $LastAction )
 {
