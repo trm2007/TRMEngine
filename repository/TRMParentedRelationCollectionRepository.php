@@ -4,7 +4,7 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 use TRMEngine\DataObject\TRMDataObject;
-use TRMEngine\Exceptions\ObjectCreateException;
+use TRMEngine\Exceptions\TRMObjectCreateException;
 use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
 
 /**
@@ -45,7 +45,7 @@ public function __construct($objectclassname)
 {
     if( empty($this->ParentRelationIdFieldName) )
     {
-        throw new ObjectCreateException("В дочернем конструкторе не указано имя поля, содержащее значение родительского ID для объектов ". get_class($this), 500);
+        throw new TRMObjectCreateException("В дочернем конструкторе не указано имя поля, содержащее значение родительского ID для объектов ". get_class($this), 500);
     }
     parent::__construct($objectclassname);
 }

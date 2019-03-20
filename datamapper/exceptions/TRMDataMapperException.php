@@ -29,3 +29,17 @@ class TRMDataMapperEmptySafetyFieldsArrayException extends TRMException
         parent::__construct($message, $code, $previous);
     }
 }
+
+
+/**
+ * должно выбрасываться, если в DataMapper неверно заданы связи между объектам,
+ * должен быть один главный объект, на которого никто не ссылается
+ */
+class TRMDataMapperRelationException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " В объекте данных обнаружены циклические связи! Нет внутренних объектов без ссылок на них!" . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+} // TRMDataMapperRelationException

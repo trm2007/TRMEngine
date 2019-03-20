@@ -22,29 +22,16 @@ class TRMException extends \Exception
 
 
 /**
- * выбрасывается при неверной авторизации
- */
-class AuthException extends TRMException
-{
-    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
-    {
-        $message .= PHP_EOL . " Ошибка авторизации! " . PHP_EOL;
-        parent::__construct($message, $code, $previous);
-    }
-} // AuthException
-
-
-/**
  * выбрасывается конструктором, если объект не может быть создан
  */
-class ObjectCreateException extends TRMException
+class TRMObjectCreateException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
         $message .= PHP_EOL . " Объект не может быть создан! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
-} // ObjectCreateException
+} // TRMObjectCreateException
 
 
 /**

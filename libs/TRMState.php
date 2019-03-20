@@ -64,7 +64,7 @@ public function addStateString($StateString) {
 /**
  * устанавливает код состяния в 0 и очищает строку состояния
  */
-public function clear()
+public function clearState()
 {
     $this->StateCode = 0;
     $this->StateString = "";

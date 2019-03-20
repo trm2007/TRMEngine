@@ -3,6 +3,7 @@
 namespace TRMEngine\DataMapper;
 
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperNotStringFieldNameException;
+use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
 
 /**
  * Класс для объектов DataMapper,
@@ -389,7 +390,7 @@ public function getObjectsNamesWithoutBackRelations()
                 unset($ObjectsNamesArray[ $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]);
                 if(empty($ObjectsNamesArray))
                 {
-                    throw new TRMDataMapperRelationException( __METHOD__ . " В объекте данных обнаружены циклические связи! Нет внутренних объектов без ссылок на них!" );
+                    throw new TRMDataMapperRelationException( __METHOD__ );
                 }
             }
         }
