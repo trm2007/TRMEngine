@@ -104,7 +104,6 @@ protected function checkCookies()
     try
     {
         $cookie = new TRMAuthCookie($this->AuthCookieName);
-        $cookie->validate();
         
         $username = $cookie->getUser();
         

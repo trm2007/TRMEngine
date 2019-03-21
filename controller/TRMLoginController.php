@@ -59,27 +59,31 @@ public function actionLogin()
 {
     $this->setHeaders();
 
-    $name = $this->Request->request->get("name");
-
-    $password = $this->Request->request->get("password");
-    // проверка пользователя и пароля
-    // как правило checkPassword пробует в базе найти пользователя с таким паролем
-    if( !$this->checkPassword($name, $password) )
+    $cookie = new TRMAuthCookie( $this->AuthCookieName );
+    
+    $name = $cookie->getUser();
+    
+    if( empty($name) )
     {
-        $this->renderLoginView();
-        return true;
+        $name = $this->Request->request->get("name");
+
+        $password = $this->Request->request->get("password");
+        // проверка пользователя и пароля
+        // как правило checkPassword пробует в базе найти пользователя с таким паролем
+        if( !$this->checkPassword($name, $password) )
+        {
+            $this->renderLoginView();
+            return true;
+        }
+        // если этот код выполняется, значит авторизовались
+
+        // сохраняем cookie с текущим пользователем
+        $cookie->setauth($name);
     }
-    // если этот код выполняется, значит авторизовались
 
     // при входе originating_uri передается через GET-запрос,
     // если такого аргумента нет, то происходит переадресация на DefaultUri
     $uri = $this->Request->request->get( $this->OriginatingUriArgumentName, $this->DefaultUri );
-
-    // сохраняем cookie с текущим пользователем
-    $cookie = new AuthCookie($name);
-
-    $cookie->setauth();
-
     // теперь переадресуем на запрашиваемую страницу
     header("Location: {$uri}");
     exit;

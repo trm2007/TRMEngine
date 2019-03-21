@@ -7,7 +7,6 @@ use TRMEngine\Controller\Exceptions\TRMNoActionException;
 use TRMEngine\Controller\Exceptions\TRMNoControllerException;
 use TRMEngine\TRMView;
 
-
 /**
  * базовый класс для всех контроллеров
  */

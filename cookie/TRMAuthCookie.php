@@ -42,38 +42,43 @@ protected static $glue = '|';
 
 /**
  * @param string $cookiename - имя cookie для авторизации, желательно создавать один для всего проекта
- * @param string $username - имя пользователя
+ * @param string $username - имя пользователя, если не задано, 
+ * то пытается получить уже записанный Cookie или оставляет пустым
  */
-public function __construct( $cookiename, $username = null ) 
+public function __construct( $cookiename, $username = "" ) 
 {
     $this->cookiename = $cookiename;
-    if( $username )
-    {
-        $this->username = $username;
-    }
-    else
+    $this->version = self::$myversion;
+    $this->created = time();
+    $this->username = $username;
+
+    if( empty($this->username) )
     {
         $tmpcookie = parent::get($this->cookiename);
         if( $tmpcookie )
         {
             $this->_unpackage($tmpcookie);
         }
-        else
-        {
-            $this->version = self::$myversion;
-            $this->created = time();
-            $this->username = "";
-        }
+    }
+    else // если передано имя пользователя, проверяем на валидность
+    {
+        $this->validate();
     }
 }
 
 /**
- * устанавливаем cookie для аторизации
+ * устанавливаем cookie для аторизации,
+ * можно передать новое имя пользователя для записив Cookie
  * 
+ * @param string $username - можно установить нового пользователя
  * @throws TRMAuthCookieException
  */
-public function setauth()
+public function setauth( $username = "" )
 {
+    if( !empty($username) )
+    {
+        $this->username = $username;
+    }
     $this->_reissue();
     $cookie = $this->_package();
 
@@ -94,7 +99,17 @@ public function getUser()
 }
 
 /**
- * проверяем правильность cookie для авторизации
+ * устанавливает новое имя текущего пользователя,
+ * 
+ * @param string $username - можно установить нового пользователя
+ */
+public function setUser($username)
+{
+    $this->username = $username;
+}
+
+/**
+ * проверяет правильность cookie для авторизации,
  * 
  * @throws TRMAuthCookieException
  */
@@ -102,21 +117,17 @@ public function validate()
 {
     if( !is_string( $this->username ) )
     {
-        throw new TRMAuthCookieException("Cookie содержит недопустимое имя пользователя");
+        throw new TRMAuthCookieException("Cookie авторизации содержит недопустимое имя пользователя!");
     }
 
-    if ($this->version != self::$myversion)
+    if( $this->version != self::$myversion )
     {
-        throw new TRMAuthCookieException("Несоответствие версии");
+        throw new TRMAuthCookieException("Несоответствие версии Сookie авторизации!");
     }
 
-    if ( self::$expiration>0 && (time() - $this->created) > self::$expiration)
+    if( self::$expiration>0 && (time() - $this->created) > self::$expiration )
     {
-        throw new TRMAuthCookieException("Истек срок действия cookie");
-    }
-    else if ( (time() - $this->created) > self::$warning)
-    {
-        $this->setauth();
+        throw new TRMAuthCookieException("Истек срок действия Сookie авторизации!");
     }
 }
 
@@ -130,12 +141,14 @@ public function logout()
 }
 
 /**
- * упаковываем cookie
+ * упаковывает cookie в строку для передачи клиенту,
+ * перед упаковкой проверяет
  * 
  * @return string сериализованную строку с cookie
  */
 private function _package()
 {
+    $this->validate();
     $parts = array(self::$myversion, $this->created, $this->username);
     $cookie = base64_encode( implode(self::$glue, $parts) );
 
@@ -143,33 +156,21 @@ private function _package()
 }
 
 /**
- * распаковываем cookie
+ * распаковывает строку с cookie полученную от клиента,
+ * проверяет на валидность 
  * 
  * @param string $cookie
- * @throws TRMAuthCookieException
  */
 private function _unpackage($cookie)
 {
     $buffer = base64_decode($cookie);
 
     list($this->version, $this->created, $this->username) = explode(self::$glue, $buffer);
-
-    if($this->version != self::$myversion)
-    {
-        throw new TRMAuthCookieException("Не совпадает версия cookie");
-    }
-    if(!$this->created)
-    {
-        throw new TRMAuthCookieException("Неверное время создания Cookie");
-    }
-    if(!$this->username)
-    {
-        throw new TRMAuthCookieException("Не удалось распознать пользователя");
-    }
+    $this->validate();
 }
 
 /**
- * обновляет время сессии
+ * обновляет время Cookie
  */
 private function _reissue()
 {
