@@ -16,19 +16,36 @@ use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
  */
 abstract class TRMCookiesAuthMiddleware implements MiddlewareInterface
 {
+/**
+ * @var string - имя аргумента в GET-зпросе с адресом-URI,
+ * куда будет направлен пользователь после авторизации,
+ * устанавливается в конструкторе наследуемого
+ */
+protected $OriginatingUriArgumentName;
+/**
+ * @var string - имя Cookie в котором будет хранится информации об авторизации пользователя,
+ * если не задан явно, будет сформирован автоматически из www_имясайта_ru_auth
+ */
 protected $AuthCookieName;
 /**
- * @var string - Путь, по которому будет перенаправлен не авторизованный пользователь
+ * @var string - путь, по которому будет перенаправлен не авторизованный пользователь,
+ * как правило это страница для ввода логина и пароля - /login
  */
 protected $UnAuthURL;
 
 /**
- * @param string $UnAuthURL - Путь, по которому будет перенаправлен не авторизованный пользователь
+ * @param string $AuthCookieName - имя Cookie-фйла для авторизации
+ * @param string $UnAuthURL - путь, по которому перенаправляется не авторизованный пользоватьель
+ * @param string $OriginatingUriArgumentName - имя аргумента GET-запроса, в котором сохраняется исходный URI
  */
-public function __construct( $AuthCookieName, $UnAuthURL )
+public function __construct( 
+        $AuthCookieName = "", 
+        $UnAuthURL = "/login", 
+        $OriginatingUriArgumentName = "originating_uri" )
 {
     $this->AuthCookieName = $AuthCookieName;
     $this->UnAuthURL = $UnAuthURL;
+    $this->OriginatingUriArgumentName = $OriginatingUriArgumentName;
 }
 
 /**
@@ -65,11 +82,16 @@ public function setAuthCookieName($AuthCookieName) {
  */
 public function process(Request $Request, RequestHandlerInterface $Handler)
 {
+    if( empty($this->AuthCookieName) )
+    {
+        $this->AuthCookieName = str_replace( ".", "_", $Request->server->get("REQUEST_URI") ) . "_auth";
+    }
     if( !$this->checkCookies() )
     {
         return new RedirectResponse( 
-                $this->UnAuthURL . "?originating_uri=" . $Request->server->get("REQUEST_URI") );
-        // $Response->send();
+                $this->UnAuthURL 
+                . "?{$this->OriginatingUriArgumentName}=" 
+                . $Request->server->get("REQUEST_URI") );
     }
     return $Handler->handle( $Request );
 }
@@ -101,7 +123,7 @@ protected function checkCookies()
  * проверяет наличие пользователя в БД
  * 
  * @param string $username - имя проверяемого пользователя
- * @return boolean - если пользователь найден аозвращает true
+ * @return boolean - если пользователь найден возвращает true
  */
 abstract protected function checkUser($username);
 

@@ -1,16 +1,21 @@
 <?php
-namespace TRMEngine;
+
+namespace TRMEngine\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
 use TRMEngine\Exceptions\TRMNoActionException;
 use TRMEngine\Exceptions\TRMNoControllerException;
+use TRMEngine\TRMView;
 
 /**
  * базовый класс дл€ всех контроллеров
  */
 abstract class TRMController
 {
-const DefaultPageName = "page";
+/**
+ * @var string - указывает какой аргумент добавл€етс€ к запросу дл€ указани€ номера страницы при пагинации
+ */
+static $DefaultPageName = "page";
 
 /**
  * @var Request - объект запроса от клиента
@@ -47,13 +52,13 @@ public function __construct(Request $Request)
     }
     // дл€ удобства выдел€ем им€ Action в отдельную переменную
     $this->CurrentActionName = $this->Request->attributes->get("action");
-    if( !isset($this->CurrentActionName) )
+    if( empty($this->CurrentActionName) )
     {
         throw new TRMNoActionException( __METHOD__ . " Ќе указан Action", 404);
     }
 
     // а так же дл€ удобства выдел€ем номер страницы (дл€ пагинации) в отдельную переменную
-    $this->page = $this->Request->query->getInt(defined ("PAGE_NUMERIC_NAME") ? PAGE_NUMERIC_NAME : self::DefaultPageName, 1);
+    $this->page = $this->Request->query->getInt( self::DefaultPageName, 1);
 }
 
 
