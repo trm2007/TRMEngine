@@ -1,13 +1,13 @@
 <?php
 
-namespace TRMEngine;
+namespace TRMEngine\PathFinder;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use TRMEngine\Exceptions\TRMActionNotFoundedException;
-use TRMEngine\Exceptions\TRMControllerNotFoundedException;
-use TRMEngine\Exceptions\TRMMustStartOtherActionException;
-use TRMEngine\TRMPipeLine\RequestHandlerInterface;
+use TRMEngine\Controller\Exceptions\TRMMustStartOtherActionException;
+use TRMEngine\PathFinder\Exceptions\TRMActionNotFoundedException;
+use TRMEngine\PathFinder\Exceptions\TRMControllerNotFoundedException;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
  * запускает выплонение найденного в TRMPathFinder контроллера с нужным методом!

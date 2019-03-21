@@ -4,7 +4,6 @@ namespace TRMEngine\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
 use TRMEngine\Cookies\TRMAuthCookie;
-use TRMEngine\TRMController;
 
 abstract class TRMLoginController extends TRMController
 {
@@ -24,6 +23,12 @@ protected $AuthCookieName;
  * как правило это страница для ввода логина и пароля - /login
  */
 protected $UnAuthURL;
+/**
+ *
+ * @var string - адрес, на который будет перенаправлен пользователь, 
+ * при авторизации, если не задан OriginatingUri
+ */
+protected $DefaultUri;
 
 
 /**
@@ -31,17 +36,20 @@ protected $UnAuthURL;
  * @param string $AuthCookieName - имя Cookie-фйла для авторизации
  * @param string $UnAuthURL - путь, по которому перенаправляется не авторизованный пользоватьель
  * @param string $OriginatingUriArgumentName - имя аргумента GET-запроса, в котором сохраняется исходный URI
+ * @param string $DefaultUri - адрес, на который будет перенаправлен пользователь, если на задан OriginatingUri
  */
 function __construct(
         Request $Request,
         $AuthCookieName = "", 
         $UnAuthURL = "/login", 
-        $OriginatingUriArgumentName = "originating_uri" )
+        $OriginatingUriArgumentName = "originating_uri",
+        $DefaultUri = "/" )
 {
     parent::__construct($Request);
     $this->AuthCookieName = $AuthCookieName;
     $this->UnAuthURL = $UnAuthURL;
     $this->OriginatingUriArgumentName = $OriginatingUriArgumentName;
+    $this->DefaultUri = $DefaultUri;
 }
 
 /**
@@ -56,15 +64,18 @@ public function actionLogin()
     $password = $this->Request->request->get("password");
     // проверка пользователя и пароля
     // как правило checkPassword пробует в базе найти пользователя с таким паролем
-    if( $this->checkPassword($name, $password) )
+    if( !$this->checkPassword($name, $password) )
     {
         $this->renderLoginView();
         return true;
     }
-    // при входе originating_uri передается из формы
+    // если этот код выполняется, значит авторизовались
+
+    // при входе originating_uri передается через GET-запрос,
+    // если такого аргумента нет, то происходит переадресация на DefaultUri
     $uri = $this->Request->request->get( $this->OriginatingUriArgumentName, $this->DefaultUri );
 
-    // если этот код выполняется, значит авторизовались, сохраняем cookie с текущим пользователем
+    // сохраняем cookie с текущим пользователем
     $cookie = new AuthCookie($name);
 
     $cookie->setauth();
@@ -94,9 +105,11 @@ public function actionLogout()
     exit;
 }
 
+/**
+ * формирует HTTP-заголовки для очистки кэша
+ */
 protected function setHeaders()
 {
-    // убираем кэширование
     header("Cache-Control: no-cache, no-store");
     header("Pragma: no-cache");
     header("Expires: Tue, 22 Jan 2000 21:45:35 GMT");
@@ -104,7 +117,8 @@ protected function setHeaders()
 
 /**
  * пользовательская реализация,
- * должна отрисовывать форму входа
+ * в ней должны предприниматься действия, когда пользователь не авторизован и,
+ * например, должен отображаться вид с формой входа
  */
 abstract public function renderLoginView();
 

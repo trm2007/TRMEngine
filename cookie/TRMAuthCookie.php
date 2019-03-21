@@ -2,7 +2,8 @@
 
 namespace TRMEngine\Cookies;
 
-use TRMEngine\Exceptions\TRMAuthCookieException;
+use TRMEngine\Cookies\Exceptions\TRMAuthCookieException;
+
 
 class TRMAuthCookie extends TRMCookie
 { 

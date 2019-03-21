@@ -3,9 +3,10 @@
 namespace TRMEngine\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
-use TRMEngine\Exceptions\TRMNoActionException;
-use TRMEngine\Exceptions\TRMNoControllerException;
+use TRMEngine\Controller\Exceptions\TRMNoActionException;
+use TRMEngine\Controller\Exceptions\TRMNoControllerException;
 use TRMEngine\TRMView;
+
 
 /**
  * базовый класс для всех контроллеров

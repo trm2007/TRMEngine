@@ -1,12 +1,13 @@
 <?php
-namespace TRMEngine;
+
+namespace TRMEngine\PathFinder;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
-use TRMEngine\Exceptions\TRMPathNotFoundedException;
+use TRMEngine\PathFinder\Exceptions\TRMPathNotFoundedException;
 use TRMEngine\TRMPipeLine\MiddlewareInterface;
 use TRMEngine\TRMPipeLine\RequestHandlerInterface;
 
