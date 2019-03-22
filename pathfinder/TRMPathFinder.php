@@ -8,8 +8,9 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use TRMEngine\PathFinder\Exceptions\TRMPathNotFoundedException;
-use TRMEngine\TRMPipeLine\MiddlewareInterface;
-use TRMEngine\TRMPipeLine\RequestHandlerInterface;
+use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
+
 
 /**
  * класс для выбора контроллера и Action для данного пути

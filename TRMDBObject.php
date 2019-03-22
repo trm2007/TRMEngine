@@ -120,7 +120,7 @@ protected function __construct()
  * подключается к БД используя настройки из массива $ConfigArray
  * 
  * @return boolean - в случае успеха вернет true
- * @throws Exception - в случае неудачи - исключение
+ * @throws \Exception - в случае неудачи - исключение
  */
 public static function connect()
 {
@@ -130,11 +130,11 @@ public static function connect()
     {
         if( $trycounts == TRMDBObject::TRM_DB_TRY_TO_CONNECT_TIMES )
         {
-            throw new Exception( __METHOD__ . " Не удалось установить начальное соединение с БД " 
+            throw new \Exceptions( __METHOD__ . " Не удалось установить начальное соединение с БД " 
                     . static::$ConfigArray["dbserver"] 
                     . " - " . static::$ConfigArray["dbuser"] );
         }
-        static::$newlink = new mysqli( isset(static::$ConfigArray["dbserver"]) ? static::$ConfigArray["dbserver"] : null,
+        static::$newlink = new \mysqli( isset(static::$ConfigArray["dbserver"]) ? static::$ConfigArray["dbserver"] : null,
                                 isset(static::$ConfigArray["dbuser"]) ? static::$ConfigArray["dbuser"] : null,
                                 isset(static::$ConfigArray["dbpassword"]) ? static::$ConfigArray["dbpassword"] : null,
                                 isset(static::$ConfigArray["dbname"]) ? static::$ConfigArray["dbname"] : null,
@@ -154,7 +154,7 @@ public static function connect()
 /**
  * переподключается к БД, если соединение активно, закрывет его и соединяется вновь
  * 
- * @return boolean - true в случае успешного соединения с БД , иначе функциЯ connect выбрасывает исключение Exception
+ * @return boolean - true в случае успешного соединения с БД , иначе функциЯ connect выбрасывает исключение \Exception
  */
 public static function reconnect()
 {
@@ -170,7 +170,7 @@ public static function reconnect()
 /**
  * делает запрос к БД. если вернулась ошибка 2006 (server has gone away), то пытается подключиться заново
  *  
- * @return boolean - true в случае успешного соединения с БД , иначе функции connect и reconnect выбрасывают исключение Exception
+ * @return boolean - true в случае успешного соединения с БД , иначе функции connect и reconnect выбрасывают исключение \Exception
  */
 public static function ping()
 {
@@ -205,7 +205,7 @@ public static function close()
  * 
  * @return array - массив с параметрами колонок
  * 
- * @throws TRMSqlQueryException - если запрос выполнен с ошибкой, вбрасывается исключение
+ * @throws TRMSqlQuery\Exception - если запрос выполнен с ошибкой, вбрасывается исключение
  */
 public static function getTableColumnsInfo($TableName, $ExtendFlag = false)
 {

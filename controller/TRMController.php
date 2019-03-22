@@ -5,7 +5,7 @@ namespace TRMEngine\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use TRMEngine\Controller\Exceptions\TRMNoActionException;
 use TRMEngine\Controller\Exceptions\TRMNoControllerException;
-use TRMEngine\TRMView;
+use TRMEngine\View\TRMView;
 
 /**
  * базовый класс для всех контроллеров
@@ -58,7 +58,7 @@ public function __construct(Request $Request)
     }
 
     // а так же для удобства выделяем номер страницы (для пагинации) в отдельную переменную
-    $this->page = $this->Request->query->getInt( self::DefaultPageName, 1);
+    $this->page = $this->Request->query->getInt( static::$DefaultPageName, 1);
 }
 
 

@@ -5,6 +5,13 @@ namespace TRMEngine\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use TRMEngine\Cookies\TRMAuthCookie;
 
+/**
+ * класс контроллера для входа и авторизации с использованием Cookie,
+ * на стороне пользователя должны быть реализованы методы проверки пары - пользователь<=>пароль,
+ * и метод-действие на случай, если нужно отбражать форму входа (не авторизован)
+ * 
+ * @version 2019-03-21
+ */
 abstract class TRMLoginController extends TRMController
 {
 /**
@@ -134,7 +141,7 @@ abstract public function renderLoginView();
  * @param string $password
  * @return boolean
  */
-abstract public function checkPassword($name, $password);
+abstract protected function checkPassword($name, $password);
 
 
 } // TRMLoginController

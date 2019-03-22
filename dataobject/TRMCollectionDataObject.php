@@ -10,7 +10,7 @@ use TRMEngine\DataObject\TRMDataObject;
  *
  * @author TRM
  */
-class TRMCollectionDataObject extends TRMDataObject implements ArrayAccess // IteratorAggregate
+class TRMCollectionDataObject extends TRMDataObject implements \ArrayAccess // IteratorAggregate
 {
 
 /**

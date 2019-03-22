@@ -12,7 +12,7 @@ use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
  *
  * @author TRM - 2018-08-26
  */
-class TRMDataMapper implements ArrayAccess, Countable, Iterator
+class TRMDataMapper implements \ArrayAccess, \Countable, \Iterator
 {
 /**
  * @var array(TRMObject) - массив с объектами TRMObject

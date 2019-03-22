@@ -124,7 +124,7 @@ public static function getNew( $classname, $params = array() )
         if(method_exists($classname, $funcname ) ) // "__construct"))
         {
             // получаем объект описывающий класс $classname
-            $RefObj = new ReflectionClass($classname);
+            $RefObj = new \ReflectionClass($classname);
             // проверяем, если метод $funcname в объектах типа $classname не публичный, 
             // то вызвать его не получится, тогда продолжаем цикл дальше
             if( !($RefObj->getMethod($funcname)->isPublic()) )

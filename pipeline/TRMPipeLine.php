@@ -6,8 +6,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
-use TRMEngine\PipeLine\TRMNext;
-
 
 /**
  * TRMPipeLine - собирает обработчики в массив и вызывает последовательно
@@ -19,7 +17,7 @@ class TRMPipeLine implements RequestHandlerInterface, MiddlewareInterface
 {
 /**
  * очередь объектов для типа MiddlewareInterface, каждый из которых реализует механизм посредника
- * @var SplQueue
+ * @var \SplQueue
  */
 protected $PipeLine;
 /**
@@ -35,7 +33,7 @@ private $LastAction;
  */
 public function __construct( RequestHandlerInterface $LastAction )
 {
-    $this->PipeLine = new SplQueue();
+    $this->PipeLine = new \SplQueue();
     $this->LastAction = $LastAction;
 }
 
@@ -66,7 +64,7 @@ public function pipe( MiddlewareInterface $MiddleWare )
  * 
  * @param Request $Request
  * @return Response
- * @throws Exception - если попытаться вызвать этот обработчик для пустой очереди, то выбрасывается исключение,
+ * @throws \Exception - если попытаться вызвать этот обработчик для пустой очереди, то выбрасывается исключение,
  * так как задача TRMPipeLine обеспечить вызов обработчиков по цепочки из заранее сформированной очереди,
  * никаких других действий для обработк $Request не производится!
  */
@@ -79,7 +77,7 @@ public function handle( Request $Request )
 ////////////// Zend version //////////////////////    
 //    if( $this->PipeLine->isEmpty() )
 //    {
-//        throw new Exception( __METHOD__ . " Вызван обработчик запроса с пустой очередью PipeLine" );
+//        throw new \Exception( __METHOD__ . " Вызван обработчик запроса с пустой очередью PipeLine" );
 //    }
 //
 //    // клонируем объект, что бы сохранить первоначальную очередь обработчиков

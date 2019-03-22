@@ -1,5 +1,8 @@
 <?php
-namespace TRMEngine;
+
+namespace TRMEngine\View;
+
+use TRMEngine\PathFinder\TRMPathFinder;
 
 /**
  * Базовый класс вида
@@ -101,7 +104,7 @@ public function __construct( $view="", $layout="" )
 {
     if( empty($view) )
     {
-        if( class_exists("TRMEngine\TRMPathFinder")  )
+        if( class_exists("TRMEngine\PathFinder\TRMPathFinder")  )
         {
             $this->ViewName = isset(TRMPathFinder::$CurrentPath["action"]) ? strtolower(TRMPathFinder::$CurrentPath["action"]) : TRMPathFinder::DefaultActionName;
         }
@@ -130,20 +133,17 @@ public function render()
 /**
  * возвращает весь контент в виде строки
  * 
- * @return type
- * @throws Exception
+ * @return string
  */
 public function __toString()
 {
 	$viewfilepath = $this->PathToViews . "/" . $this->ViewName.".php";
         if( !is_file($viewfilepath) )
         {
-            \TRMLib::ap(TRMPathFinder::$CurrentPath);
-            \TRMLib::debugPrint($viewfilepath); // return null;
             return "";
             
             // __toString не может выбрасывать исключения, должна возвращатьтолько строку, пустть и пустую ""
-            throw new \Exception( "Не найден Вид {$viewfilepath}!", 500 );
+            // throw new \Exception( "Не найден Вид {$viewfilepath}!", 500 );
         }
 
 	if(!empty($this->Vars) ) // перед выводом Html получим все переменные из массива
@@ -169,7 +169,7 @@ public function __toString()
         {
             // если задан макет, то отправляем через TRMContent в него Html-код, полученный из основного вида
             $LayoutFile = $this->PathToLayouts . "/" . $this->LayoutName.".php";
-            if( !is_file($LayoutFile) ) { throw new \Exception( "Не найден макет {$LayoutFile}!" ); }
+            if( !is_file($LayoutFile) ) { return ""; } // throw new \Exception( "Не найден макет {$LayoutFile}!" ); }
             ob_start();
             require $viewfilepath;
             // сохраняем вывод
@@ -285,7 +285,7 @@ function setVar($name, $value)
 {
     if(!is_string($name) )
     {
-        \TRMLib::debugPrint("Имя добавляемой переменной должно быть строкой!");
+//        TRMLib::debugPrint("Имя добавляемой переменной должно быть строкой!");
         return false;
     }
 
@@ -473,15 +473,13 @@ function printMeta()
  */
 function setContent($name, $content)
 {
-    if( is_string($name) )
+    if( !is_string($name) )
     {
-        $this->Contents[$name] = (string)$content;
-    }
-    else
-    {
-        \TRMLib::debugPrint("Имя добавляемого контента должно быть строкой!");
+//        TRMLib::debugPrint("Имя добавляемого контента должно быть строкой!");
         return false;
     }
+
+    $this->Contents[$name] = (string)$content;
     return true;
 }
 /**

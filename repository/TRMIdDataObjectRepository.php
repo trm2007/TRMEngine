@@ -155,8 +155,12 @@ public function getBy($fieldname, $value, $operator = "=", $getfromdatasourcefla
         }
     }
     // иначе будет произведен поиск по хранилищу, в данной реализации в БД
-    // в getBy устанавливается $this->CurrentObject
-    if( parent::getBy($fieldname, $value, $operator) === null ) { return null; }
+    // если CurrentObject еще не установлен (null),
+    // он будет создан и установен в getBy
+    parent::getBy($fieldname, $value, $operator);
+    
+    // если из БД получить объект не удалось, то getId вернет null
+    if( $this->CurrentObject->getId() === null ) { return null; }
     // сохраняем ссылку на текущий объект в локальном массиве
     $this->addCurrentObjectToContainer();
 

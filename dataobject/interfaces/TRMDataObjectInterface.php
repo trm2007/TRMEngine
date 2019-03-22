@@ -5,7 +5,7 @@ namespace TRMEngine\DataObject\Interfaces;
 /**
  * общий интерфейс для объектов данных
  */
-interface TRMDataObjectInterface extends Countable, Iterator
+interface TRMDataObjectInterface extends \Countable, \Iterator
 {
 /**
  * возвращает весь массив с данными, вернется дубликат,

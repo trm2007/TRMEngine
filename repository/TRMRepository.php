@@ -97,10 +97,10 @@ public function getDataSource()
  * @param string|numeric|boolean $data - данные для сравнения
  * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
  * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
- * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMARCommon::TRM_AR_QUOTE
+ * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::TRM_AR_QUOTE
  * @param string $alias - альяс для таблицы из которой сравнивается поле
  * @param integer $dataquote - если нужно оставить сравниваемое выражение без кавычек, 
- * то этот аргумент доложен быть - TRMARCommon::TRM_AR_NOQUOTE
+ * то этот аргумент доложен быть - TRMSqlDataSource::TRM_AR_NOQUOTE
  */
 public function setWhereCondition($fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE )
 {

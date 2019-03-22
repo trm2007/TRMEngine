@@ -1,12 +1,12 @@
 <?php
 namespace TRMEngine;
 
-use TRMEngine\TRMPipeLine\RequestHandlerInterface;
-use TRMEngine\TRMPipeLine\TRMPathMiddlewareDecorator;
-use TRMEngine\TRMPipeLine\MiddlewareInterface;
-use TRMEngine\TRMPipeLine\TRMPipeLine;
-
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
+use TRMEngine\PipeLine\TRMPathMiddlewareDecorator;
+use TRMEngine\PipeLine\TRMPipeLine;
 
 /**
  * основной класс для приложения, позволяет задавать цепочки для последовательного выполнения MiddlewareInterface->process()
