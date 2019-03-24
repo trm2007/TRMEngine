@@ -15,7 +15,7 @@ class TRMRepositoryGetObjectException extends TRMException {
 /**
  * выбрасывается, если в репозитории не установлена ссылка на объект данных
  */
-class TRMRepositoryNoDataObjrctException extends TRMException
+class TRMRepositoryNoDataObjectException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {

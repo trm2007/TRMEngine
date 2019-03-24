@@ -6,7 +6,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\TRMDataObject;
 use TRMEngine\DataSource\Interfaces\TRMDataSourceInterface;
 use TRMEngine\DataSource\TRMSqlDataSource;
-use TRMEngine\Repository\Exeptions\TRMRepositoryNoDataObjrctException;
+use TRMEngine\Repository\Exeptions\TRMRepositoryNoDataObjectException;
 use TRMEngine\Repository\Exeptions\TRMRepositoryUnknowDataObjectClassException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
@@ -101,10 +101,14 @@ public function getDataSource()
  * @param string $alias - альяс для таблицы из которой сравнивается поле
  * @param integer $dataquote - если нужно оставить сравниваемое выражение без кавычек, 
  * то этот аргумент доложен быть - TRMSqlDataSource::TRM_AR_NOQUOTE
+ * 
+ * @return self - возвращает указатель на себя, это дает возможность писать такие выражения:
+ * $this->setWhereCondition(...)->setWhereCondition(...)->setWhereCondition(...)...
  */
 public function setWhereCondition($fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE )
 {
     $this->DataSource->addWhereParam($fieldname, $data, $operator, $andor, $quote, $alias, $dataquote);
+    return $this;
 }
 
 /**
@@ -161,7 +165,7 @@ public function getAll()
  * 
  * @return boolean
  * 
- * @throws TRMRepositoryNoDataObjrctException
+ * @throws TRMRepositoryNoDataObjectException
  */
 public function save(TRMDataObjectInterface $object = null)
 {
@@ -171,7 +175,7 @@ public function save(TRMDataObjectInterface $object = null)
     }
     if( null === $this->CurrentObject )
     {
-        throw new TRMRepositoryNoDataObjrctException( "Не установлен объект с данными в репозитории " . get_class($this) );
+        throw new TRMRepositoryNoDataObjectException( "Не установлен объект с данными в репозитории " . get_class($this) );
     }
     return $this->update();
 }
@@ -180,13 +184,13 @@ public function save(TRMDataObjectInterface $object = null)
  * 
  * @return boolean
  * 
- * @throws TRMRepositoryNoDataObjrctException
+ * @throws TRMRepositoryNoDataObjectException
  */
 public function update()
 {
     if( null === $this->CurrentObject )
     {
-        throw new TRMRepositoryNoDataObjrctException( __METHOD__ );
+        throw new TRMRepositoryNoDataObjectException( __METHOD__ );
     }
     return $this->DataSource->update();
 }
@@ -195,13 +199,13 @@ public function update()
  * 
  * @return boolean
  * 
- * @throws TRMRepositoryNoDataObjrctException
+ * @throws TRMRepositoryNoDataObjectException
  */
 public function insert()
 {
     if( null === $this->CurrentObject )
     {
-        throw new TRMRepositoryNoDataObjrctException( __METHOD__ );
+        throw new TRMRepositoryNoDataObjectException( __METHOD__ );
     }
     return $this->DataSource->insert();
 }
@@ -210,13 +214,13 @@ public function insert()
  * 
  * @return boolean
  * 
- * @throws TRMRepositoryNoDataObjrctException
+ * @throws TRMRepositoryNoDataObjectException
  */
 public function delete()
 {
     if( null === $this->CurrentObject )
     {
-        throw new TRMRepositoryNoDataObjrctException( __METHOD__ );
+        throw new TRMRepositoryNoDataObjectException( __METHOD__ );
     }
     return $this->DataSource->delete();
 }

@@ -51,7 +51,8 @@ public function clearParams();
  * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::NEED_QUOTE
  * @param string $alias - альяс для таблицы из которой сравнивается поле, если не задан, то будет совпадать с альясом главной таблицы
  * @param integer $dataquote - если нужно оставить сравниваемое выражение без кавычек, 
- * то этот аргумент доложен быть - TRMSqlDataSource::NEED_QUOTE
+ * то этот аргумент доложен быть - TRMSqlDataSource::NOQUOTE, 
+ * по умолчанию в кавычках - TRMSqlDataSource::NEED_QUOTE
  * 
  * @return $this
  */

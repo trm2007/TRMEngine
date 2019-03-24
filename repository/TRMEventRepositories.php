@@ -6,6 +6,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DiContainer\TRMDIContainer;
 use TRMEngine\EventObserver\TRMCommonEvent;
+use TRMEngine\EventObserver\TRMEventManager;
 use TRMEngine\Repository\TRMDataObjectsContainerRepository;
 
 /**
@@ -82,7 +83,7 @@ protected function setRepositoryArrayForContainer()
     foreach( $this->DataObjectsContainer as $DataObject )
     {
         // получаем репозиторий для текущего объекта...
-        $rep = TRMDIContainer::getStatic("TRMRepositoryManager")->getRepositoryFor($DataObject);
+        $rep = TRMDIContainer::getStatic(TRMRepositoryManager::class)->getRepositoryFor($DataObject);
         // устанавливаем текущий объект для полученного репозитория
         $rep->setObject($DataObject);
         // добавляем полученный объект в массив (добавляется только ссылка, поэтому объекты одинаковых типов не могут использоваться в одном составном объекте товара или др.)
@@ -109,7 +110,7 @@ public function getBy($fieldname, $value, $operator = "=")
     if( !empty($this->GetEventName) )
     {
         // информируем всех наблюдателей, что получен главный объект из хранилища
-        TRMDIContainer::getStatic("TRMEventManager")->notifyObservers(
+        TRMDIContainer::getStatic(TRMEventManager::class)->notifyObservers(
                 new TRMCommonEvent( // создается объект события
                         $this, // передаем ссылку на инициатора события, т.е. на себя
                         $this->GetEventName // тип события (его имя)
@@ -133,7 +134,7 @@ public function update()
     if( !empty($this->UpdateEventName) )
     {
         // информируем всех наблюдателей, что обновлен  объект товара из БД - событие deleteComplexProductDBEvent
-        TRMDIContainer::getStatic("TRMEventManager")->notifyObservers(
+        TRMDIContainer::getStatic(TRMEventManager::class)->notifyObservers(
                 new TRMCommonEvent( // создается объект события
                         $this, // передаем ссылку на инициатора события, т.е. на себя
                         $this->UpdateEventName // тип события (его имя)
@@ -153,7 +154,7 @@ public function delete()
     if( !empty($this->DeleteEventName) )
     {
         // информируем всех наблюдателей, что объект будет удален из БД - событие deleteComplexProductDBEvent
-        TRMDIContainer::getStatic("TRMEventManager")->notifyObservers(
+        TRMDIContainer::getStatic(TRMEventManager::class)->notifyObservers(
                 new TRMCommonEvent( // создается объект события
                         $this, // передаем ссылку на инициатора события, т.е. на себя
                         $this->DeleteEventName // тип события (его имя)

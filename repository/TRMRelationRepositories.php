@@ -39,32 +39,12 @@ public function getBy($fieldname, $value, $operator = "=")
     
     foreach( $this->DataObjectsContainer as $Index => $DataObject )
     {
-        TRMDIContainer::getStatic("TRMRepositoryManager")->getRepositoryFor( $DataObject )
+        TRMDIContainer::getStatic(TRMRepositoryManager::class)->getRepositoryFor( $DataObject )
                         ->getById( 
                                     $this->DataObjectsContainer->getMainDataObject()
                                         ->getFieldValue( $this->DataObjectsContainer->getDependence($Index) )
                                 );
     }
-/*    
-    $ObjectsArray = $this->DataObjectsContainer->getDependenciesArray();
-    // информируем все объекты в контейнере, что получен главный объект из хранилища,
-    // и вызываем у каждого свой репозиторий 
-    foreach( $ObjectsArray as $Index => $ObjectInfo )
-    {
-        // получаем объект из репозитория, только если задано связующее поле - это имя поля в главном объекте, 
-        // значение которого можно связать с ID текущего (заправшиваемого) объекта
-        if( isset($ObjectInfo["RelationFieldName"]) && isset($ObjectInfo["TypeName"]) )
-        {
-            // устанавливаем объект с именем-индексом - $Index, полученный из соответсвующего репозитория в контейнер данных
-            $this->DataObjectsContainer->setDataObject(
-                    $Index, 
-                    TRMDIContainer::getStatic("TRMRepositoryManager")->getRepository( $ObjectInfo["TypeName"] )
-                        ->getById( $this->DataObjectsContainer->getMainDataObject()->getFieldValue($ObjectInfo["RelationFieldName"]) )
-                );
-        }
-    }
- * 
- */
 
     return $this->DataObjectsContainer;
 }
@@ -77,21 +57,6 @@ public function getBy($fieldname, $value, $operator = "=")
 public function update()
 {
     if( !$this->getMainRepository()->update() ) { return false; }
-/*    
-    $ObjectsArray = $this->DataObjectsContainer->getObjectsArray();
-    
-    // для каждого объекта, сохраненного в массиве ObjectsArray основного объекта-контейнера данных
-    // получаем ссылку на свой объект репозитория
-    // и выполняем для него Update, тем самым для каждого объекта будет получен свой репозиторий и связан объект,
-    // в контейнере можно сохранять объекты одного типа!!!
-    // Фактически массив контейнеров не нужен, если можем определить репозиторий для каждого объекта !!!!
-    foreach( $ObjectsArray as $Object )
-    {
-        $rep = TRMDIContainer::getStatic("TRMRepositoryManager")->getRepositoryFor( $Object );
-        $rep->update();
-    }
- * 
- */
     
     return true;
 }
@@ -103,22 +68,6 @@ public function update()
  */
 public function delete()
 {
-/*
-    $ObjectsArray = $this->DataObjectsContainer->getObjectsArray();
-    
-    // для каждого объекта, сохраненного в массиве ObjectsArray основного объекта-контейнера данных
-    // получаем ссылку на свой объект репозитория
-    // и выполняем для него Update, тем самым для каждого объекта будет получен свой репозиторий и связан объект,
-    // в контейнере можно сохранять объекты одного типа!!!
-    // Фактически массив контейнеров не нужен, если можем определить репозиторий для каждого объекта !!!!
-    foreach( $ObjectsArray as $Object )
-    {
-        $rep = TRMDIContainer::getStatic("TRMRepositoryManager")->getRepositoryFor( $Object );
-        $rep->delete();
-    }
- * 
- */
-
     return $this->getMainRepository()->delete();
 }
 

@@ -209,7 +209,7 @@ private function generateFieldsString()
     {        
         $TableAlias = $this->SafetyFields->getAliasForTableName($TableName);
         $tn = empty($TableAlias) ? $TableName : $TableAlias;
-        foreach( $TableState["Fields"] as $fieldname => $state )
+        foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $fieldname => $state )
         {
             if( !empty($tn) ) { $fieldstr .= "`" . $tn . "`."; }
 
@@ -239,14 +239,14 @@ private function generateJoinString()
     $JoinedTables = array();
     foreach( $this->SafetyFields as $CurrentTableName => $CurrentTableState )
     {
-        foreach ( $CurrentTableState["Fields"] as $CurrentFieldName => $CurrentFieldState )
+        foreach ( $CurrentTableState[TRMDataMapper::FIELDS_INDEX] as $CurrentFieldName => $CurrentFieldState )
         {
             // если есть Relation, занчит таблица из Relation должна быть присоединена по полю из Relation
             if( isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]) )
             {
                 $JoinedTables
                     [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
-                        ["Fields"]
+                        [TRMDataMapper::FIELDS_INDEX]
                             [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::FIELD_NAME_INDEX] ]
                         = array(
                             // если для главной таблицы задан альяс, то будем испльзовать его в строке JOIN,
@@ -264,6 +264,12 @@ private function generateJoinString()
                         [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
                             ["ObjectAlias"] = $CurrentTableState["ObjectAlias"];
                 }
+                
+                $JoinedTables
+                    [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
+                        ["Join"] = isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Join"]) ?
+                            $CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Join"] :
+                            self::DATASOURCE_JOIN_DEFAULT;
             }
         }
     }
@@ -279,28 +285,63 @@ private function generateJoinString()
     {
         if( empty($TableState) ) { continue; }
 
-        $joinstr .= self::DATASOURCE_JOIN_DEFAULT . " JOIN `" . $TableName . "`";
-        // если задан псевдоним таблицы, то добавляем его
-        if( !empty($TableState["ObjectAlias"])  ) { $joinstr .= $TableState["ObjectAlias"]; }
-        $joinstr .= " ON ";
-        
-        foreach( $TableState["Fields"] as $FieldName => $FieldRelation )
-        {
-            $joinstr .= "`" . $FieldRelation[TRMDataMapper::OBJECT_NAME_INDEX] . "`.`" .  $FieldRelation[TRMDataMapper::FIELD_NAME_INDEX] . "`";
-            // оператор сравнивает родительский элемент, котороый изначально ссылался через Relation в $this->SafetyFields
-            // он идет первым!
-            // с текущим элементом присоединяемой таблицы, он идет вторым дальше...
-            $joinstr .= $FieldRelation["Operator"];
-            // если для присоединяемой таблицы задан альяс, то будем испльзовать его в строке JOIN,
-            // если не задан, то имя таблицы
-            $joinstr .= !empty($TableState["ObjectAlias"]) ? $TableState["ObjectAlias"] : ("`" . $TableName . "`");
-            $joinstr .= ".`{$FieldName}`";
-            $joinstr .= " AND ";
-        }
-        $joinstr = rtrim($joinstr, "AND ");
+        $joinstr .= $this->generateJoinStringForTable($TableName, $TableState);
     }
 
     return $joinstr;
+}
+
+/**
+ * 
+ * @param string $TableName - имя таблицы
+ * @param array $TableState - массив состояния (подмассив с именами полей, альяс для таблицы, 
+ * возможно, указатель на метод подключения  JOIN (LEFT, RIGHT, INNER...) 
+ * 
+ * @return string - строка с частью JOIN-запроса для таблицы $TableName
+ */
+public function generateJoinStringForTable($TableName, array &$TableState)
+{
+    $joinstr = self::DATASOURCE_JOIN_DEFAULT;
+
+    if( isset($TableState["Join"]) )
+    {
+        $tmpjoin = trim(strtoupper($TableState["Join"]));
+        if( $tmpjoin === "LEFT OUTER" || $tmpjoin === "LEFT" )
+        {
+            $joinstr = "LEFT";
+        }
+        else if( $tmpjoin === "RIGHT OUTER" || $tmpjoin === "RIGHT" )
+        {
+            $joinstr = "RIGHT";
+        }
+        else if(
+            $tmpjoin === "FULL OUTER" ||
+            $tmpjoin === "INNER" ||
+            $tmpjoin === "CROSS" )
+        {
+            $joinstr = $tmpjoin;
+        }
+    }
+
+    $joinstr .= " JOIN `" . $TableName . "`";
+    // если задан псевдоним таблицы, то добавляем его
+    if( !empty($TableState["ObjectAlias"])  ) { $joinstr .= $TableState["ObjectAlias"]; }
+    $joinstr .= " ON ";
+
+    foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldRelation )
+    {
+        $joinstr .= "`" . $FieldRelation[TRMDataMapper::OBJECT_NAME_INDEX] . "`.`" .  $FieldRelation[TRMDataMapper::FIELD_NAME_INDEX] . "`";
+        // оператор сравнивает родительский элемент, котороый изначально ссылался через Relation в $this->SafetyFields
+        // он идет первым!
+        // с текущим элементом присоединяемой таблицы, он идет вторым дальше...
+        $joinstr .= $FieldRelation["Operator"];
+        // если для присоединяемой таблицы задан альяс, то будем испльзовать его в строке JOIN,
+        // если не задан, то имя таблицы
+        $joinstr .= !empty($TableState["ObjectAlias"]) ? $TableState["ObjectAlias"] : ("`" . $TableName . "`");
+        $joinstr .= ".`{$FieldName}`";
+        $joinstr .= " AND ";
+    }
+    return rtrim($joinstr, "AND ");
 }
 
 /**

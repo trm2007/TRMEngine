@@ -4,6 +4,7 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DiContainer\TRMDIContainer;
 use TRMEngine\EventObserver\TRMCommonEvent;
+use TRMEngine\EventObserver\TRMEventManager;
 
 /**
  * класс для работы с хранилищем коллекции зависимой от родительского объекта
@@ -43,17 +44,17 @@ public function __construct($objectclassname, $GetEventName = "", $UpdateEventNa
     if( !empty($this->GetEventName) )
     {
         // объект должен отслеживать получение родителя из хранилища, чтобы подгрузить свои данные
-        TRMDIContainer::getStatic("TRMEventManager")->addObserver($this, $this->GetEventName, "getHandle");
+        TRMDIContainer::getStatic(TRMEventManager::class)->addObserver($this, $this->GetEventName, "getHandle");
     }
     if( !empty($this->UpdateEventName) )
     {
         // объект должен отслеживать изменение родителя
-        TRMDIContainer::getStatic("TRMEventManager")->addObserver($this, $this->UpdateEventName, "updateHandle");
+        TRMDIContainer::getStatic(TRMEventManager::class)->addObserver($this, $this->UpdateEventName, "updateHandle");
     }
     if( !empty($this->DeleteEventName) )
     {
         // объект должен отслеживать удаление родителя из хранилища
-        TRMDIContainer::getStatic("TRMEventManager")->addObserver($this, $this->DeleteEventName, "deleteHandle");
+        TRMDIContainer::getStatic(TRMEventManager::class)->addObserver($this, $this->DeleteEventName, "deleteHandle");
     }
 }
 

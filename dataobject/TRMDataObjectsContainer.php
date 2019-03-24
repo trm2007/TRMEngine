@@ -259,8 +259,13 @@ public function presentDataIn($rownum, array &$fieldnames)
     $this->MainDataObject->presentDataIn($rownum, $fieldnames);
 }
 
-public function getFieldValue()
-{}
+/**
+ * @param string $fieldname - имя поля основного объекта (MainDataObject), для которого нужно получить значение
+ */
+public function getFieldValue($fieldname)
+{
+    $this->MainDataObject->getData(0, $fieldname);
+}
 
 /**
  * реализация интерфейса Countable,

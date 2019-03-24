@@ -12,7 +12,7 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
  * @author TRM
 
  */
-abstract class TRMIdDataObject extends TRMDataObject implements ArrayAccess, TRMIdDataObjectInterface
+abstract class TRMIdDataObject extends TRMDataObject implements \ArrayAccess, TRMIdDataObjectInterface
 {
 /**
  * @var string - имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД

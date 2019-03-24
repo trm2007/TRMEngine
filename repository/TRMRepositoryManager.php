@@ -42,7 +42,7 @@ public function addRepositoryName($objectclassname, $repositoryclassname)
 {
     if( !class_exists($repositoryclassname) )
     {
-        throw new \Exception("Не найден класс репозитория {$repositoryclassname} для объектов тип {$objectclassname}!");
+        throw new \Exception( "Не найден класс репозитория {$repositoryclassname} для объектов тип {$objectclassname}!");
     }
     $this->RepositoryNameArray[$objectclassname] = $repositoryclassname;
 }
@@ -63,7 +63,10 @@ public function getRepository($objectclassname)
     {
         if( !class_exists($objectclassname."Repository") )
         {
-            throw new \Exception("Не найден класс репозитория для объектов тип {$objectclassname}!");
+            ob_start();
+            \TRMEngine\Helpers\TRMLib::ap($this->RepositoryNameArray);
+            $debinf = ob_get_clean();
+            throw new \Exception( $debinf . "Не найден класс репозитория для объектов тип {$objectclassname}!");
         }
         $this->RepositoryNameArray[$objectclassname] = $objectclassname."Repository";
     }

@@ -34,6 +34,7 @@ const COMMENT_INDEX     = "Comment"; // комментарий к полю, фактически название 
 const RELATION_INDEX    = "Relation"; // массив с зависимостями по этому полю, привязка к полю из другого объекта
 const OBJECT_NAME_INDEX = "ObjectName"; // имя объекта, на которое ссылается поле в разделе RELATION
 const FIELD_NAME_INDEX  = "FieldName"; // имя поля, на которое ссылается другое поле в разделе RELATION
+const FIELDS_INDEX      = "Fields"; // индекс для массива с полями и их состояниями в объекте
 
 /**
  * @var array - массив индексов для FieldState и значений для этих параметров по умолчанию
@@ -88,9 +89,9 @@ public function setSafetyFieldsArray( array $SafetyFieldsArray )
     $this->SafetyFieldsArray = array();
     foreach( $SafetyFieldsArray as $ObjectName => $ObjectState )
     {
-        $this->setSafetyFieldsFor($ObjectState["Fields"], 
+        $this->setSafetyFieldsFor($ObjectState[TRMDataMapper::FIELDS_INDEX], 
                 $ObjectName, 
-                isset($ObjectState["State"]) ? $ObjectState["State"] : TRMDataMapper::READ_ONLY_FIELD );
+                isset($ObjectState[TRMDataMapper::STATE_INDEX]) ? $ObjectState[TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD );
     }
 }
 
@@ -108,7 +109,7 @@ public function setSafetyFieldsArray( array $SafetyFieldsArray )
  */
 public function setSafetyField( $FieldName, $ObjectName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
-    $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName] = array();
+    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
     $this->completeSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
 }
 
@@ -132,32 +133,32 @@ protected function completeSafetyField( $FieldName, $ObjectName, array $FieldSta
         throw new TRMDataMapperNotStringFieldNameException( " [{$FieldName}] " );
     }
     // если для поля еще не установлен массив параметров, создаем как пустой
-    if(!isset($this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName]))
+    if(!isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]))
     {
-        $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName] = array();
+        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
     }
     // объединяем переданные параметры и уже существующие для поля, 
     // заменяя старые значения на новый
-    $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName] = array_merge($this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName], $FieldState);
+    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array_merge($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName], $FieldState);
     // если какой-то из параметров не задан, 
     // то присваиваем ему значение по умолчанию из массива self::$IndexArray
     foreach( self::$IndexArray as $Index => $Value)
     {
-        if( isset($this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName][$Index]) )
+        if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index]) )
         {
             continue;
         }
         if( $Index == TRMDataMapper::STATE_INDEX )
         {
-            $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName][$Index] = $DefaultState;
+            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $DefaultState;
         }
         elseif( $Index == TRMDataMapper::COMMENT_INDEX )
         {
-            $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName][$Index] = $FieldName;
+            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $FieldName;
         }
         else
         {
-            $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName][$Index] = $Value;
+            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $Value;
         }
     }
 }
@@ -188,7 +189,7 @@ public function setSafetyFieldsFor( array $Fields, $ObjectName, $DefaultState = 
 {
     if( !isset($this->SafetyFieldsArray[$ObjectName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName] = array( "State" => $DefaultState, "Fields" => array() );
+        $this->SafetyFieldsArray[$ObjectName] = array( "State" => $DefaultState, TRMDataMapper::FIELDS_INDEX => array() );
     }
 
     foreach( $Fields as $FieldName => $FieldState )
@@ -207,9 +208,9 @@ public function setSafetyFieldsFor( array $Fields, $ObjectName, $DefaultState = 
  */
 public function removeSafetyField( $FieldName, $ObjectName )
 {
-    if( isset($this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName]) )
+    if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
     {
-        unset($this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName]);
+        unset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]);
     }
 }
 
@@ -240,9 +241,9 @@ public function removeSafetyFieldsForObject( $ObjectName  )
  */
 public function setSafetyFieldState( $FieldName, $ObjectName, $State = TRMDataMapper::READ_ONLY_FIELD )
 {
-    if( isset($this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName]) )
+    if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName]["State"] = $State;
+        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]["State"] = $State;
     }
     else
     {
@@ -260,11 +261,11 @@ public function setSafetyFieldState( $FieldName, $ObjectName, $State = TRMDataMa
  */
 public function getSafetyFieldState( $FieldName, $ObjectName )
 {
-    if( !isset( $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName] ) )
+    if( !isset( $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] ) )
     {
         return null;
     }
-    return $this->SafetyFieldsArray[$ObjectName]["Fields"][$FieldName]["State"];
+    return $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]["State"];
 }
 
 /**
@@ -279,7 +280,7 @@ public function getBackRelationFor($LookingObjectName, $LookingFieldName)
     $FieldsArray = array();
     foreach( $this->SafetyFieldsArray as $ObjectName => $ObjectState )
     {
-        foreach( $ObjectState["Fields"] as $FieldName => $FieldState )
+        foreach( $ObjectState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
         {
             // если у очередного поля есть секция Relatin (RELATION_INDEX)
             // проверяем ссылается ли она на проверяемое поле
@@ -325,7 +326,7 @@ public function sortObjectsForRelationOrder()
 private function compareTwoTablesRelation( $Table1Name, $Table2Name )
 {
     // проверяем ссылается ли таблица 1 на таблицу 2
-    foreach( $this->SafetyFieldsArray[$Table1Name]["Fields"] as $FieldName => $FieldState )
+    foreach( $this->SafetyFieldsArray[$Table1Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
     {
         if( isset($FieldState[TRMDataMapper::RELATION_INDEX]) 
                 && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] == $Table2Name
@@ -342,7 +343,7 @@ private function compareTwoTablesRelation( $Table1Name, $Table2Name )
     }
     // если ссылок из Т1 на Т2 не нйдено проверяем наоборот, ссылки из Т2 на Т1
     // проверяем ссылается ли таблица 1 на таблицу 2
-    foreach( $this->SafetyFieldsArray[$Table2Name]["Fields"] as $FieldName => $FieldState )
+    foreach( $this->SafetyFieldsArray[$Table2Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
     {
         if( isset($FieldState[TRMDataMapper::RELATION_INDEX]) 
                 && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] == $Table1Name
@@ -364,8 +365,8 @@ private function compareTwoTablesRelation( $Table1Name, $Table2Name )
  * например, товар - главный, а производитель, единица измерения - это вспомогательные объекты,
  * главный объект использует, т.е. ссылается на вспомогательные, 
  * но вспомогательные не могут использовать - ссылаться на главный объект,
- * таких объектов (теоретически) может быть несколько,
- * поэтому возвращается массив со всеми именами объектов без обратных ссылок на них
+ * таких объектов (главных без ссылок на них) может быть несколько,
+ * эта функция возвращает массив со всеми именами объектов без обратных ссылок на них
  * 
  * @return array - возвращает массив, содержащий имена объектов, на которые нет ссылок внутри DataMapper
  * @throws TRMDataMapperRelationException - если таких объектов не обнаружится, 
@@ -380,7 +381,7 @@ public function getObjectsNamesWithoutBackRelations()
     
     foreach( $this->SafetyFieldsArray as $ObjectState )
     {
-        foreach( $ObjectState["Fields"] as $FieldState )
+        foreach( $ObjectState[TRMDataMapper::FIELDS_INDEX] as $FieldState )
         {
             // если у очередного поля есть секция Relation (ссылка на другое поле другого объекта)
             // то удаляем элемента массива $ObjectsNamesArray с именем объекта, на который идет ссылка
@@ -501,19 +502,6 @@ public function valid()
 {
     return ($this->Position < count($this->SafetyFieldsArray));
 }
-
-
-/**
- * реализация интерфейса - IteratorAggregate  - должен вернуть итерируемый объект
- */
-/*
-public function getIterator()
-{
-    $ao = new ArrayObject($this->SafetyFieldsArray);
-    return $ao->getIterator();
-}
-*/
-
 
 
 } // TRMDataMapper

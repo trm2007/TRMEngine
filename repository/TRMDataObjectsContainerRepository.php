@@ -39,7 +39,7 @@ public function __construct($objectclassname)
  */
 public function getMainRepository()
 {
-    return TRMDIContainer::getStatic("TRMRepositoryManager")
+    return TRMDIContainer::getStatic(TRMRepositoryManager::class)
             ->getRepositoryFor( $this->DataObjectsContainer->getMainDataObject() );
 }
 
