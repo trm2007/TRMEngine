@@ -93,6 +93,7 @@ public function getDataSource()
 /**
  * устанавливает условие дл€ WHERE секции SQL-запроса при выборке из Ѕƒ,
  * 
+ * @param string $objectname - им€ объекта, содержащее поле дл€ сравнени€
  * @param string $fieldname - им€ пол€ дл€ сравнени€
  * @param string|numeric|boolean $data - данные дл€ сравнени€
  * @param string $operator - оператор сравнени€ (=, !=, >, < и т.д.), поумолчанию =
@@ -105,25 +106,26 @@ public function getDataSource()
  * @return self - возвращает указатель на себ€, это дает возможность писать такие выражени€:
  * $this->setWhereCondition(...)->setWhereCondition(...)->setWhereCondition(...)...
  */
-public function setWhereCondition($fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE )
+public function setWhereCondition($objectname, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE )
 {
-    $this->DataSource->addWhereParam($fieldname, $data, $operator, $andor, $quote, $alias, $dataquote);
+    $this->DataSource->addWhereParam($objectname, $fieldname, $data, $operator, $andor, $quote, $alias, $dataquote);
     return $this;
 }
 
 /**
  * ѕроизводит выборку записей, удовлетвор€ющих указанным значени€м дл€ указанного пол€
  * 
- * @param string $fieldname - поле. в котором выбираютс€ значени€
+ * @param string $objectname - им€ объекта дл€ поиска по значению пол€
+ * @param string $fieldname - им€ пол€, в котором выбираютс€ значени€
  * @param mixed $value - значение дл€ сравнени€ и поиска
  * @param string $operator - =, > , < , != , LIKE, IN и т.д.
  * 
  * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
-public function getBy($fieldname, $value, $operator = "=")
+public function getBy($objectname, $fieldname, $value, $operator = "=")
 {
     $this->DataSource->clearParams();
-    $this->DataSource->addWhereParam($fieldname, $value, $operator);
+    $this->DataSource->addWhereParam($objectname, $fieldname, $value, $operator);
     return $this->getAll();
 }
 

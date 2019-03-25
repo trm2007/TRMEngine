@@ -14,9 +14,9 @@ use TRMEngine\DataObject\Interfaces\TRMParentedDataObjectInterface;
 abstract class TRMParentedCollectionDataObject extends TRMCollectionDataObject implements TRMParentedDataObjectInterface
 {
 /**
- * @var string - имя свойства содержащего Id родителя в коллекции
+ * @var array - массив = (имя объекта, имя свойства) содержащего Id родителя в коллекции
  */
-protected $ParentIdFieldName;
+private $ParentIdFieldName;
 /**
  * @var TRMIdDataObjectInterface - ссылка на объект родителя для набора из текущей коллекции...
  */
@@ -26,18 +26,20 @@ protected $ParentDataObject = null;
 abstract public function __construct();
 
 /**
- * @return string - имя свойства содержащего Id родителя в коллекции
+ * @return array - имя свойства содержащего Id родителя в коллекции
  */
 function getParentIdFieldName()
 {
     return $this->ParentIdFieldName;
 }
 /**
- * @param string $ParentIdFieldName - имя свойства содержащего Id родителя в коллекции
+ * @param array $ParentIdFieldName - имя свойства содержащего Id родителя в коллекции
  */
-function setParentIdFieldName($ParentIdFieldName)
+function setParentIdFieldName(array $ParentIdFieldName)
 {
-    $this->ParentIdFieldName = $ParentIdFieldName;
+    $this->ParentIdFieldName[0] = reset($ParentIdFieldName);
+    $this->ParentIdFieldName[1] = next($ParentIdFieldName);
+    reset($ParentIdFieldName);
 }
 
 /**
@@ -68,12 +70,13 @@ private function changeParentIdForCurrentParent()
 {
     if( $this->ParentDataObject )
     {
-        $this->changeAllValuesFor( $this->ParentIdFieldName, $this->ParentDataObject->getId() );
+        $this->changeAllValuesFor( $this->ParentIdFieldName[0], $this->ParentIdFieldName[1], $this->ParentDataObject->getId() );
     }
     else
     {
-        $this->changeAllValuesFor( $this->ParentIdFieldName, null );
-    }    
+        $this->changeAllValuesFor( $this->ParentIdFieldName[0], $this->ParentIdFieldName[1], null );
+    }
 }
+
 
 } // TRMParentedCollectionDataObject

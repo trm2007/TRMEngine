@@ -352,20 +352,24 @@ public function generateJoinStringForTable($TableName, array &$TableState)
 private function generateWhereString()
 {
     $wherestr = "";
-    foreach( $this->Params as $param )
+    foreach( $this->Params as $TableName => $TableParams )
     {
-        $key = $param["key"];
-        if( isset($param["alias"]) && strlen($param["alias"])>0 ) { $key = $param["alias"] . "." . $key; }
-        if( isset($param["quote"]) && $param["quote"] == TRMSqlDataSource::NEED_QUOTE ) { $key = $this->prepareKey($key); }
+        foreach( $TableParams as $param )
+        {
+            $key = $param["key"];
+            if( isset($param["alias"]) && strlen($param["alias"])>0 ) { $key = $param["alias"] . "." . $key; }
+            else if( !empty($TableName) ){ $key = $TableName . "." . $key; }
+            if( isset($param["quote"]) && $param["quote"] == TRMSqlDataSource::NEED_QUOTE ) { $key = $this->prepareKey($key); }
 
-        $wherestr .= $param["andor"] . " " . $key . " " . $param["operator"];
+            $wherestr .= $param["andor"] . " " . $key . " " . $param["operator"];
 
-        if( $param["operator"] == "IN" || $param["operator"] == "NOT IN" ) { $wherestr .= " (" . $param["value"] . ") "; }
-        else if( $param["operator"] == "IS" || 
-                 $param["operator"] == "NOT" || 
-                 (isset($param["dataquote"]) && $param["dataquote"] == TRMSqlDataSource::NOQUOTE)
-                ) { $wherestr .= " " . $param["value"] . " "; }
-        else { $wherestr .= "'" . trim($param["value"], "'") . "' "; }
+            if( $param["operator"] == "IN" || $param["operator"] == "NOT IN" ) { $wherestr .= " (" . $param["value"] . ") "; }
+            else if( $param["operator"] == "IS" || 
+                     $param["operator"] == "NOT" || 
+                     (isset($param["dataquote"]) && $param["dataquote"] == TRMSqlDataSource::NOQUOTE)
+                    ) { $wherestr .= " " . $param["value"] . " "; }
+            else { $wherestr .= "'" . trim($param["value"], "'") . "' "; }
+        }
     }
 
     return ltrim(trim($wherestr), "ANDOR"); // $wherestr;
@@ -456,6 +460,10 @@ public function makeSelectQuery() // array $params = null, $limit = 1, $offset =
 /**
  * оборачивает ключ в апострофы, убирая лишние и проверяя на наличе точки, т.е. указание на таблицу
  *
+ * @param string $key - клюя для подготовки к использованию в запросах,
+ * обрамляется апострофами `key`, если указана принадлежность к таблице через точку,
+ * то сформируется строка вида `table`.`key`
+ * 
  * @return string - подготовленный для вставки в запрос ключ таблицы
  */
 protected function prepareKey($key)
@@ -468,6 +476,7 @@ protected function prepareKey($key)
 /**
  * добавляет параметр для условия WHERE в запросе
  * 
+ * @param string $tablename - имя таблицы для поля, которое добавляется к условию
  * @param string $fieldname - имя поля для сравнения
  * @param string|numeric|boolean $data - данные для сравнения
  * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
@@ -479,7 +488,7 @@ protected function prepareKey($key)
  * 
  * @return $this
  */
-public function addWhereParam($fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE)
+public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE)
 {
     $value = array(
             "key" => $fieldname,
@@ -490,12 +499,13 @@ public function addWhereParam($fieldname, $data, $operator = "=", $andor = "AND"
             "alias" => $alias, //($alias!== null) ? $alias : $this->AliasName,
             "dataquote" => $dataquote,
             );
-    return $this->addWhereParamFromArray( $value );
+    return $this->addWhereParamFromArray( $tablename, $value );
 }
 
 /**
  * добавляет условие в секцию WHERE-запроса
  * 
+ * @param string $tablename - имя объекта для которого устанавливается поле
  * @param array $params - массив с параметрами следующего формата<br>
  * array(
  * "key" => $fieldname,<br>
@@ -508,7 +518,7 @@ public function addWhereParam($fieldname, $data, $operator = "=", $andor = "AND"
  * 
  * @return $this
  */
-public function addWhereParamFromArray(array $params)
+public function addWhereParamFromArray($tablename, array $params)
 {
     $value = array();
 
@@ -519,6 +529,25 @@ public function addWhereParamFromArray(array $params)
     $value["quote"] = TRMSqlDataSource::NEED_QUOTE;
     $value["alias"] = isset( $params["alias"] ) ? $params["alias"] : null; // $this->AliasName;
     $value["dataquote"] = TRMSqlDataSource::NEED_QUOTE;
+    
+    // проверяем, есть ли уже такое условие, что бы не добавлять второй раз дубликат
+    if( isset($this->Params[$tablename]) )
+    {
+        foreach( $this->Params[$tablename] as $checkedparams )
+        {
+            if( $checkedparams["key"] === $value["key"] &&
+                $checkedparams["value"] === $value["value"] &&
+                $checkedparams["operator"] === $value["operator"] &&
+                $checkedparams["andor"] === $value["andor"] &&
+                $checkedparams["quote"] === $value["quote"] &&
+                $checkedparams["alias"] === $value["alias"] &&
+                $checkedparams["dataquote"] === $value["dataquote"]
+                    )
+            {
+                return;
+            }
+        }
+    }
 
     /* VALUE */
     if( is_string($value["value"]) || is_numeric($value["value"]) || is_bool($value["value"]) )
@@ -557,7 +586,7 @@ public function addWhereParamFromArray(array $params)
         $value["dataquote"] = TRMSqlDataSource::NOQUOTE;
     }
 
-    $this->Params[] = $value;
+    $this->Params[$tablename][] = $value;
 
     return $this;
 }
@@ -565,11 +594,12 @@ public function addWhereParamFromArray(array $params)
 /**
  * добавляет массив параметров к уже установленному
  *
+ * @param string $tablename - имя объекта для которого устанавливаются параметры
  * @param array - параметры, используемые в запросе, как правило сюда передается ID-записи 
  * все должно передаваться в массиве array( $fieldname => array(value, operator, andor, quote, alias, dataquote), ...)
  * обязательными являются array(..., $fieldname => array(value), ...)
  */
-public function generateParamsFrom(array $params = null)
+public function generateParamsFrom( $tablename, array $params )
 {
     if( $params === null )
     {
@@ -582,7 +612,8 @@ public function generateParamsFrom(array $params = null)
     // в $params передан массив, перебираем значения
     foreach($params as $key => $value)
     {
-        $this->addWhereParam($key, 
+        $this->addWhereParam($tablename, 
+                        $key, 
                         isset($value["value"]) ? $value["value"] : "",
                         isset($value["operator"]) ? $value["operator"] : null,
                         isset($value["andor"]) ? $value["andor"] : null,
@@ -645,7 +676,22 @@ public function getDataFrom()
     {
         throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
     }
-    $this->DataObject->setDataArray( TRMDBObject::fetchAll($result) ); //  $result->fetch_all(MYSQLI_ASSOC) );
+    $Arr = TRMDBObject::fetchAll($result, MYSQLI_NUM);
+    $Count = count($Arr);
+    // преобразуем одномерный массив в многомерный согласно DataMapper-у
+    for( $i=0; $i<$Count; $i++ )
+    {
+        $k = 0;
+        foreach( $this->SafetyFields as $TableName => $TableState )
+        {
+            foreach( array_keys($TableState[TRMDataMapper::FIELDS_INDEX]) as $FieldName )
+            {
+                $this->DataObject->setData($i, $TableName, $FieldName, $Arr[$i][$k++]);
+            }
+        }
+    }
+    
+//    $this->DataObject->setDataArray( TRMDBObject::fetchAll($result) ); //  $result->fetch_all(MYSQLI_ASSOC) );
     return $result->num_rows;
 }
 
@@ -785,7 +831,7 @@ public function update()
                 // если проверяемые данные для очередной таблицы должны быть в первичном ключе,
                 // но они там отсутсвуют, значит это новая запись,
                 // добавляем ее и переходим к следующей
-                if( $CurrentKeyFlag[$TableName] == "PRI" && !$this->DataObject->presentDataIn($RowNum, $IndexesNames[$TableName] ) )
+                if( $CurrentKeyFlag[$TableName] == "PRI" && !$this->DataObject->presentDataIn($RowNum, $TableName, $IndexesNames[$TableName] ) )
                 {
                     // в функцию добавления
                     // передаем сами данные, номер строки в объекте данных из которой вставляются данные,
@@ -794,7 +840,7 @@ public function update()
                     // а так же передаем массив с полями доступными для обновления ,
                     // что бы не получать его заново рпсходуя ресурсы...
                     // в этой реализации массив передается по ссылке!!!
-                    $CurrentInsertId = $this->insertRowToOneTable($TableName, $Row, $FieldsNames);
+                    $CurrentInsertId = $this->insertRowToOneTable($TableName, $Row[$TableName], $FieldsNames);
                     // если ID не вернулся, значит обновления авто-инкрементного поля в БД не произошло, переходим к другой таблице
                     if( !$CurrentInsertId ) { continue; }
 
@@ -812,7 +858,7 @@ public function update()
                 {
                     // если данные есть в первичном или уникальном ключе
                     // значит запись для этой таблицы нужно обновить
-                    $MultiQueryStr .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $Row, $FieldsNames, $IndexesNames[$TableName] );
+                    $MultiQueryStr .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $Row[$TableName], $FieldsNames, $IndexesNames[$TableName] );
                 }
             }
             catch( TRMSqlQueryException $e )
@@ -863,7 +909,7 @@ private function makeUpdateRowQueryStrForOneTable( $TableName, array &$Row, arra
         $UpdateQuery = rtrim($UpdateQuery, "AND ");
     }
     $UpdateQuery .= ";";
-
+ 
     return $UpdateQuery;
 }
 
@@ -982,7 +1028,7 @@ public function insertODKU()
                 // а так же передаем массив с полями доступными для обновления ,
                 // что бы не получать его заново расходуя ресурсы...
                 // в этой реализации массив передается по ссылке!!!
-                $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row, $FieldsNames);
+                $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row[$TableName], $FieldsNames);
                 // если ID не вернулся, значит обновления авто-инкрементного поля в БД не произошло, переходим к другой таблице
                 if( !$CurrentInsertId ) { continue; }
 
@@ -1038,7 +1084,7 @@ private function checkAutoIncrementFieldUpdate( $TableName, $RowNum, $CurrentIns
     {
         // обновляем данные в автоинкрементном поле для самого объекта 
         // добавленного в очередную таблицу $TableName
-        $this->DataObject->setData($RowNum, $AutoIncFieldName, $CurrentInsertId);
+        $this->DataObject->setData($RowNum, $TableName, $AutoIncFieldName, $CurrentInsertId);
         // получаем массив ссылаюшихся (зависимых) полей по всем таблицам
         $BackRelationArray = $this->SafetyFields->getBackRelationFor($TableName, $AutoIncFieldName);
         if( empty($BackRelationArray) ) { continue; }
@@ -1053,7 +1099,7 @@ private function checkAutoIncrementFieldUpdate( $TableName, $RowNum, $CurrentIns
                 // только если оно само не является автоинкрементным
                 if( !$this->SafetyFields->isFieldAutoIncrement($BackTableName, $BackFieldName) )
                 {
-                    $this->DataObject->setData($RowNum, $BackFieldName, $CurrentInsertId);
+                    $this->DataObject->setData($RowNum, $BackTableName, $BackFieldName, $CurrentInsertId);
                 }
             }
         }

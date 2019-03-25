@@ -15,9 +15,9 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 abstract class TRMIdDataObject extends TRMDataObject implements \ArrayAccess, TRMIdDataObjectInterface
 {
 /**
- * @var string - имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
+ * @var array - имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
  */
-protected $IdFieldName;
+private $IdFieldName;
 
 /**
  * возвращает массив с данными (возвращается только одна - 1-я строка), 
@@ -46,7 +46,8 @@ public function setOwnData( array $data )
 }
 
 /**
- * @return string - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
+ * @return array - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
+ * возвращается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
 public function getIdFieldName()
 {
@@ -54,24 +55,28 @@ public function getIdFieldName()
 }
 
 /**
- * @param string $IdFieldName -  * устанавливает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
+ * @param array $IdFieldName - устанавливает имя свойства для идентификатора объекта, 
+ * обычно совпадает с именем ID-поля из БД,
+ * передается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
-public function setIdFieldName($IdFieldName) 
+public function setIdFieldName( array $IdFieldName ) 
 {
-    $this->IdFieldName = strval($IdFieldName);
+    $this->IdFieldName[0] = reset($IdFieldName);
+    $this->IdFieldName[1] = next($IdFieldName);
+    reset($IdFieldName);
 }
 
 /**
  * возвращает значение поля из массива[$name] как свойство объекта $val = $obj->name;
  *
- * @param string $name - имя свойства = имя поля в таблице БД
- * @return mixed - значение, тип заранее не известен
+ * @param string $objectname - имя объекта, для которого нужно получить массив со значениями полей
+ * @return array - массив со значениями полей объект значение свойства-поля
  */
-public function __get($name)
+public function __get($objectname)
 {
-    if( !isset($this->{$name}) )
+    if( !isset($this->{$objectname}) )
     {
-        return $this->getData( 0, $name );
+        return $this->DataArray[0][$objectname];
     }
 
     return null;
@@ -80,43 +85,59 @@ public function __get($name)
 /**
  * устанавливает значение поля в массиве[$name] как свойство объекта $val = $obj->name;
  *
- * @param string $name - имя свойства = имя поля в таблице БД
- * @param mixed $val - значение свойства-поля
+ * @param string $objectname - имя объекта, для которого нужно установить массив со значениями полей
+ * @param array $val - массив со значениями полей объект значение свойства-поля
  */
-public function __set($name, $val)
+public function __set($objectname, array $val)
 {
-    if( !isset($this->{$name}) )
+    if( !isset($this->{$objectname}) )
     {
-        $this->setData( 0, $name, $val );
+        $this->DataArray[0][$objectname] = $val;
     }
 }
 
 /**
- * возвращает для объекта значение поля первого первичного ключа!!!
+ * возвращает значение поля первичного ключа, 
+ * первого встретивщегося в наборе всех подобъектов!!!
  * для этого первичный ключ должен быт задан в getIdFieldName()
  *
- * @return int|null - ID-объекта
+ * @return mixed|null - ID-объекта
  */
 public function getId()
 {
-    $data = $this->getData( 0, $this->IdFieldName );
-    if( $data === false || $data === null || $data === "" ) 
+    // с 24.03.2019
+    // IdFieldName - это массив содержащий array( имя объекта, имя поля )
+    if( !isset($this->IdFieldName[0]) || !isset($this->IdFieldName[1]) )
     {
-        return null;
+        throw new TRMException( __METHOD__ . " - не установлен IdFieldName!");
     }
+
+    if( !isset($this->DataArray[0]) ) { return null; }
+    if( !isset($this->DataArray[0][$this->IdFieldName[0]]) ) { return null; }
+    if( !isset($this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]]) ) { return null; }
+
+    $data = $this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]];
+    
+    // проверяем на равенство null, так как далее приведение null к int вернет 0 
+    // раньше ID мог быть только целочисленным...
+    if( false === $data || "" === $data || null === $data ) { return null; }
 
     return $data;
 }
 
 /**
- * устанавливает для объекта значение поля первого первичного ключа!!!
+ * устанавливает для всех подобъектов значения полей ключа совпадающего с IdFieldName!!!
  * для этого первичный ключ должен быт задан в getIdFieldName()
  *
  * @param mixed - ID-объекта
  */
 public function setId($id)
 {
-    $this->setData( 0, $this->IdFieldName, $id );
+    if( !isset($this->IdFieldName[0]) || !isset($this->IdFieldName[1]) )
+    {
+        throw new TRMException( __METHOD__ . " - не установлен IdFieldName!");
+    }
+    $this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]] = $id;
 }
 
 /**
@@ -125,30 +146,32 @@ public function setId($id)
  */
 public function resetId()
 {
-    $this->setData( 0, $this->IdFieldName, null );
+    $this->setData( 0, $this->IdFieldName[0], $this->IdFieldName[1], null );
 }
 
 /**
  * возврашает значение хранящееся в поле $fieldname
  * 
+ * @param string $objectname - имя объекта, для которого получаются данные
  * @param string $fieldname - имя поля
  * @return mixed|null - если есть значение в поле $fieldname, то вернется его значение, либо null,
  */
-public function getFieldValue( $fieldname )
+public function getFieldValue( $objectname, $fieldname )
 {
-    return $this->getData(0, $fieldname);
+    return $this->getData(0, $objectname, $fieldname);
 }
 
 /**
  * устанавливает значение поля $fieldname, старое значение будет потеряно,
  * если поля с таким именем не было в объекте данных, то оно установится
  * 
- * @param type $fieldname - имя поля, значение которого нужно установить/изменить
- * @param type $value - новое значение
+ * @param string $objectname - имя объекта, для которого получаются данные
+ * @param string $fieldname - имя поля, значение которого нужно установить/изменить
+ * @param mixed $value - новое значение
  */
-public function setFieldValue( $fieldname, $value )
+public function setFieldValue( $objectname, $fieldname, $value )
 {
-    $this->setData(0, $fieldname, $value);
+    $this->setData(0, $objectname, $fieldname, $value);
 }
 
 /**

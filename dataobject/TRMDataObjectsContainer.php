@@ -5,6 +5,7 @@ namespace TRMEngine\DataObject;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectContainerNoMainException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
+use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 
 /**
  * класс контейнер объектов данных, используется для составных объектов,
@@ -14,7 +15,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 abstract class TRMDataObjectsContainer implements TRMDataObjectsContainerInterface // extends TRMIdDataObject
 {
 /**
- * @var TRMDataObjectInterface - основной объект
+ * @var TRMIdDataObjectInterface - основной объект
  */
 protected $MainDataObject;
 /**
@@ -85,6 +86,7 @@ public function setDataObject($Index, TRMDataObjectInterface $do) // был TRMPare
     {
         $do->setParentDataObject($this);
     }
+
     $this->ObjectsArray[$Index] = $do;
 }
 
@@ -220,23 +222,25 @@ public function setDataArray(array $data)
 /**
  * возвращает данные только для основного-главного объекта!!!
  * @parm integer $rownum - номер строки в массиве (таблице) начиная с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого получаются данные
  * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
  *
  * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
  */
-public function getData($rownum, $fieldname)
+public function getData($rownum, $objectname, $fieldname)
 {
-    return $this->MainDataObject->getData($rownum, $fieldname);
+    return $this->MainDataObject->getData($rownum, $objectname, $fieldname);
 }
 /**
  * Устанавливает данные только в основном объекте
  * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого устанавливаются данные
  * @param string $fieldname - имя поля (столбца), в которое производим запись значения
  * @param mixed $value - само записываемое значение
  */
-public function setData($rownum, $fieldname, $value)
+public function setData($rownum, $objectname, $fieldname, $value)
 {
-    $this->MainDataObject->setData($rownum, $fieldname, $value);
+    $this->MainDataObject->setData($rownum, $objectname, $fieldname, $value);
 }
 
 /**
@@ -252,19 +256,54 @@ public function mergeDataArray(array $data)
 /**
  * проверяет наличие данных только в основном объекте!!!
  * @param integer  $rownum
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
  * @param array $fieldnames
  */
-public function presentDataIn($rownum, array &$fieldnames)
+public function presentDataIn($rownum, $objectname, array &$fieldnames)
 {
     $this->MainDataObject->presentDataIn($rownum, $fieldnames);
 }
+public function getId() {
+    $this->MainDataObject->getId();
+}
+
+public function setId($id) {
+    $this->MainDataObject->setId($id);
+}
+
+public function resetId() {
+    $this->MainDataObject->resetId();
+}
+
+public function getIdFieldName() {
+    $this->MainDataObject->getIdFieldName();
+}
+
+public function setIdFieldName(array $IdFieldName) {
+    $this->MainDataObject->setIdFieldName($IdFieldName);
+}
 
 /**
- * @param string $fieldname - имя поля основного объекта (MainDataObject), для которого нужно получить значение
+ * возврашает значение хранящееся в поле $fieldname объекта $objectname
+ * 
+ * @param string $objectname - имя объекта, для которого получаются данные
+ * @param string $fieldname - имя поля
+ * @return mixed|null - если есть значение в поле $fieldname, то вернется его значение, либо null,
  */
-public function getFieldValue($fieldname)
+public function getFieldValue($objectname, $fieldname)
 {
-    $this->MainDataObject->getData(0, $fieldname);
+    $this->MainDataObject->getData(0, $objectname, $fieldname);
+}
+/**
+ * устанавливает значение в поле $fieldname объекта $objectname
+ * 
+ * @param string $objectname - имя объекта, для которого получаются данные
+ * @param string $fieldname - имя поля
+ * @param mixed -  значение, которое должено быть установлено в поле $fieldname объекта $objectname
+ */
+public function setFieldValue($objectname, $fieldname, $value)
+{
+    $this->MainDataObject->setData(0, $objectname, $fieldname, $value);
 }
 
 /**

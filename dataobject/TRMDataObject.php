@@ -45,10 +45,11 @@ public function setOwnData( array $data )
  * возвращает указатель на объект = свой экземпляр класса
  * @return $this
  */
+/*
 public function getDataObject()
 {
     return $this;
-}
+}*/
 
 /**
  * возвращает весь массив с данными, вернется дубликат,
@@ -92,15 +93,18 @@ public function mergeDataArray( array $data )
  * проверяет наличие ключа (поля с именем fieldname) у строки с номером rownum
  * 
  * @param integer $rownum - номер строки
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется наличие поля $fieldname
  * @param string $fieldname - имя искомого поля
  * @return boolean - если найден, возвращает true, если ключ отсутствует - false
  */
-public function keyExists( $rownum, $fieldname )
+public function keyExists( $rownum, $objectname, $fieldname )
 {
     // Такой строки нет
     if( !isset($this->DataArray[$rownum]) ) { return false; }
+    // Такого объекта нет
+    if( !isset($this->DataArray[$rownum][$objectname]) ) { return false; }
     // Такого поля нет
-    if( !array_key_exists($fieldname, $this->DataArray[$rownum]) ) { return false; }
+    if( !array_key_exists($fieldname, $this->DataArray[$rownum][$objectname]) ) { return false; }
 
     // найдено !
     return true;
@@ -110,33 +114,41 @@ public function keyExists( $rownum, $fieldname )
  * записывает данные в конкретную ячейку
  *
  * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого устанавливаются данные
  * @param string $fieldname - имя поля (столбца), в которое производим запись значения
- * @param mixed $value - само записываемое значение
+ * @param mixed $value - значение-данные поля 
  */
-public function setData( $rownum, $fieldname, $value )
+public function setData( $rownum, $objectname, $fieldname, $value )
 {
     // проверяем наличие строки с таким номером, если нет, то создаем как пустой массив и затем записываем значение
     if( !isset($this->DataArray[$rownum]) )
     {
-            $this->DataArray[$rownum] = array();
+        $this->DataArray[$rownum] = array( $objectname => array( $fieldname => $value ) );
     }
-
-    $this->DataArray[$rownum][$fieldname] = $value;
+    else if( !isset($this->DataArray[$rownum][$objectname]) )
+    {
+        $this->DataArray[$rownum][$objectname] = array( $fieldname => $value );
+    }
+    else
+    {
+        $this->DataArray[$rownum][$objectname][$fieldname] = $value;
+    }
 }
 
 /**
  * получает данные из конкретной ячейки
  *
  * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого получаются данные
  * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
  *
  * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
  */
-public function getData( $rownum, $fieldname )
+public function getData( $rownum, $objectname, $fieldname )
 {
     // если таике индексы не установлены, то возвращается 
-    if( !$this->keyExists($rownum, $fieldname) ) { return null; }
-    return $this->DataArray[$rownum][$fieldname];
+    if( !$this->keyExists($rownum, $objectname, $fieldname) ) { return null; }
+    return $this->DataArray[$rownum][$objectname][$fieldname];
 }
 
 /**
@@ -205,6 +217,7 @@ public function mergeRow( $rownum, array $row )
  *
  * @return integer|null - возвращает номер строки-записи из общего массива или null
  */
+/*
 public function findBy( array $looking )
 {
 	if( empty($looking) ) { return false; }
@@ -222,6 +235,8 @@ public function findBy( array $looking )
 	}
 	return null;
 }
+ * 
+ */
 
 /**
  * получаем значение строки из локального массива DataArray где поля содержат передаваемые значения
@@ -230,6 +245,7 @@ public function findBy( array $looking )
  *
  * @return array|null - возвращает массив-строчку записи из общего массива если найдена, или null в противном случае
  */
+/*
 public function getBy( array $looking )
 {
 	if( empty($looking) ) { return null; }
@@ -247,6 +263,8 @@ public function getBy( array $looking )
 	}
 	return null;
 }
+ * 
+ */
 
 /**
  * проверяет наличие полей с заданными именами в строке данных с номером $rownum, 
@@ -257,6 +275,7 @@ public function getBy( array $looking )
  *
  * @return boolean - если найдены все поля, то возвращается true, если хотя бы одно не найдено, то false
  */
+/*
 public function presentFieldNamesIn( $rownum, array &$fieldnames )
 {
 	if( !is_array($this->DataArray[$rownum]) ) { return false; }
@@ -266,38 +285,52 @@ public function presentFieldNamesIn( $rownum, array &$fieldnames )
 	}
 	return true;
 }
+ * 
+ */
 
 /**
- * проверяет наличие данных в полях с именами из набора $fieldnames в строке с номером $rownum
+ * проверяет наличие данных в полях с именами из набора $fieldnames 
+ * для объекта $objectname в строке с номером $rownum
  *
  * @param integer $rownum - номер строки, в которой происходит проверка, из локального набора данных, отсчет с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
  * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
  *
  * @return boolean - если найдены поля и установлены значения, то возвращается true, иначе false
  */
-public function presentDataIn( $rownum, array &$fieldnames )
+public function presentDataIn( $rownum, $objectname, array &$fieldnames )
 {
     if( !isset( $this->DataArray[$rownum] ) ) { return false; }
-//	if( !is_array($this->DataArray[$rownum]) ) { return false; }
+    if( !isset( $this->DataArray[$rownum][$objectname] ) ) { return false; }
+
     foreach( $fieldnames as $field )
     {
-            if( !array_key_exists($field, $this->DataArray[$rownum]) || empty( $this->DataArray[$rownum][$field] ) ) { return false; }
+        if( !array_key_exists($field, $this->DataArray[$rownum][$objectname]) ||
+            empty( $this->DataArray[$rownum][$objectname][$field] ) )
+        {
+            return false;
+        }
     }
     return true;
 }
 
 /**
- * меняет во всех записях значение поля $FieldName на новое значение $FieldValue, если разрешена запись
+ * меняет во всех записях значение поля $FieldName на новое значение $FieldValue
  *
+ * @param string $ObjectName - имя объекта, в котором меняется значение 
  * @param string $FieldName - имя поля-колонки
  * @param mixed $FieldValue - новое значение
  */
-public function changeAllValuesFor($FieldName, $FieldValue)
+public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
 {
-	foreach( $this->DataArray as &$row )
-	{
-		$row[$FieldName] = $FieldValue;
-	}
+    foreach( $this->DataArray as $i => &$row)
+    {
+        if( key_exists($ObjectName, $this->DataArray[$i]) && 
+            key_exists($FieldName, $this->DataArray[$i][$ObjectName]) )
+        {
+            $row[$ObjectName][$FieldName] = $FieldValue;
+        }
+    }
 }
 
 /**
@@ -309,6 +342,7 @@ public function changeAllValuesFor($FieldName, $FieldValue)
  *
  * @return integer - количество убранных записей из локальной коллекции
  */
+/*
 public function removeBy( $FieldName, $FieldValue, $count = 0 )
 {
 	$start = $count;
@@ -325,6 +359,8 @@ public function removeBy( $FieldName, $FieldValue, $count = 0 )
 	// если передан 0 и записи удалялись, то count будет отрицательным, а по модулю равен кол-ву совершенных удалений 0 - (-|count|) == 0+ |count| = |count|
 	return ($start - $count);
 }
+ * 
+ */
 
 
 /**
@@ -344,7 +380,7 @@ public function clear()
  */
 public function count()
 {
-	return count($this->DataArray);
+    return count($this->DataArray);
 }
 
 

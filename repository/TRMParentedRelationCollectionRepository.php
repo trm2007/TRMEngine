@@ -13,32 +13,18 @@ use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
 abstract class TRMParentedRelationCollectionRepository extends TRMRepository
 {
 /**
- * @var string - имя таблицы определющей отношения многое-ко-многому, в данном классе она является основной таблицей в SQL-запросе
- */
-protected $RelationTableName;
-/**
- * @var string - имя поля родительского ID в связующей таблице,
+ * @var array - массив array( имя объект, имя поля ) родительского ID в связующей таблице,
  * в данной реализации это одна из зависимостей, играющая роль главной, 
  * для которой выбираются все записи коллекции именно с одним таким ID,
  * например, для соотношения ( ID-товара-1 - [ID-товара-M, ID-характеристики-M] - ID-характеристики-1 )
  * такую роль играет ID-товара-M, для одного товара выбирается коллекция характеристик
  */
-protected $ParentRelationIdFieldName;
+private $ParentRelationIdFieldName;
 /**
- * @var string - имя поля из связующей-основной таблицы (определющее дочернее отношения многое-ко-многому), 
+ * @var array - имя поля из связующей-основной таблицы (определющее дочернее отношения многое-ко-многому), 
  * по которому будет установлена связь со второй таблицей
  */
 protected $RelationIdFieldName;
-/**
- * @var string - имя таблицы с одной из зависимостей (таблица с коллекцией), 
- * в данном классе она является присоединяемой (дочерней) таблицей
- */
-protected $TableName;
-/**
- * @var string - имя поля ID-зависимости для объектов коллекции (присоединяемая-дочерняя), 
- * в секции JOIN ... ON $IdFieldName = $RelationIdFieldName
- */
-protected $IdFieldName;
 
 
 public function __construct($objectclassname)
@@ -48,6 +34,23 @@ public function __construct($objectclassname)
         throw new TRMObjectCreateException("В дочернем конструкторе не указано имя поля, содержащее значение родительского ID для объектов ". get_class($this), 500);
     }
     parent::__construct($objectclassname);
+}
+
+/**
+ * @return array -  array( имя родительского объекта, имя поля для связи )
+ */
+function getParentRelationIdFieldName()
+{
+    return $this->ParentRelationIdFieldName;
+}
+/**
+ * @param array $ParentRelationIdFieldName - array( имя родительского объекта, имя поля для связи )
+ */
+function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
+{
+    $this->ParentRelationIdFieldName[0] = reset($ParentRelationIdFieldName);
+    $this->ParentRelationIdFieldName[1] = next($ParentRelationIdFieldName);
+    reset($ParentRelationIdFieldName);
 }
 
 
@@ -60,10 +63,10 @@ public function __construct($objectclassname)
  */
 public function getByParent( TRMIdDataObjectInterface $parentobject )
 {
-    //if( null !== $this->getBy( $parentobject->getIdFieldName(), $parentobject->getId() ) )
     try
     {
-        $this->getBy( $this->ParentRelationIdFieldName, $parentobject->getId() );
+        $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
+        $this->getBy( $ParentRelationIdFieldName[0], $ParentRelationIdFieldName[1], $parentobject->getId() );
         $this->CurrentObject->setParentDataObject( $parentobject );
 
         return $this->CurrentObject;

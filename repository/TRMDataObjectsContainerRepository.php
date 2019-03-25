@@ -76,13 +76,14 @@ public function unlinkObject()
 /**
  * Производит выборку главного объекта, удовлетворяющего указанному значению для указанного поля,
  * 
+ * @param string $objectname - имя объекта для поиска по значению поля
  * @param string $fieldname - поле, в котором выбираются значения
  * @param mixed $value - значение для сравнения и поиска
  * @param string $operator - =, > , < , != , LIKE, IN и т.д., поумолчанию "="
  * 
  * @return TRMDataObjectsContainerInterface - объект-контейнер, заполненный данными из хранилища
  */
-public function getBy( $fieldname, $value, $operator = "=" )
+public function getBy( $objectname, $fieldname, $value, $operator = "=" )
 {
     // если объект контейнера данных еще не ассоциирован с этим репозиторием,
     // то создаем новый и работаем с ним
@@ -95,7 +96,7 @@ public function getBy( $fieldname, $value, $operator = "=" )
     // без главного объекта нет смысла продолжать работу, поэтому проверям, 
     // что он получен родительским getBy,
     // там же вызывается метод setObject, который связывает все зависимости
-    $this->getMainRepository()->getBy( $fieldname, $value, $operator );
+    $this->getMainRepository()->getBy( $objectname, $fieldname, $value, $operator );
 
     return $this->DataObjectsContainer;
 }

@@ -6,43 +6,46 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DiContainer\TRMDIContainer;
 
 /**
- * контейнер репозиториев для объектов-контейнеров данных,
+ * репозиторий для объекта-контейнера данных,
+ * в котором есть главный объект и зависимости,
+ * с которыми главный объект связан через их ID.
+ * Зависимости только получаются вместе с главным объектом,
+ * если они еще не получены.
+ * Удаляться и обновляться этим репозиторием они не могут, 
+ * так как являются независимыми! и должны это делать самостоятельно...
  */
 abstract class TRMRelationRepositories extends TRMDataObjectsContainerRepository 
 {
-/**
- * @var array - массив с названиями типов объектов, которые будет хранится в контейнере данных,
- * за получение и обработку которых будет отвечать данный экземпляр контейнера-репозиториев,
- * на данный момент эти данные хранятся в объектах-данных
- */
-protected $ObjectTypesArray = array();
-
 
 /**
  * Производит выборку главного объекта, удовлетворяющего указанному значению для указанного поля,
- * и оповещает всех подписчиков, что получен новый объект, 
- * передавая ссылку на него через стандартное событие TRMCommonEvent
+ * и поочередно вызывает метод getBy для репозиториев всех зависимых объектов,
+ * передавая ссылку в getBy через getDependence().
+ * зависимые объекты должны быть наслдениками TRMIdDataObjectInterface
  * 
+ * @param string $objectname - имя объекта для поиска по значению поля
  * @param string $fieldname - поле, в котором выбираются значения
  * @param mixed $value - значение для сравнения и поиска
  * @param string $operator - =, > , < , != , LIKE, IN и т.д., поумолчанию "="
  * 
  * @return TRMDataObjectsContainerInterface - объект-контейнер, заполненный данными из хранилища
  */
-public function getBy($fieldname, $value, $operator = "=")
+public function getBy( $objectname, $fieldname, $value, $operator = "=" )
 {
     // в родительском parent::getBy получаются данные из хранилища для основной части составного объекта
-    if( !parent::getBy($fieldname, $value, $operator) )
+    if( !parent::getBy( $objectname, $fieldname, $value, $operator ) )
     {
         return null;
     }
-    
+    // в цикле получаются все зависимости для главного объекта, 
+    // которые связаны и есть в контейнее (массиве зависимостей)
     foreach( $this->DataObjectsContainer as $Index => $DataObject )
     {
+        $DependIndex = $this->DataObjectsContainer->getDependence($Index);
+        
         TRMDIContainer::getStatic(TRMRepositoryManager::class)->getRepositoryFor( $DataObject )
-                        ->getById( 
-                                    $this->DataObjectsContainer->getMainDataObject()
-                                        ->getFieldValue( $this->DataObjectsContainer->getDependence($Index) )
+                        ->getById( $this->DataObjectsContainer->getMainDataObject()
+                                        ->getFieldValue( $DependIndex[0], $DependIndex[1] )
                                 );
     }
 
@@ -50,7 +53,9 @@ public function getBy($fieldname, $value, $operator = "=")
 }
 
 /**
- * обновляет основной объект и все зависимости, 
+ * обновляет основной объект, без зависимостей!!!
+ * зависимости - это отдельные независимые сущности, обновляются отдельно,
+ * либо должен использоваться репозиторий TRMEventRepositories с подпиской на события
  * 
  * @return boolean
  */
@@ -62,7 +67,9 @@ public function update()
 }
 
 /**
- * удаляет основной объект и все зависимости из контейнера,
+ * удаляет основной объект, без зависимостей!!!
+ * зависимости - отдельные независимые сущности, удаляются отдельно,
+ * либо должен использоваться репозиторий TRMEventRepositories с подпиской на события
  * 
  * @return boolean
  */

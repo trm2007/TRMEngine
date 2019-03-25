@@ -101,7 +101,7 @@ public static function getConfigArray()
 
 
 /**
- * @var mysqli - объект MySQLi - подключение к БД
+ * @var \mysqli - объект MySQLi - подключение к БД
  */
 static public $newlink = null;
 
@@ -114,6 +114,21 @@ static $QB;
 protected function __construct()
 {
     static::ping();
+}
+
+/**
+ * @param string $Query - строка запроса
+ * 
+ * @return \mysqli_result - возвращает результат запроса $Query через MySQLi, 
+ * либо null, если соединение еще не установлено
+ */
+public static function query($Query)
+{
+    if( static::$newlink )
+    {
+        return static::$newlink->query($Query);
+    }
+    return null;
 }
 
 /**

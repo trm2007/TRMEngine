@@ -34,22 +34,24 @@ public function setDataArray( array $data );
  */
 public function mergeDataArray( array $data );
 /**
- * записывает данные в конкретную ячейку
- *
- * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $fieldname - имя поля (столбца), в которое производим запись значения
- * @param mixed $value - само записываемое значение
- */
-public function setData( $rownum, $fieldname, $value );
-/**
  * получает данные из конкретной ячейки
  *
  * @parm integer $rownum - номер строки в массиве (таблице) начиная с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого получаются данные
  * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
  *
  * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
  */
-public function getData( $rownum, $fieldname );
+public function getData( $rownum, $objectname, $fieldname );
+/**
+ * записывает данные в конкретную ячейку
+ *
+ * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого устанавливаются данные
+ * @param string $fieldname - имя поля (столбца), в которое производим запись значения
+ * @param mixed $value - само записываемое значение
+ */
+public function setData( $rownum, $objectname, $fieldname, $value );
 
 /**
  * @return array - возвращает данные, характерные только для данного экземпляра
@@ -66,11 +68,21 @@ public function setOwnData( array $data );
  * проверяет наличие данных в полях с именами из набора $fieldnames в строке с номером $rownum
  *
  * @param integer $rownum - номер строки, в которой происходит проверка, из локального набора данных, отсчет с 0
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
  * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
  *
  * @return boolean - если найдены поля и установлены значения, то возвращается true, иначе false
  */
-public function presentDataIn( $rownum, array &$fieldnames );
+public function presentDataIn( $rownum, $objectname, array &$fieldnames );
+
+/**
+ * меняет во всех записях значение поля $FieldName на новое значение $FieldValue, если разрешена запись
+ *
+ * @param string $ObjectName - имя объекта, в котором меняется значение 
+ * @param string $FieldName - имя поля-колонки
+ * @param mixed $FieldValue - новое значение
+ */
+public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue);
 
 } // TRMDataObjectInterface
 
@@ -85,14 +97,17 @@ public function presentDataIn( $rownum, array &$fieldnames );
 interface TRMIdDataObjectInterface extends TRMDataObjectInterface
 {
 /**
- * @return string - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
+ * @return array - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
+ * возвращается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
 public function getIdFieldName();
 
 /**
- * @param string $IdFieldName - устанавливает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
+ * @param array $IdFieldName - устанавливает имя свойства для идентификатора объекта, 
+ * обычно совпадает с именем ID-поля из БД,
+ * передается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
-public function setIdFieldName($IdFieldName) ;
+public function setIdFieldName( array $IdFieldName ) ;
 
 /**
  * возвращает для объекта значение идентификатора - Id
@@ -117,12 +132,21 @@ public function setId($id);
 public function resetId();
 
 /**
- * возврашает значение хранящееся в поле $fieldname
+ * возврашает значение хранящееся в поле $fieldname объекта $objectname
  * 
+ * @param string $objectname - имя объекта, для которого получаются данные
  * @param string $fieldname - имя поля
  * @return mixed|null - если есть значение в поле $fieldname, то вернется его значение, либо null,
  */
-public function getFieldValue( $fieldname );
+public function getFieldValue( $objectname, $fieldname );
+/**
+ * устанавливает значение в поле $fieldname объекта $objectname
+ * 
+ * @param string $objectname - имя объекта, для которого получаются данные
+ * @param string $fieldname - имя поля
+ * @param mixed -  значение, которое должено быть установлено в поле $fieldname объекта $objectname
+ */
+public function setFieldValue( $objectname, $fieldname, $value );
 
 } // TRMIdDataObjectInterface
 
@@ -131,7 +155,7 @@ public function getFieldValue( $fieldname );
  * интерфейс для составных объектов,
  * у которых есть главный объект данных, и коллекция вспомогательных (дочерних)
  */
-interface TRMDataObjectsContainerInterface extends TRMDataObjectInterface
+interface TRMDataObjectsContainerInterface extends TRMDataObjectInterface, TRMIdDataObjectInterface
 {
 /**
  * @return TRMDataObjectInterface - возвращает главный (сохраненный под 0-м номером в массиве) объект данных
@@ -174,13 +198,13 @@ public function getObjectsArray();
 interface TRMParentedDataObjectInterface extends TRMDataObjectInterface
 {
 /**
- * @return string - имя свойства внутри объекта содержащего Id родителя
+ * @return array - имя свойства внутри объекта содержащего Id родителя
  */
 function getParentIdFieldName();
 /**
- * @param string $ParentIdFieldName - имя свойства внутри объекта содержащего Id родителя
+ * @param array $ParentIdFieldName - имя свойства внутри объекта содержащего Id родителя
  */
-function setParentIdFieldName($ParentIdFieldName);
+function setParentIdFieldName(array $ParentIdFieldName);
 /**
  * @return TRMIdDataObjectInterface - возвращает объект родителя
  */

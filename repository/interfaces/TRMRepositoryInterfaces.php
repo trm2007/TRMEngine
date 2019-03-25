@@ -31,13 +31,14 @@ public function unlinkObject();
 /**
  * Производит выборку записей, удовлетворяющих указанным значениям для указанного поля
  * 
- * @param string $fieldname - поле. в котором выбираются значения
+ * @param string $objectname - имя объекта для поиска по значению поля
+ * @param string $fieldname - имя поля, в котором выбираются значения
  * @param mixed $value - значение для сравнения и поиска
  * @param string $operator - =, > , < , != , LIKE, IN и т.д.
  * 
  * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
-function getBy($fieldname, $value, $operator = "=");
+function getBy($objectname, $fieldname, $value, $operator = "=");
 /**
  * Сохраняет объект в хранилище данных
  * 

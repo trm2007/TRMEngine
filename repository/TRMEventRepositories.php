@@ -96,16 +96,17 @@ protected function setRepositoryArrayForContainer()
  * и оповещает всех подписчиков, что получен новый объект, 
  * передавая ссылку на него через стандартное событие TRMCommonEvent
  * 
+ * @param string $objectname - имя объекта для поиска по значению
  * @param string $fieldname - поле, в котором выбираются значения
  * @param mixed $value - значение для сравнения и поиска
  * @param string $operator - =, > , < , != , LIKE, IN и т.д., поумолчанию "="
  * 
  * @return TRMDataObjectsContainerInterface - объект-контейнер, заполненный данными из хранилища
  */
-public function getBy($fieldname, $value, $operator = "=")
+public function getBy( $objectname, $fieldname, $value, $operator = "=")
 {
     // в родительском parent::getBy получаются данные из хранилища для основной части составного объекта
-    parent::getBy($fieldname, $value, $operator);
+    parent::getBy( $objectname, $fieldname, $value, $operator);
 
     if( !empty($this->GetEventName) )
     {

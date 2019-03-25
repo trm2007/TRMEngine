@@ -17,9 +17,18 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 abstract class TRMIdDataObjectRepository extends TRMRepository
 {
 /**
+ * @var TRMIdDataObjectInterface - ссылка на текущий объект
+ */
+protected $CurrentObject = null;
+/**
  * @var string - имя поля, содержащего ID записи
  */
 protected $IdFieldName;
+/**
+ * @var string - имя объекта, в котором есть поле, содержащее ID записи
+ */
+protected $IdObjectName;
+
 /**
  * @var array(TRMIdDataObjectInterface) - массив объектов, получаемых и создаваемых через данный репозиторий, 
  * ссылки на все объекты хранятся в этом массиве, 
@@ -38,19 +47,20 @@ public function __construct($objectclassname)
 }
 
 /**
- * @return string - имя поля, содержащего ID записи
+ * @return array - имя поля, содержащего ID записи
  */
 public function getIdFieldName()
 {
-    return $this->IdFieldName;
+    return array( $this->IdObjectName, $this->IdFieldName);
 }
 
 /**
- * @param string $IdFieldName - имя поля, содержащего ID записи
+ * @param array $IdFieldName - имя поля, содержащего ID записи
  */
-public function setIdFieldName($IdFieldName)
+public function setIdFieldName( array $IdFieldName )
 {
-    $this->IdFieldName = $IdFieldName;
+    $this->IdObjectName = reset($IdFieldName);
+    $this->IdFieldName = next($IdFieldName);
 }
 
 /**
@@ -82,16 +92,17 @@ public function setObject(TRMDataObjectInterface $object)
  * проверяет объект $do на наличие нужного значения $value в поле $fieldname
  * 
  * @param TRMIdDataObjectInterface $do - объект с данными для проверки условия
- * @param string $fieldname - поле для поиска по значению
+ * @param string $objectname - имя объекта для проверки поля
+ * @param string $fieldname - имя поле для проверки значения
  * @param mixed $value - значение для проверки 
  * @param string $operator - оператор, по которому будет сравниваться значение $value со значением находящимся в поле $fieldname объекта $do
  * 
  * @return boolean - если у объекта поле $fieldname удовлетворяет значению $value по оператору $operator, 
  * то вернется true, иначе false
  */
-private function checkDataObject(TRMIdDataObjectInterface $do, $fieldname, $value, $operator)
+private function checkDataObject(TRMIdDataObjectInterface $do, $objectname, $fieldname, $value, $operator)
 {
-    $res = $do->getFieldValue($fieldname);
+    $res = $do->getFieldValue($objectname, $fieldname);
     if( null === $res ) { return false; }
     
     switch ( strtoupper(trim($operator))  )
@@ -117,6 +128,7 @@ private function checkDataObject(TRMIdDataObjectInterface $do, $fieldname, $valu
  * если там еще нет объекта по запрашиваемым условиям, то вернется результат запроса из основного хранилища 
  * методом getBy(...) родительского класса
  * 
+ * @param string $objectname - имя объекта для поиска по значению
  * @param string $fieldname - поле для поиска по значению
  * @param mixed $value - значение для проверки 
  * @param string $operator - оператор, по которому будет сравниваться значение $value со значением находящимся в поле $fieldname объекта $do
@@ -125,7 +137,7 @@ private function checkDataObject(TRMIdDataObjectInterface $do, $fieldname, $valu
  * 
  * @return TRMIdDataObjectInterface
  */
-public function getBy($fieldname, $value, $operator = "=", $getfromdatasourceflag = true)
+public function getBy($objectname, $fieldname, $value, $operator = "=", $getfromdatasourceflag = true)
 {
     // если запрос объекта по Id-полю
     if( $fieldname === $this->IdFieldName )
@@ -147,7 +159,7 @@ public function getBy($fieldname, $value, $operator = "=", $getfromdatasourcefla
         foreach( self::$IdDataObjectContainer[$this->ObjectTypeName] as $do )
         {
             // если был найден объект с заданными параметрами поля в контейнере, то возвращаем его 
-            if( true === $this->checkDataObject($do, $fieldname, $value, $operator) )
+            if( true === $this->checkDataObject($do, $objectname, $fieldname, $value, $operator) )
             {
                 $this->setObject($do);
                 return $do;
@@ -157,7 +169,7 @@ public function getBy($fieldname, $value, $operator = "=", $getfromdatasourcefla
     // иначе будет произведен поиск по хранилищу, в данной реализации в БД
     // если CurrentObject еще не установлен (null),
     // он будет создан и установен в getBy
-    parent::getBy($fieldname, $value, $operator);
+    parent::getBy( $objectname, $fieldname, $value, $operator);
     
     // если из БД получить объект не удалось, то getId вернет null
     if( $this->CurrentObject->getId() === null ) { return null; }
@@ -178,7 +190,8 @@ public function getById($id)
 {
     if( is_numeric($id) || preg_match("#^[0-9]+$#", $id) )
     {
-        return $this->getBy( $this->getIdFieldName(), (int)$id );
+        $IdArr = $this->getIdFieldName();
+        return $this->getBy( $IdArr[0], $IdArr[1], (int)$id );
     }
     return null;
 }

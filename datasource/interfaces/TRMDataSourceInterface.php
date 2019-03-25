@@ -44,6 +44,7 @@ public function clearParams();
 /**
  * добавляет параметр для условия WHERE в запросе
  * 
+ * @param string $tablename - имя таблицы для поля, которое добавляется к условию
  * @param string $fieldname - имя поля для сравнения
  * @param string|numeric|boolean $data - данные для сравнения
  * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
@@ -56,10 +57,11 @@ public function clearParams();
  * 
  * @return $this
  */
-public function addWhereParam($fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE);
+public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE);
 /**
  * добавляет условие в секцию WHERE-запроса
  * 
+ * @param string $tablename - имя таблицы для поля, которое добавляется к условию
  * @param array $params - массив с параметрами следующего формата<br>
  * array(
  * "key" => $fieldname,<br>
@@ -72,15 +74,16 @@ public function addWhereParam($fieldname, $data, $operator = "=", $andor = "AND"
  * 
  * @return $this
  */
-public function addWhereParamFromArray(array $params);
+public function addWhereParamFromArray($tablename, array $params);
 /**
  * добавляет массив параметров к уже установленному
  *
+ * @param string $tablename - имя объекта для которого устанавливаются параметры
  * @param array - параметры, используемые в запросе, как правило сюда передается ID-записи 
  * все должно передаваться в массиве array( $fieldname => array(value, operator, andor, quote, alias, dataquote), ...)
  * обязательными являются array(..., $fieldname => array(value), ...)
  */
-public function generateParamsFrom(array $params = null);
+public function generateParamsFrom($tablename, array $params);
 /**
  * Выполняет запрос переданный в $query
  * 

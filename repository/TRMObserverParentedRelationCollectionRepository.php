@@ -80,7 +80,10 @@ public function updateHandle(TRMCommonEvent $event)
 {
     if( $this->CurrentObject && ($event->getSender()->getObject() === $this->CurrentObject->getParentDataObject()) )
     {
-        $this->CurrentObject->changeAllValuesFor( $this->ParentRelationIdFieldName, $event->getSender()->getObject()->getId() );
+        $ParentRelationIdFieldName = $this->getParentRelationIdFieldNam();
+        $this->CurrentObject->changeAllValuesFor( $ParentRelationIdFieldName[0], 
+                                                $ParentRelationIdFieldName[1], 
+                                                $event->getSender()->getObject()->getId() );
         $this->update();
     }
 }
