@@ -21,7 +21,7 @@ abstract class TRMIdDataObjectRepository extends TRMRepository
  */
 protected $CurrentObject = null;
 /**
- * @var string - имя поля, содержащего ID записи
+ * @var array - имя поля, содержащего ID записи
  */
 protected $IdFieldName;
 /**
@@ -61,6 +61,7 @@ public function setIdFieldName( array $IdFieldName )
 {
     $this->IdObjectName = reset($IdFieldName);
     $this->IdFieldName = next($IdFieldName);
+    reset($IdFieldName);
 }
 
 /**
@@ -140,7 +141,7 @@ private function checkDataObject(TRMIdDataObjectInterface $do, $objectname, $fie
 public function getBy($objectname, $fieldname, $value, $operator = "=", $getfromdatasourceflag = true)
 {
     // если запрос объекта по Id-полю
-    if( $fieldname === $this->IdFieldName )
+    if( $objectname === $this->IdFieldName[0] && $fieldname === $this->IdFieldName[1] )
     {
         // проверяем, если объект с таки Id уже есть в локальном массиве, то 
         if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
@@ -166,7 +167,7 @@ public function getBy($objectname, $fieldname, $value, $operator = "=", $getfrom
             }
         }
     }
-    // иначе будет произведен поиск по хранилищу, в данной реализации в БД
+    // иначе будет произведен поиск в постоянном (Persist) хранилище, в данной реализации в БД
     // если CurrentObject еще не установлен (null),
     // он будет создан и установен в getBy
     parent::getBy( $objectname, $fieldname, $value, $operator);

@@ -207,7 +207,7 @@ public static function getStatic( $classname, array $params = array() )
  */
 private static function getMethodParams( $classname, $methodname )
 {
-    $reflect = new ReflectionMethod($classname, $methodname);
+    $reflect = new \ReflectionMethod($classname, $methodname);
     $params = $reflect->getParameters();
 
     $args = array();
