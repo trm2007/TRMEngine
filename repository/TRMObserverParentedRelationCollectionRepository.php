@@ -65,6 +65,7 @@ public function __construct($objectclassname, $GetEventName = "", $UpdateEventNa
  */
 public function getHandle(TRMCommonEvent $event)
 {
+    // в свою очередь $event->getSender()->getObject() - вернет объект связанный с репозиторием в данный момент
     if( $this->CurrentObject && ($event->getSender()->getObject() === $this->CurrentObject->getParentDataObject()) )
     {
         $this->getByParent( $this->CurrentObject->getParentDataObject() );
@@ -80,7 +81,7 @@ public function updateHandle(TRMCommonEvent $event)
 {
     if( $this->CurrentObject && ($event->getSender()->getObject() === $this->CurrentObject->getParentDataObject()) )
     {
-        $ParentRelationIdFieldName = $this->getParentRelationIdFieldNam();
+        $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
         $this->CurrentObject->changeAllValuesFor( $ParentRelationIdFieldName[0], 
                                                 $ParentRelationIdFieldName[1], 
                                                 $event->getSender()->getObject()->getId() );

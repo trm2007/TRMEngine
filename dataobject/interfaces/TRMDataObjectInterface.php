@@ -152,45 +152,6 @@ public function setFieldValue( $objectname, $fieldname, $value );
 
 
 /**
- * интерфейс для составных объектов,
- * у которых есть главный объект данных, и коллекция вспомогательных (дочерних)
- */
-interface TRMDataObjectsContainerInterface extends TRMDataObjectInterface, TRMIdDataObjectInterface
-{
-/**
- * @return TRMDataObjectInterface - возвращает главный (сохраненный под 0-м номером в массиве) объект данных
- */
-public function getMainDataObject();
-/**
- * устанавливает главный объект данных,
- * 
- * @param TRMDataObjectInterface $do - главный объект данных
- */
-public function setMainDataObject(TRMDataObjectInterface $do);
-/**
- * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
- * 
- * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectInterface $do - добавляемый объект
- */
-public function setDataObject($Index, TRMDataObjectInterface $do);
-/**
- * возвращает объект из контейнера под номером $Index
- * 
- * @param integer $Index - номер объекта в контейнере
- * 
- * @return TRMDataObjectInterface - объект из контейнера
- */
-public function getDataObject($Index);
-/**
- * @return array - возвращает массив объектов данных, дополняющих основной объект
- */
-public function getObjectsArray();
-
-} // TRMDataObjectsContainerInterface
-
-
-/**
  * интерфейс для объектов данных, у которых есть родитель (обычно в свойствах есть ссылка на объект родителя),
  * например, у объекта товара может быть ссылка на группу,
  * у коллекции изображений ссылка на товар, к которому он принадлежит и т.д...
@@ -215,3 +176,76 @@ function getParentDataObject();
 function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject);
 
 } // TRMParentedDataObjectInterface
+
+
+/**
+ * интерфейс для составных объектов,
+ * у которых есть главный объект данных, и коллекция вспомогательных (дочерних)
+ */
+interface TRMDataObjectsContainerInterface extends TRMIdDataObjectInterface
+{
+/**
+ * @return TRMIdDataObjectInterface - возвращает главный (сохраненный под 0-м номером в массиве) объект данных
+ */
+public function getMainDataObject();
+/**
+ * устанавливает главный объект данных,
+ * 
+ * @param TRMIdDataObjectInterface $do - главный объект данных
+ */
+public function setMainDataObject(TRMIdDataObjectInterface $do);
+/**
+ * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
+ * 
+ * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
+ * @param TRMDataObjectInterface $do - добавляемый объект
+ */
+//public function setDataObject($Index, TRMDataObjectInterface $do);
+/**
+ * возвращает объект из контейнера под номером $Index
+ * 
+ * @param integer $Index - номер объекта в контейнере
+ * 
+ * @return TRMDataObjectInterface - объект из контейнера
+ */
+public function getDataObject($Index);
+/**
+ * @return array - возвращает массив объектов данных, дополняющих основной объект
+ */
+public function getObjectsArray();
+
+} // TRMDataObjectsContainerInterface
+
+
+interface TRMRelationDataObjectsContainerInterface extends TRMDataObjectsContainerInterface
+{
+/**
+ * помещает объект данных с именем $Index в массив-контейнер зависимостей, 
+ * сохраняется только ссылка, объект не клонируется!!!
+ * 
+ * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
+ * @param TRMIdDataObjectInterface $do - добавляемый объект
+ * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
+ * @param string $FieldName - имя поля основного суб-объекта в главном объекте, по которому связывается зависимость
+ */
+public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName );
+
+/**
+ * возвращает объект с именем $Index из массива-контейнера зависимостей
+ * 
+ * @param string $Index - имя/номер-индекс объекта в контейнере
+ * 
+ * @return array - имя суб-объекта и поля в суб-объекте главного объекта, 
+ * по которому установлена связь с ID зависимости под индексом $Index
+ */
+public function getDependence($Index);
+
+/**
+ * 
+ * @param string $Index - индекс обхекта в контейнере
+ * @return bool - если объект в контейнере под этим индексом зафиксирован как зависимый от главного,
+ * например, список характеристик для товара, то вернется true, если зависимость не утсанвлена, то - false
+ */
+public function isDependence($Index);
+
+} // TRMRelationDataObjectsContainerInterface

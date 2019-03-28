@@ -4,6 +4,7 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 use TRMEngine\DataObject\TRMDataObject;
+use TRMEngine\DataObject\TRMParentedCollectionDataObject;
 use TRMEngine\Exceptions\TRMObjectCreateException;
 use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
 
@@ -12,6 +13,10 @@ use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
  */
 abstract class TRMParentedRelationCollectionRepository extends TRMRepository
 {
+/**
+ * @var TRMParentedCollectionDataObject - ññûëêà íà òåêóùèé îáúåêò
+ */
+protected $CurrentObject = null;
 /**
  * @var array - ìàññèâ array( èìÿ îáúåêò, èìÿ ïîëÿ ) ğîäèòåëüñêîãî ID â ñâÿçóşùåé òàáëèöå,
  * â äàííîé ğåàëèçàöèè ıòî îäíà èç çàâèñèìîñòåé, èãğàşùàÿ ğîëü ãëàâíîé, 
@@ -66,6 +71,7 @@ public function getByParent( TRMIdDataObjectInterface $parentobject )
     try
     {
         $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
+
         $this->getBy( $ParentRelationIdFieldName[0], $ParentRelationIdFieldName[1], $parentobject->getId() );
         $this->CurrentObject->setParentDataObject( $parentobject );
 
@@ -86,7 +92,7 @@ public function getByParent( TRMIdDataObjectInterface $parentobject )
  */
 public function update()
 {
-    if( !$this->delete() ) { return false; }
+//    if( !$this->delete() ) { return false; }
     return $this->DataSource->insert();
 }
 

@@ -65,7 +65,7 @@ public function __construct( $filename = null )
  * 
  * @param \Exception $e
  */
-public function ExceptionHandler(\Exception $e)
+public function ExceptionHandler($e) //\Exception $e)
 {
     $this->displayError("Exception",$e->getMessage(),$e->getFile(),$e->getLine(),$e->getCode());
 }

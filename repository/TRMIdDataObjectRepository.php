@@ -6,7 +6,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 
 /**
- * класс репоpитори€, предназначенного дл€ работы с объектом-данных реализующим TRMIdDataObjectInterface
+ * класс репозитори€, предназначенного дл€ работы с объектом-данных реализующим TRMIdDataObjectInterface
  * т.е. с объектами у которых есть уникальный идентификатор - ID,
  * дл€ таких объектов этот репозиторий создает локальный массив-контейнер, в котором хран€тс€ объекты с Id,
  * и они во всем приложении будут представленны в одном экземпл€ре!!!
