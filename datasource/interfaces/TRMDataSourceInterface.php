@@ -3,14 +3,29 @@
 namespace TRMEngine\DataSource\Interfaces;
 
 use TRMEngine\DataMapper\TRMSafetyFields;
-use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
+use TRMEngine\DataObject\TRMDataObjectsCollection;
 use TRMEngine\DataSource\TRMSqlDataSource;
+use TRMEngine\Exceptions\TRMSqlQueryException;
 
 /**
  *  абстрактный класс, общий для всех классов обработки записей из таблицы БД - TableName
  */
 interface TRMDataSourceInterface
 {
+/**
+ * устанавливает с какой записи начинать выборку - StartPosition
+ * и какое количество записей выбирать - Count
+ *
+ * @param int $Count - с какой записи начинать выборку
+ * @param int $StartPosition - какое количество записей выбирать
+ */
+public function setLimit( $Count , $StartPosition = null );
+/**
+ * задает массив сортировки по полям, старые значения удаляются
+ *
+ * @param array $orderfields - массив полей, по которым сортируется - array( fieldname1 => "ASC | DESC", ... )
+ */
+public function setOrder( array $orderfields );
 /**
  * @return TRMSafetyFields - объект DataMapper для текущего набора данных
  */
@@ -19,13 +34,6 @@ function getSafetyFields();
  * @param TRMSafetyFields $SafetyFields - объект DataMapper для текущего набора данных
  */
 function setSafetyFields(TRMSafetyFields $SafetyFields);
-/**
- * устанавливает связь с объектом данных,
- * объект данных должен реализовывать интерфейс TRMDataObjectInterface
- * 
- * @param TRMDataObjectInterface $data - объект, данные которого будут получены и/или сохранены/удалены в БД
- */
-public function linkData( TRMDataObjectInterface $data );
 /**
  * получить последнее значение auto_increment поля для основной таблицы!
  * 
@@ -38,7 +46,7 @@ public function linkData( TRMDataObjectInterface $data );
 public function clear();
 
 /**
- * очистка параметров для WHERE-условий в SQL-запросе
+ * очистка параметров WHERE запроса и строк запросов SELECT, UPDATE/INSERT, DELETE
  */
 public function clearParams();
 /**
@@ -89,16 +97,16 @@ public function generateParamsFrom($tablename, array $params);
  * 
  * @param string $query - строка SQL-запроса
  * 
- * @return mysqli_result - объект-результат выполнения запроса
- * @throws Exception - в случае неудачного выполнения запроса выбрасывается исключение
+ * @return \mysqli_result - объект-результат выполнения запроса
+ * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
  */
 public function executeQuery($query);
 /**
  * считываем данные из БД используя запрос, который возвращает функция makeSelectQuery
  * перезаписывает связанный объект с данными
  *
- * @return int - количество прочитанных строк из БД
- * @throws Exception - в случае неудачного выполнения запроса выбрасывается исключение
+ * @return \mysqli_result - количество прочитанных строк из БД
+ * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
  */
 public function getDataFrom();
 /**
@@ -106,25 +114,18 @@ public function getDataFrom();
  * добавляет полученное множество к имеющимся данным
  *
  * @return int - количество прочитанных строк из БД
- * @throws Exception - в случае неудачного выполнения запроса выбрасывается исключение
+ * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
  */
-public function addDataFrom();
+//public function addDataFrom();
 /**
- * генерирует объект типа TRMSafetyFields - допустимых для записи и чтения полей,
- * а так же сразу формирует список полей на основании данных из таблиц БД,
- * обрамляет имена полей в апострофы и добавляет имя таблицы или альяса, если установлено
- *
- * @throws Exception - если не задано имя главной таблицы генерируется исключение
- */
-//public function generateSafetyFromDB();
-/**
- * обновляет записи в таблице БД данными из объекта-данных DataObject,
+ * обновляет записи в таблице БД данными из коллекции объектов-данных $DataCollection,
  * если записи еще нет в таблице, т.е. нет ID для текущей строки, то добавляет ее,
  * в данной версии использует INSERT ... ON DUPLICATE KEY UPDATE ...
  *
+ * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
  * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
  */
-public function update();
+public function update(TRMDataObjectsCollection $DataCollection);
 /**
  * удаляет записи коллекции из таблиц БД,
  * из основной таблицы удаляются записи, которые удовлетворяют значению сохраненного ID-поля,
@@ -133,8 +134,9 @@ public function update();
  * так же удалются записи из дочерних таблиц, 
  * если у них стоит хотя бы одно поле доступное для редактирования - TRM_AR_UPDATABLE_FIELD
  * 
+ * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
  * @return boolean - возвращает результат запроса DELETE
  */
-public function delete();
+public function delete(TRMDataObjectsCollection $DataCollection);
 
 } // TRMDataSourceInterface

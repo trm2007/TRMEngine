@@ -10,26 +10,21 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 interface TRMRepositoryInterface
 {
 /**
- * связывает данные в репозитории с данными в объекте
+ * Производит выборку одной записи, 
+ * если ранее для $this->DataSource были установлены какие-то условия, то они будут использованы для выборки,
+ * например начальный элемент, количество выбираемых записей, или условия WHERE
  * 
- * @param TRMDataObjectInterface $object - объект модели с данными, 
- * должен реализовывать метод getDataObject(), 
- * который возвращает объект типа TRMDataObject, или производный от него
+ * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
-public function setObject(TRMDataObjectInterface $object);
+public function getOne();
 /**
- * Возвращает ссылку на текущий объект, с которым работает Repository
- * 
- * @return TRMDataObjectInterface
- */
-public function getObject();
-/**
- * обнуляет указатель на объект данных, сам объект не изменяяется, 
- * теряется только связь с репозиторием!!!
- */
-public function unlinkObject();
-/**
- * Производит выборку записей, удовлетворяющих указанным значениям для указанного поля
+ * Производит выборку одной записи, 
+ * удовлетворяющих указанному значению для указанного поля.
+ * Если в постоянном хранилище (БД) есть несколько записей, удовлтворящих запросу,
+ * то все-равно вернется только один объект.
+ * Все установленные ранее условия будут очищены и проигнорированны,
+ * выборка из DataSource только под одному условию (полю),
+ * если нужна выборка по нескольким условиям нужна функция getOne();
  * 
  * @param string $objectname - имя объекта для поиска по значению поля
  * @param string $fieldname - имя поля, в котором выбираются значения
@@ -38,17 +33,41 @@ public function unlinkObject();
  * 
  * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
-function getBy($objectname, $fieldname, $value, $operator = "=");
+public function getOneBy($objectname, $fieldname, $value, $operator = "=");
+/**
+ * Производит выборку всех записей,
+ * если ранее для $this->DataSource были установлены какие-то условия, то они будут использованы для выборки,
+ * например начальный элемент, количество выбираемых записей, или условия WHERE
+ * 
+ * @return TRMDataObjectsCollection - коллекция с объектами, заполненными данными из постоянного хранилища, 
+ * коллекция может быть пустой, если из БД вернулся пустой запрос, при этом никаких ошибок не возникает
+ */
+public function getAll();
+
+/**
+ * Производит выборку записей, удовлетворяющих указанному значению одного поля,
+ * целесообразно применять, если нужно сделать выборку по одному полю 
+ * без сложных WHERE запросов
+ * 
+ * @param string $objectname - имя объекта для поиска по значению поля
+ * @param string $fieldname - имя поля, в котором выбираются значения
+ * @param mixed $value - значение для сравнения и поиска
+ * @param string $operator - =, > , < , != , LIKE, IN и т.д.
+ * 
+ * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
+ */
+public function getBy($objectname, $fieldname, $value, $operator = "=");
 /**
  * Сохраняет объект в хранилище данных
  * 
- * @param TRMDataObjectInterface $object - объект, данные которого нужно сохранить в репозитории
+ * @param TRMDataObjectInterface $DataObject - объект, данные которого нужно сохранить в репозитории
  */
-function save(TRMDataObjectInterface $object = null);
+function save(TRMDataObjectInterface $DataObject);
 /**
  * обновляет или добавляет (если у объекта не установлено значение в уникальном поле или в поле первичного ключа) данные объекта в хранилище
+ * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию сохраняемых
  */
-function update();
+function update(TRMDataObjectInterface $DataObject);
 
 /**
  * добавляет данные объекта в хранилище, 
@@ -58,7 +77,36 @@ function update();
 //function insert();
 /**
  * удаляет все данные об объекте из хранилища
+ * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию сохраняемых
  */
-function delete();
+function delete(TRMDataObjectInterface $DataObject);
 
 } // TRMRepositoryInterface
+
+/**
+ * интерфейс для объектов репозитория, используемых в системе TRMEngine
+ */
+interface TRMIdDataObjectRepositoryInterface
+{
+/**
+ * получает данные объекта из хранилища по ID,
+ * никакие условия кроме выборки по ID не срабатывают и удаляются!
+ * 
+ * @param scalar $id - идентификатор (Id) объекта
+ * 
+ * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
+ */
+public function getById($id);
+
+/**
+ * @return array - array(имя суб-объекта, имя поля) для ID у обрабатываемых данным репозиторием объектов
+ */
+public function getIdFieldName();
+
+/**
+ * @param array $IdFieldName - array(имя суб-объекта, имя поля) 
+ * для ID у обрабатываемых данным репозиторием объектов
+ */
+public function setIdFieldName( array $IdFieldName );
+
+} // TRMIdDataObjectRepositoryInterface

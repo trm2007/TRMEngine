@@ -4,19 +4,14 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 use TRMEngine\DataObject\TRMDataObject;
-use TRMEngine\DataObject\TRMParentedCollectionDataObject;
 use TRMEngine\Exceptions\TRMObjectCreateException;
 use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
 
 /**
- * êëàññ äëÿ ğàáîòû ñ õğàíèëèùåì êîëëåêöèè çàâèñèìîé îò ğîäèòåëüñêîãî îáúåêòà
+ * êëàññ äëÿ ğàáîòû ñ õğàíèëèùåì îáúåêòîâ, çàâèñèìûõ îò ğîäèòåëüñêîãî îáúåêòà
  */
-abstract class TRMParentedRelationCollectionRepository extends TRMRepository
+abstract class TRMParentedDataObjectRepository extends TRMRepository
 {
-/**
- * @var TRMParentedCollectionDataObject - ññûëêà íà òåêóùèé îáúåêò
- */
-protected $CurrentObject = null;
 /**
  * @var array - ìàññèâ array( èìÿ îáúåêò, èìÿ ïîëÿ ) ğîäèòåëüñêîãî ID â ñâÿçóşùåé òàáëèöå,
  * â äàííîé ğåàëèçàöèè ıòî îäíà èç çàâèñèìîñòåé, èãğàşùàÿ ğîëü ãëàâíîé, 
@@ -72,28 +67,12 @@ public function getByParent( TRMIdDataObjectInterface $parentobject )
     {
         $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
 
-        $this->getBy( $ParentRelationIdFieldName[0], $ParentRelationIdFieldName[1], $parentobject->getId() );
-        $this->CurrentObject->setParentDataObject( $parentobject );
-
-        return $this->CurrentObject;
+        return $this->getBy( $ParentRelationIdFieldName[0], $ParentRelationIdFieldName[1], $parentobject->getId() );
     }
     catch( TRMRepositoryGetObjectException $e )
     {
-        $this->CurrentObject = null;
         return null;
     }
-}
-
-/**
- * äëÿ êîëëåêöèè ñíà÷àëà âñå óäàëÿåòñÿ èç ÁÄ, 
- * çàòåì ñíîâà çàïèñûâàşòñÿ äàííûå èç îáúåêòà äàííûõ
- *
- * @return boolean
- */
-public function update()
-{
-//    if( !$this->delete() ) { return false; }
-    return $this->DataSource->insert();
 }
 
 

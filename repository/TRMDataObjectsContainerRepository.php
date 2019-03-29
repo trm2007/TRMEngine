@@ -148,25 +148,42 @@ public function getBy( $objectname, $fieldname, $value, $operator = "=")
     // без главного объекта нет смысла продолжать работу, поэтому проверям, 
     // что он получен родительским getBy,
     // там же вызывается метод setObject, который связывает все зависимости
-    $this->getMainRepository()->getBy( $objectname, $fieldname, $value, $operator );
+    $this->DataObjectsContainer->setMainDataObject(
+            $this->getMainRepository()->getOneBy( $objectname, $fieldname, $value, $operator )
+            );
 
-    // в цикле получаются все зависимости для главного объекта, 
-    // которые связаны и есть в контейнере (массиве зависимостей)
+    // цикл по все объектам в контейнере
     foreach( $this->DataObjectsContainer as $Index => $DataObject )
     {
-        // если проверяемого объекта нет в зависимостях для главного в контейнере, 
-        // то для него не вызываем getById, пропускаем и переходим к следующему объекту...
-        // метод getBy такого объекта будет позже вызван через механизм событий
+        // если проверяемого объекта нет в зависимостях для главного объекта в контейнере, 
+        // то это дочерние коллекции,
+        // для них вызываем getByParent 
         if( !$this->DataObjectsContainer->isDependence($Index) )
         {
-            continue;
+            // возвращает коллекцию TRMDataObjectsCollection
+            $this->DataObjectsContainer->setChildObject(
+                    $Index,
+                    TRMDIContainer::getStatic(TRMRepositoryManager::class)->getRepositoryFor( $DataObject )
+                            ->getByParent( $this->DataObjectsContainer->getMainDataObject() )
+                    );
         }
-        $DependIndex = $this->DataObjectsContainer->getDependence($Index);
-        
-        TRMDIContainer::getStatic(TRMRepositoryManager::class)->getRepositoryFor( $DataObject )
-                        ->getById( $this->DataObjectsContainer->getMainDataObject()
-                                        ->getFieldValue( $DependIndex[0], $DependIndex[1] )
-                                );
+        // Если это объект-зависимость для главного, то
+        // для него не вызываем getById
+        else
+        {
+            $DependIndex = $this->DataObjectsContainer->getDependence($Index);
+
+            // возвращает коллекцию TRMDataObjectsCollection
+            $this->DataObjectsContainer->setDependence(
+                    $Index,
+                    TRMDIContainer::getStatic(TRMRepositoryManager::class)->getRepositoryFor( $DataObject )
+                            ->getById( $this->DataObjectsContainer->getMainDataObject()
+                                            ->getFieldValue( $DependIndex[0], $DependIndex[1] )
+                                    ),
+                    $DependIndex[0],
+                    $DependIndex[1] 
+                    );
+        }
     }
 
     if( !empty($this->GetEventName) )
@@ -175,7 +192,10 @@ public function getBy( $objectname, $fieldname, $value, $operator = "=")
         TRMDIContainer::getStatic(TRMEventManager::class)->notifyObservers(
                 new TRMCommonEvent( // создается объект события
                         $this, // передаем ссылку на инициатора события, т.е. на себя
-                        $this->GetEventName // тип события (его имя)
+                        $this->GetEventName, // тип события (его имя)
+                        array( 
+                            Events\TRMRepositoryEvents::CONTAINER_OBJECT_INDEX => $this->DataObjectsContainer,
+                            Events\TRMRepositoryEvents::MAIN_OBJECT_INDEX => $this->DataObjectsContainer->getMainDataObject() )
                     )
                 );
     }
@@ -203,7 +223,10 @@ public function update()
         TRMDIContainer::getStatic(TRMEventManager::class)->notifyObservers(
                 new TRMCommonEvent( // создается объект события
                         $this, // передаем ссылку на инициатора события, т.е. на себя
-                        $this->UpdateEventName // тип события (его имя)
+                        $this->UpdateEventName, // тип события (его имя)
+                        array( 
+                            Events\TRMRepositoryEvents::CONTAINER_OBJECT_INDEX => $this->DataObjectsContainer,
+                            Events\TRMRepositoryEvents::MAIN_OBJECT_INDEX => $this->DataObjectsContainer->getMainDataObject() )
                     )
                 );
     }
@@ -227,7 +250,10 @@ public function delete()
         TRMDIContainer::getStatic(TRMEventManager::class)->notifyObservers(
                 new TRMCommonEvent( // создается объект события
                         $this, // передаем ссылку на инициатора события, т.е. на себя
-                        $this->DeleteEventName // тип события (его имя)
+                        $this->DeleteEventName, // тип события (его имя)
+                        array( 
+                            Events\TRMRepositoryEvents::CONTAINER_OBJECT_INDEX => $this->DataObjectsContainer,
+                            Events\TRMRepositoryEvents::MAIN_OBJECT_INDEX => $this->DataObjectsContainer->getMainDataObject() )
                     )
                 );
     }
@@ -243,10 +269,6 @@ public function delete()
  */
 public function save(TRMDataObjectInterface $object = null)
 {
-    if( null !== $object )
-    {
-        $this->setObject($object);
-    }
     if( null === $this->DataObjectsContainer )
     {
         throw new TRMRepositoryNoDataObjectException( "Не установлен объект с данными в репозитории " . get_class($this) );

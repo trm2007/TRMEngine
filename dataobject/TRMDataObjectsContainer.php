@@ -12,14 +12,14 @@ use TRMEngine\DataObject\Interfaces\TRMRelationDataObjectsContainerInterface;
  * класс контейнер объектов данных, используется для составных объектов.
  * 
  * Используется 
- * 1. как для объектов-детей,
+ * 1. как для коллекций объектов-детей,
  * например, для составного продукта со всеми дополнительными коллекциями и объектами,
  * которые зависят от ID-главного объекта
- * (коллекции характеристик, комплектующие продукты, доп.изображения и т.д.)
+ * (коллекции характеристик, комплектующие продукты, доп.изображения для товара и т.д.)
  * 
- * 2. так и для зависимостей,
+ * 2. так и для коллекция зависимостей (как правило в коллекции каждого типа только одна зависимости),
  * когда есть главный объект и объекты-зависимости,
- * от которых главный объект зависит и с связан через их ID.
+ * от которых главный объект зависит и связан с ними через их ID.
  * Сами зависимости являются автономными сущностями, например,
  * производитель никак не зависит от товара, 
  * но товар связан через свой ID_vendor и зависит от производителя по его ID...
@@ -34,7 +34,7 @@ abstract class TRMDataObjectsContainer implements
  */
 protected $MainDataObject;
 /**
- * @var array(TRMDataObjectInterface) - массив объектов данных, дополняющих основной объект, 
+ * @var array(TRMDataObjectsCollection) - массив с коллекциями объектов данных, дополняющих основной объект, 
  * например коллекция характеристик, доп.изображения, комплекты, скидки и т.д.
  */
 protected $ObjectsArray = array();
@@ -64,11 +64,11 @@ protected $DependenciesArray = array();
  * сохраняется только ссылка, объект не клонируется!!!
  * 
  * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMIdDataObjectInterface $do - добавляемый объект
+ * @param TRMDataObjectsCollection $do - добавляемая коллекция, как дочерняя
  * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
  * @param string $FieldName - имя поля основного суб-объекта в главном объекте, по которому связывается зависимость
  */
-public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName )
+public function setDependence($Index, TRMDataObjectsCollection $do, $ObjectName, $FieldName )
 {
     $this->DependenciesArray[$Index] = array( strval($ObjectName), strval($FieldName) ); 
     
@@ -93,8 +93,7 @@ public function getDependence($Index)
  * 
  * @param string $Index - имя/номер-индекс объекта в контейнере
  * 
- * @return array - имя суб-объекта и поля в суб-объекте главного объекта, 
- * по которому установлена связь с ID зависимости под индексом $Index
+ * @return TRMDataObjectsCollection - коллекция с объектами данных, сохраненная в контейнере
  */
 public function getDependenceObject($Index)
 {
@@ -183,9 +182,9 @@ public function setMainDataObject(TRMIdDataObjectInterface $do)
  * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectInterface $do - добавляемый объект
+ * @param TRMDataObjectsCollection $do - добавляемый объект
  */
-public function setChildObject($Index, Interfaces\TRMParentedDataObjectInterface $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
+public function setChildObject($Index, TRMDataObjectsCollection $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
 {
     $do->setParentDataObject($this);
 
@@ -196,9 +195,9 @@ public function setChildObject($Index, Interfaces\TRMParentedDataObjectInterface
  * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectInterface $do - добавляемый объект
+ * @param TRMDataObjectsCollection $do - добавляемый объект
  */
-private function setDataObject($Index, TRMDataObjectInterface $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
+private function setDataObject($Index, TRMDataObjectsCollection $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
 {
     $this->ObjectsArray[$Index] = $do;
 }
@@ -208,7 +207,7 @@ private function setDataObject($Index, TRMDataObjectInterface $do) // был TRMPar
  * 
  * @param integer $Index - номер объекта в контейнере
  * 
- * @return TRMDataObjectInterface - объект из контейнера
+ * @return TRMDataObjectsCollection - объект из контейнера
  */
 public function getDataObject($Index)
 {

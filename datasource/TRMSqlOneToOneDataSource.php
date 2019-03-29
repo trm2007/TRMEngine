@@ -18,31 +18,4 @@ public function __construct(TRMSafetyFields $SafetyFields)
     $this->Count = 1;
 }
 
-    /*
-public function __construct()//$MainTableName, $MainIdName, array $SecondTableArray = null, $MainAlias = null )
-{
-    parent::__construct($MainTableName, $MainIdName, $SecondTableArray, $MainAlias);
-
-    $this->StartPosition = null;
-    $this->Count = 1;
-}
- * 
- */
-
-
-/**
- * добавл€ем новую запись в Ѕƒ
- *
- * @return int|boolean - если все прошло удачно, то дл€ одной записи возвращаетс€ ее номер авто-инкремента, иначе 0, 
- * в случае ошибки - false, результат работы следует провер€ть через === false, чтобы не путать с нулем!
- */
-function add()
-{
-    if( false === parent::add() )
-    {
-            return false;
-    }
-    return $this->LastId;
-}
-
 } // TRMSqlOneToOneDataSource

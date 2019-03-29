@@ -9,7 +9,7 @@ use TRMEngine\EventObserver\TRMEventManager;
 /**
  * класс дл€ работы с хранилищем коллекции зависимой от родительского объекта
  */
-abstract class TRMObserverParentedRelationCollectionRepository extends TRMParentedRelationCollectionRepository
+abstract class TRMObserverParentedDataObjectRepository extends TRMParentedDataObjectRepository
 {
 /**
  * @var string - им€ событи€ при получении объетка, которое отслеживаетс€ данным экземпл€ром репозитори€
@@ -25,7 +25,7 @@ protected $UpdateEventName = "";
 protected $DeleteEventName = "";
 
 /**
- * при создании конструктор дочеренего объекта должен передать имена событий, 
+ * при создании в конструкторе дочеренего объекта должны передать имена событий, 
  * которые будут отслеживатьс€ этим экземпл€ром - получение/обновление/удаление,
  * если им€ дл€ какого-то событи€ не указано, оно не отслеживаетс€
  * 
@@ -63,44 +63,23 @@ public function __construct($objectclassname, $GetEventName = "", $UpdateEventNa
  * 
  * @param TRMCommonEvent $event
  */
-public function getHandle(TRMCommonEvent $event)
-{
-    // в свою очередь $event->getSender()->getObject() - вернет объект св€занный с репозиторием в данный момент
-    if( $this->CurrentObject && ($event->getSender()->getObject() === $this->CurrentObject->getParentDataObject()) )
-    {
-        $this->getByParent( $this->CurrentObject->getParentDataObject() );
-    }
-}
+abstract public function getHandle(TRMCommonEvent $event);
+
 
 /**
  * обработчик событи€ обновлени€ объекта
  * 
  * @param TRMCommonEvent $event
  */
-public function updateHandle(TRMCommonEvent $event)
-{
-    if( $this->CurrentObject && ($event->getSender()->getObject() === $this->CurrentObject->getParentDataObject()) )
-    {
-        $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
-        $this->CurrentObject->changeAllValuesFor( $ParentRelationIdFieldName[0], 
-                                                $ParentRelationIdFieldName[1], 
-                                                $event->getSender()->getObject()->getId() );
-        $this->update();
-    }
-}
+abstract public function updateHandle(TRMCommonEvent $event);
+
 
 /**
  * обработчик событи€ удалени€ объекта
  * 
  * @param TRMCommonEvent $event
  */
-public function deleteHandle(TRMCommonEvent $event)
-{
-    if( $this->CurrentObject && ($event->getSender()->getObject() === $this->CurrentObject->getParentDataObject()) )
-    {
-        $this->delete();
-    }
-}
+abstract public function deleteHandle(TRMCommonEvent $event);
 
 
 } // TRMObserverParentedRelationCollectionRepository

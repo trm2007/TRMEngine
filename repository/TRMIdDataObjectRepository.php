@@ -4,6 +4,7 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
+use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
 
 /**
  * класс репозитория, предназначенного для работы с объектом-данных реализующим TRMIdDataObjectInterface
@@ -14,12 +15,8 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
  * 
  * @author TRM - 2018-07-28
  */
-abstract class TRMIdDataObjectRepository extends TRMRepository
+abstract class TRMIdDataObjectRepository extends TRMRepository implements TRMIdDataObjectRepositoryInterface
 {
-/**
- * @var TRMIdDataObjectInterface - ссылка на текущий объект
- */
-protected $CurrentObject = null;
 /**
  * @var array - имя поля, содержащего ID записи
  */
@@ -47,7 +44,7 @@ public function __construct($objectclassname)
 }
 
 /**
- * @return array - имя поля, содержащего ID записи
+ * @return array - array(имя суб-объекта, имя поля) для ID у обрабатываемых данным репозиторием объектов
  */
 public function getIdFieldName()
 {
@@ -55,7 +52,8 @@ public function getIdFieldName()
 }
 
 /**
- * @param array $IdFieldName - имя поля, содержащего ID записи
+ * @param array $IdFieldName - array(имя суб-объекта, имя поля) 
+ * для ID у обрабатываемых данным репозиторием объектов
  */
 public function setIdFieldName( array $IdFieldName )
 {
@@ -65,80 +63,33 @@ public function setIdFieldName( array $IdFieldName )
 }
 
 /**
- * добавляет текущий объект, который обрабатывает этот Repository, в локальный контейнер, 
+ * добавляет объект, который обрабатывает этот Repository, в локальный контейнер, 
  * если только у объекта установлен Id
+ * 
+ * @param TRMIdDataObjectInterface $DataObject - добавляемы объект
  */
-private function addCurrentObjectToContainer()
+private function addIdDataObjectToContainer(TRMIdDataObjectInterface $DataObject)
 {
-    $id = $this->CurrentObject->getId();
+    $id = $DataObject->getId();
     if( null !== $id )
     {
-        self::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $this->CurrentObject;
+        self::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $DataObject;
     }
 }
 
 /**
- * переопределяет родительский метод, добавляет ссылку на объект в локальный массив, 
- * если только у этого объекта есть Id
- * 
- * @param TRMDataObjectInterface $object - должен быть типа - TRMIdDataObjectInterface
- */
-public function setObject(TRMDataObjectInterface $object)
-{
-    parent::setObject($object);
-    $this->addCurrentObjectToContainer();
-}
-
-/**
- * проверяет объект $do на наличие нужного значения $value в поле $fieldname
- * 
- * @param TRMIdDataObjectInterface $do - объект с данными для проверки условия
- * @param string $objectname - имя объекта для проверки поля
- * @param string $fieldname - имя поле для проверки значения
- * @param mixed $value - значение для проверки 
- * @param string $operator - оператор, по которому будет сравниваться значение $value со значением находящимся в поле $fieldname объекта $do
- * 
- * @return boolean - если у объекта поле $fieldname удовлетворяет значению $value по оператору $operator, 
- * то вернется true, иначе false
- */
-private function checkDataObject(TRMIdDataObjectInterface $do, $objectname, $fieldname, $value, $operator)
-{
-    $res = $do->getFieldValue($objectname, $fieldname);
-    if( null === $res ) { return false; }
-    
-    switch ( strtoupper(trim($operator))  )
-    {
-        case "IS":
-        case "=": if( $res === $value ) { return true; }
-        case ">": if( $res > $value ) { return true; }
-        case ">=": if( $res >= $value ) { return true; }
-        case "<": if( $res < $value ) { return true; }
-        case "<=": if( $res <= $value ) { return true; }
-        case "NOT": 
-        case "!=": 
-        case "<>": if( $res !== $value ) { return true; }
-        case "LIKE": return ( strpos($res, $value) !== false );
-        case "NOT LIKE": return ( strpos($res, $value) === false );
-    }
-    
-    return fasle;
-}
-
-/**
- * переопределяет getBy для поиска значения сначала в локальном контейнере объектов данных,
+ * переопределяет getOne для поиска значения ШВ сначала в локальном контейнере объектов данных,
  * если там еще нет объекта по запрашиваемым условиям, то вернется результат запроса из основного хранилища 
- * методом getBy(...) родительского класса
+ * методом getOne(...) родительского класса
  * 
  * @param string $objectname - имя объекта для поиска по значению
  * @param string $fieldname - поле для поиска по значению
  * @param mixed $value - значение для проверки 
  * @param string $operator - оператор, по которому будет сравниваться значение $value со значением находящимся в поле $fieldname объекта $do
- * @param boolean $getfromdatasourceflag - если этот флаг установлен в true - поумолчанию, то поиск по локальному контейнеру производится не будет,
- * сразу произойдет запрос к основному хранилищу (в данной реализации к БД)
  * 
  * @return TRMIdDataObjectInterface
  */
-public function getBy($objectname, $fieldname, $value, $operator = "=", $getfromdatasourceflag = true)
+public function getOne($objectname, $fieldname, $value, $operator = "=")
 {
     // если запрос объекта по Id-полю
     if( $objectname === $this->IdFieldName[0] && $fieldname === $this->IdFieldName[1] )
@@ -146,79 +97,122 @@ public function getBy($objectname, $fieldname, $value, $operator = "=", $getfrom
         // проверяем, если объект с таки Id уже есть в локальном массиве, то 
         if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
         {
-            // устанавливаем указательна на найденный объект как на обрабатываемый в данное время
-            $this->setObject(self::$IdDataObjectContainer[$this->ObjectTypeName][$value]);
-            // и вернет его
+            // и вернем его
             return self::$IdDataObjectContainer[$this->ObjectTypeName][$value];
         }
     }
-    // если не установлен флаг брать из источника данных - $getfromdatasourceflag,
-    // то пытаемся найти по заданным параметрам в локальном массиве
-    elseif( !$getfromdatasourceflag )
-    {
-        // перебираем все уже хранящиеся в контейнере ссылки на объекты данных
-        foreach( self::$IdDataObjectContainer[$this->ObjectTypeName] as $do )
-        {
-            // если был найден объект с заданными параметрами поля в контейнере, то возвращаем его 
-            if( true === $this->checkDataObject($do, $objectname, $fieldname, $value, $operator) )
-            {
-                $this->setObject($do);
-                return $do;
-            }
-        }
-    }
-    // иначе будет произведен поиск в постоянном (Persist) хранилище, в данной реализации в БД
-    // если CurrentObject еще не установлен (null),
-    // он будет создан и установен в getBy
-    parent::getBy( $objectname, $fieldname, $value, $operator);
+    // будет произведен поиск в постоянном (Persist) хранилище, в данной реализации в БД
+    $DataObject = parent::getOne( $objectname, $fieldname, $value, $operator);
     
     // если из БД получить объект не удалось, то getId вернет null
-    if( $this->CurrentObject->getId() === null ) { return null; }
+    if( $DataObject === null ) { return null; }
+    
+    // Если полученный объект уже есть в локальном хранилище, 
+    // то нужно вернуть оттуда, 
+    // приоритет на стороне клинета, так как в локальном объетке могут быть на записанные изменения,
+    // их нельзя тереть
+    $id = $DataObject->getId();
+    if( null !== $id && isset(self::$IdDataObjectContainer[$this->ObjectTypeName][$id]) )
+    {
+        return self::$IdDataObjectContainer[$this->ObjectTypeName][$id];
+    }
+    
     // сохраняем ссылку на текущий объект в локальном массиве
-    $this->addCurrentObjectToContainer();
+    $this->addIdDataObjectToContainer($DataObject);
 
-    return $this->CurrentObject;
+    return $DataObject;
 }
 
 /**
- * получает данные объекта из хранилища, например из БД
+ * @param array $DataArray - массив с данными, из которых будет создан объект
  * 
- * @param integer $id - идентификатор объекта
+ * @return TRMDataObjectInterface - созданный объект данных, который обрабатывает этот экземпляр репозитория
+ */
+protected function getDataObjectFromDataArray(array $DataArray)
+{
+    $IdArr = $this->getIdFieldName();
+    // проверяем, есть ли данные в поле с ID для данного объекта
+    // если это новый объект, то у него нет ID 
+    if( isset($DataArray[$IdArr[0]][$IdArr[1]]) )
+    {
+        // если есть, получаем ID
+        $id = $DataArray[$IdArr[0]][$IdArr[1]];
+        // если в локальном реползитории уже есть объект с таким Id, то веренем его...
+        if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        {
+            return self::$IdDataObjectContainer[$this->ObjectTypeName][$id];
+        }
+    }
+    // если не найден в локальном хранилище, то вызываем родительский метод,
+    // где будет создан новый объект с эти данными
+    $DataObject = parent::getDataObjectFromDataArray($DataArray);
+    
+    $this->addIdDataObjectToContainer($DataObject);
+    
+    return $DataObject;
+}
+
+/**
+ * получает данные объекта из хранилища по ID,
+ * никакие условия кроме выборки по ID не срабатывают и удаляются!
+ * 
+ * @param scalar $id - идентификатор (Id) объекта
  * 
  * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
 public function getById($id)
 {
-    if( is_numeric($id) || preg_match("#^[0-9]+$#", $id) )
-    {
-        $IdArr = $this->getIdFieldName();
-        return $this->getBy( $IdArr[0], $IdArr[1], (int)$id );
-    }
-    return null;
+    $IdArr = $this->getIdFieldName();
+    return $this->getOneBy( $IdArr[0], $IdArr[1], $id );
 }
 
 /**
- * обновляет данные связанного объекта в хранилище,
- * если данных нет в хранилище, то добавляет,
- * при этом устанавливает вновь записанный Id. если он является AUTO_INCREMENT
- * 
- * @return boolean
+ * фактически обновляет данные из подготовленной коллекции хранилища
+ * в постоянном хранилище,
+ * если данных какого объекта из коллекции нет в постоянном хранилище, то добавляет новые,
+ * при этом сохраняет новые объекты с ID в локальном хранилище
  */
-public function update()
+public function doUpdate()
 {
-    if( false === parent::update() ) { return false; }
+// Не можем вызвать родительский метод, мотому что там очищается коллекция!
+//    parent::doUpdate();
+    if( !$this->CollectionToUpdate->count() ) { return; }
 
-    // пытаемся получить LastId, он будет установлен, 
-    // если произведено добавление и увеличилось значение AUTO_INCREMENT поля
-    //if( ($id = $this->DataSource->getLastId()) )
-//    {
-        // В алгоритме 01.09.2018 года все ID для автоинкрементных полей устанавливаются автоматом в SQLDataSource
-        //$this->CurrentObject->setId( $id );
-        // сохраняем ссылку на текущий объект в локальном массиве
-        $this->addCurrentObjectToContainer();
-//    }
-    return true;
+    $this->DataSource->update( $this->CollectionToUpdate );
+    // если были добавлены новые объекты, то у них появился новый ID,
+    // проверяем наличие всех обновленных записей на наличие в локальном ID-хранилище 
+    foreach( $this->CollectionToUpdate as $CurrentDataObject )
+    {
+        $id = $CurrentDataObject->getId();
+        if( !isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        {
+            self::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $CurrentDataObject;
+        }
+        
+    }
+    $this->CollectionToUpdate->clearCollection();
 }
 
+/**
+ * производите фактичесое удаление данных объетов коллекции из постоянного хранилища DataSource
+ * при этом убирает удаляемые объекты по ID из локального хранилища
+ */
+public function doDelete()
+{
+    if( !$this->CollectionToUpdate->count() ) { return; }
+
+    // если были добавлены новые объекты, то у них появился новый ID,
+    // проверяем наличие всех обновленных записей на наличие в локальном ID-хранилище 
+    foreach( $this->CollectionToDelete as $CurrentDataObject )
+    {
+        $id = $CurrentDataObject->getId();
+        if( $id && isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        {
+            unset(self::$IdDataObjectContainer[$this->ObjectTypeName][$id]);
+        }
+        
+    }
+    parent::doDelete();
+}
 
 } // TRMIdDataObjectRepository
