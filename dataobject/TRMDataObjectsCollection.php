@@ -4,13 +4,14 @@ namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Exceptions\TRMDataObjectSCollectionWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
+use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 
 /**
  * класс дл€ работы с коллекци€ми однотипных объектов DataObject
  * 
  * @version 2019-03-29
  */
-class TRMDataObjectsCollection implements \ArrayAccess, \Iterator, \Countable
+class TRMDataObjectsCollection implements TRMDataObjectsCollectionInterface
 {
 /**
  * @var int - текуща€ позици€ указател€ в массиве дл€ реализации интерфейса Iterator
@@ -53,11 +54,55 @@ public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 
 /**
  * @param TRMDataObjectInterface $DataObject - добавит это объект в коллекцию
+ * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добав€тс€ дубликаты объектов,
+ * если утсановить в TRUE, то объект добавитс€ как новый,
+ * даже если он дублирует уже присутсвующий,
+ * по умолчанию - false (дубли не добавл€ютс€)
+ * 
+ * @return boolean - если объект добавлен в коллекцию, то вернетс€ TRUE, иначе FALSE
  */
-public function addDataObject( TRMDataObjectInterface $DataObject )
+public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false )
 {
+    if( !$AddDuplicateFlag && $this->hasDataObject($DataObject) )
+    {
+        return false;
+    }
     $this->DataObjectsArray[] = $DataObject;
-    return key( $this->DataObjectsArray );
+    return true;
+}
+
+/**
+ * провер€ет, есть ли в коллекции объект,
+ * точнее ссылка на этот объект
+ * 
+ * @param TRMDataObjectInterface $Object
+ * @return boolean
+ */
+public function hasDataObject( TRMDataObjectInterface $Object )
+{
+    foreach( $this->DataObjectsArray as $Item )
+    {
+        if( $Item === $Object ) { return true; }
+    }
+    return false;
+}
+
+/**
+ * добавл€ет в коллекцию содержимое другой коллекции,
+ * если только такого объект еще нет в своем массиве,
+ * точнее не самого объекта, а ссылки на этот же самы йобъект
+ * 
+ * @param TRMDataObjectsCollection $Collection
+ * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добав€тс€ дубликаты объектов,
+ * если утсановить в TRUE, то нова€ коллекци€ добавист€ как есть к существующей, со всеми элементами,
+ * даже если они дублируют уже присутсвующие, по умолчанию - false (дубли не добавл€ютс€)
+ */
+public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $AddDuplicateFlag = false )
+{
+    foreach( $Collection as $Item )
+    {
+        $this->addDataObject($Item, $AddDuplicateFlag);
+    }
 }
 
 /**
@@ -138,5 +183,6 @@ public function offsetUnset($offset)
 {
     unset($this->DataObjectsArray[$offset]);
 }
+
 
 } // TRMDataObjectsCollection

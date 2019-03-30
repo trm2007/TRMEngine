@@ -4,16 +4,18 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataMapper\TRMDataMapper;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
-use TRMEngine\DataObject\TRMDataObject;
+use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\DataObject\TRMDataObjectsCollection;
 use TRMEngine\DataSource\Interfaces\TRMDataSourceInterface;
-use TRMEngine\DataSource\TRMSqlCollectionDataSource;
 use TRMEngine\DataSource\TRMSqlDataSource;
-use TRMEngine\Repository\Exeptions\TRMRepositoryUnknowDataObjectClassException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
-// use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
-
+/**
+ * основной класс для репозитория объектов разных типов,
+ * позволяет создавать, обновлять, удалять и читать данные для объектов из источника данных (DataSource).
+ * В дочерних классах должен быть создан DataMapper,
+ * а так же нуэно передать объект DataSource (в данной версии используется SQL с БД MySQL)
+ */
 abstract class TRMRepository implements TRMRepositoryInterface
 {
 /**
@@ -24,30 +26,33 @@ protected $DataSource = null;
 /**
  * @var string - имя типа данных, с которыми работает данный экземпляр класса Repository
  */
-protected $ObjectTypeName = TRMDataObject::class; //"TRMDataObject";
-
+protected $ObjectTypeName = ""; //TRMDataObject::class; //"TRMDataObject";
 /**
- * @var TRMDataObjectsCollection - коллекция объектов , 
+ * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
  * полученных при последнем вызове одного из методов getBy,
  * getOne - тоже заолняет коллекцию, но только одним объектом!
  */
-protected $CollectionToGet;
+protected $GetCollection;
 /**
- * @var TRMDataObjectsCollection - коллекция объектов , 
+ * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
  * добавленных в репозиторий, которые нужно обновить или добавить в постоянное хранилище DataSource
  */
 protected $CollectionToUpdate;
 /**
- * @var TRMDataObjectsCollection - коллекция объектов , 
+ * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
  * добавленных в репозиторий, которые нужно обновить или добавить в постоянное хранилище DataSource
  */
 protected $CollectionToInsert;
 /**
- * @var TRMDataObjectsCollection - коллекция объектов , 
+ * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
  * которые подготовлены к удалению из постоянного хранилища DataSource
  */
 protected $CollectionToDelete;
 
+/**
+ * @var TRMDataMapper 
+ */
+protected $DataMapper;
 
 /**
  * @param string $objectclassname - имя класса для объектов, за которые отвечает этот Repository
@@ -55,7 +60,21 @@ protected $CollectionToDelete;
 public function __construct($objectclassname)
 {
     $this->ObjectTypeName = (string)$objectclassname;
+    
+    $this->GetCollection = new TRMDataObjectsCollection();
+    $this->CollectionToInsert = new TRMDataObjectsCollection();
+    $this->CollectionToUpdate = new TRMDataObjectsCollection();
+    $this->CollectionToDelete = new TRMDataObjectsCollection();
 }
+
+function getDataMapper() {
+    return $this->DataMapper;
+}
+
+function setDataMapper(TRMDataMapper $DataMapper) {
+    $this->DataMapper = $DataMapper;
+}
+
 
 /**
  * @param TRMDataSourceInterface $datasource - источник данных - объект для работы с данными в постоянном хранилище, в данном случае в БД
@@ -100,18 +119,28 @@ public function setWhereCondition($objectname, $fieldname, $data, $operator = "=
  * если ранее для $this->DataSource были установлены какие-то условия, то они будут использованы для выборки,
  * например начальный элемент, количество выбираемых записей, или условия WHERE
  * 
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
+ * 
  * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
-public function getOne()
+public function getOne( TRMDataObjectInterface $DataObject = null )
 {
     $this->DataSource->setLimit( 1 );
-    
-    $this->getAll();
-    if( !$this->CollectionToGet->count() ) { return null; }
-    
-    $this->CollectionToGet->rewind();
-    
-    return $this->CollectionToGet->current();
+
+    $this->GetCollection->clearCollection();
+
+    // в случае ошибочного запроса DataSource->getDataFrom() выбрасывает исключение
+    $result = $this->DataSource->getDataFrom();
+    // если в апросе нет данных, возвращается путсая коллекция
+    if( !$result->num_rows ) { return null; }
+
+    // должна вернуться только одна строка,
+    // из нее создается объект данных
+    $DataObject = $this->getDataObjectFromDataArray($result->fetch_row(), $DataObject);
+    $this->GetCollection->addDataObject( $DataObject );
+
+    return $DataObject;
 }
 
 /**
@@ -126,22 +155,17 @@ public function getOne()
  * @param string $objectname - имя объекта для поиска по значению поля
  * @param string $fieldname - имя поля, в котором выбираются значения
  * @param mixed $value - значение для сравнения и поиска
- * @param string $operator - =, > , < , != , LIKE, IN и т.д.
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
  * 
  * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
-public function getOneBy($objectname, $fieldname, $value, $operator = "=")
+public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface $DataObject = null)
 {
     $this->DataSource->clearParams();
-    $this->DataSource->addWhereParam($objectname, $fieldname, $value, $operator);
-    $this->DataSource->setLimit( 1 );
+    $this->DataSource->addWhereParam($objectname, $fieldname, $value);
     
-    $this->getAll();
-    if( !$this->CollectionToGet->count() ) { return null; }
-    
-    $this->CollectionToGet->rewind();
-    
-    return $this->CollectionToGet->current();
+    return $this->getOne( $DataObject );
 }
 
 /**
@@ -150,53 +174,68 @@ public function getOneBy($objectname, $fieldname, $value, $operator = "=")
  * @param string $objectname - имя объекта для поиска по значению поля
  * @param string $fieldname - имя поля, в котором выбираются значения
  * @param mixed $value - значение для сравнения и поиска
- * @param string $operator - =, > , < , != , LIKE, IN и т.д.
+ * @param TRMDataObjectsCollectionInterface $Collection - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
  * 
- * @return TRMDataObjectsCollection - объект, заполненный данными из хранилища
+ * @return TRMDataObjectsCollectionInterface - объект, заполненный данными из хранилища
  */
-public function getBy($objectname, $fieldname, $value, $operator = "=")
+public function getBy($objectname, $fieldname, $value, TRMDataObjectsCollectionInterface $Collection = null)
 {
     $this->DataSource->clearParams();
-    $this->DataSource->addWhereParam($objectname, $fieldname, $value, $operator);
-    return $this->getAll();
+    $this->DataSource->addWhereParam($objectname, $fieldname, $value);
+    return $this->getAll($Collection);
 }
 
 /**
  * Производит выборку всех записей,
- * если ранее для $this->DataSource были установлены какие-то условия, то они будут использованы для выборки,
- * например начальный элемент, количество выбираемых записей, или условия WHERE
+ * если ранее для $this->DataSource были установлены какие-то условия, 
+ * то они будут использованы для выборки,
+ * например, начальный элемент, количество выбираемых записей, или условия WHERE
+ * 
+ * @param TRMDataObjectsCollectionInterface $Collection - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
  * 
  * @return TRMDataObjectsCollection - коллекция с объектами, заполненными данными из постоянного хранилища, 
  * коллекция может быть пустой, если из БД вернулся пустой запрос, при этом никаких ошибок не возникает
  */
-public function getAll()
+public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
 {
-    $this->CollectionToGet->clearCollection();
+    $this->GetCollection->clearCollection();
 
-    // в случае ошибочного запросу DataSource->getDataFrom() выбрасывает исключение
+    // в случае ошибочного запроса DataSource->getDataFrom() выбрасывает исключение
     $result = $this->DataSource->getDataFrom();
     // если в апросе нет данных, возвращается путсая коллекция
-    if( !$result->num_rows ) { return $this->CollectionToGet; }
+    if( !$result->num_rows ) { return null; }
 
     // из каждой строки вернувшегося результата создается объект данных
     while( $Row = $result->fetch_row() )
     {
-        $this->CollectionToGet[] = $this->getDataObjectFromDataArray($Row);
+        // в коллекцию всегда добавляется новый объект
+        $this->GetCollection->addDataObject( $this->getDataObjectFromDataArray($Row) );
     }
-    
-    return $this->CollectionToGet;
+    if( isset($Collection) )
+    {
+        $Collection = $this->GetCollection;
+    }
+
+    return $this->GetCollection;
 }
 /**
  * @param array $DataArray - массив с данными, из которых будет создан объект
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
  * 
  * @return TRMDataObjectInterface - созданный объект данных, который обрабатывает этот экземпляр репозитория
  */
-protected function getDataObjectFromDataArray(array $DataArray)
+protected function getDataObjectFromDataArray( array $DataArray, TRMDataObjectInterface $DataObject = null )
 {
-    $DataObject = new $this->ObjectTypeName;
+    if( !$DataObject )
+    {
+        $DataObject = new $this->ObjectTypeName;
+    }
     $k = 0;
     // преобразуем одномерный массив в многомерный согласно DataMapper-у
-    foreach( $this->SafetyFields as $TableName => $TableState )
+    foreach( $this->DataMapper as $TableName => $TableState )
     {
         foreach( array_keys($TableState[TRMDataMapper::FIELDS_INDEX]) as $FieldName )
         {
@@ -214,7 +253,7 @@ protected function getDataObjectFromDataArray(array $DataArray)
  * 
  * @param TRMDataObjectInterface $DataObject - объект, данные которого нужно сохранить в репозитории,
  */
-public function save(TRMDataObjectInterface $DataObject)
+public function save( TRMDataObjectInterface $DataObject)
 {
     return $this->update($DataObject);
 }
@@ -222,21 +261,25 @@ public function save(TRMDataObjectInterface $DataObject)
 /**
  * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию сохраняемых
  */
-public function update(TRMDataObjectInterface $DataObject )
+public function update( TRMDataObjectInterface $DataObject )
 {
-    foreach( $this->CollectionToUpdate as $CurrentObject )
-    {
-        // если указатель на этот объект уже есть в коллекции,
-        // то завершаем работу функции
-        if( $DataObject === $CurrentObject )
-        {
-            return;
-        }
-    }
+    // если указатель на этот объект уже есть в коллекции,
+    // то addDataObject без специального флага не добавит его,
+    // поэтому дубли объектов не появятся
     $this->CollectionToUpdate->addDataObject($DataObject);
     
 }
-
+/**
+ * @param TRMDataObjectsCollectionInterface $Collection - коллекция, объекты которой будут добавлен в коллекцию сохраняемых
+ */
+public function updateCollection(TRMDataObjectsCollectionInterface $Collection )
+{
+    $this->CollectionToUpdate->mergeCollection($Collection);
+}
+/**
+ * фактически обновляет объекты из подготовительной коллекции,
+ * в случае работы с БД отправляет SQL-серверу UPDATE-запрос
+ */
 public function doUpdate()
 {
     if( $this->CollectionToUpdate->count() )
@@ -251,18 +294,19 @@ public function doUpdate()
  * 
  * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию сохраняемых
  */
-public function insert(TRMDataObjectInterface $DataObject )
+public function insert( TRMDataObjectInterface $DataObject )
 {
-    foreach( $this->CollectionToInsert as $CurrentObject )
-    {
-        // если указатель на этот объект уже есть в коллекции,
-        // то завершаем работу функции
-        if( $DataObject === $CurrentObject )
-        {
-            return;
-        }
-    }
+    // если указатель на этот объект уже есть в коллекции,
+    // то addDataObject без специального флага не добавит его,
+    // поэтому дубли объектов не появятся
     $this->CollectionToInsert->addDataObject($DataObject);
+}
+/**
+ * @param TRMDataObjectsCollectionInterface $Collection - коллекция, объекты которой будут добавлен в коллекцию вставляемых
+ */
+public function insertCollection(TRMDataObjectsCollectionInterface $Collection )
+{
+    $this->CollectionToInsert->mergeCollection($Collection);
 }
 /**
  * производит фактический вызов метода добавляения данных в постоянное хранилище DataSource
@@ -275,27 +319,27 @@ public function doInsert()
     }
     $this->CollectionToInsert->clearCollection();
 }
-
 /**
  * Добавляет объект в подготовительную коллекцию для дальнейшего удаления в DataSource
  * 
- * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию сохраняемых
+ * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию удаляемых
  */
-public function delete(TRMDataObjectInterface $DataObject)
+public function delete( TRMDataObjectInterface $DataObject)
 {
-    foreach( $this->CollectionToDelete as $CurrentObject )
-    {
-        // если указатель на этот объект уже есть в коллекции,
-        // то завершаем работу функции
-        if( $DataObject === $CurrentObject )
-        {
-            return;
-        }
-    }
+    // если указатель на этот объект уже есть в коллекции,
+    // то addDataObject без специального флага не добавит его,
+    // поэтому дубли объектов не появятся
     $this->CollectionToDelete->addDataObject($DataObject);
 }
 /**
- * производите фактичесое удаление данных объетов коллекции из постоянного хранилища DataSource
+ * @param TRMDataObjectsCollectionInterface $Collection - коллекция, объекты которой будут добавлен в коллекцию удаляемых
+ */
+public function deleteCollection(TRMDataObjectsCollectionInterface $Collection )
+{
+    $this->CollectionToDelete->mergeCollection($Collection);
+}
+/**
+ * производит фактичесоке удаление данных объетов коллекции из постоянного хранилища DataSource
  */
 public function doDelete()
 {
@@ -317,5 +361,6 @@ public function doAll()
     $this->doUpdate();
     $this->doDelete();
 }
+
 
 } // TRMRepository

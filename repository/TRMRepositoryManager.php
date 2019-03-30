@@ -4,6 +4,8 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DiContainer\TRMDIContainer;
+use TRMEngine\Helpers\TRMLib;
+use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
 /**
@@ -12,7 +14,7 @@ use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 class TRMRepositoryManager
 {
 /**
- * @var array - массив соответствий типов объектов (сущностей) их калассам хранлищ (Repository)
+ * @var array - массив соответствий типов объектов (сущностей) их классам репозиториев (Repository)
  */
 protected $RepositoryNameArray = array();
 
@@ -42,7 +44,7 @@ public function addRepositoryName($objectclassname, $repositoryclassname)
 {
     if( !class_exists($repositoryclassname) )
     {
-        throw new \Exception( "Не найден класс репозитория {$repositoryclassname} для объектов тип {$objectclassname}!");
+        throw new TRMRepositoryGetObjectException( "Не найден класс репозитория {$repositoryclassname} для объектов тип {$objectclassname}!");
     }
     $this->RepositoryNameArray[$objectclassname] = $repositoryclassname;
 }
@@ -57,16 +59,16 @@ public function getRepository($objectclassname)
 {
     if( !$objectclassname )
     {
-        throw new \Exception("Неправильно указан тип объектов {$objectclassname}!");
+        throw new TRMRepositoryGetObjectException("Неправильно указан тип объектов {$objectclassname}!");
     }
     if( !isset($this->RepositoryNameArray[$objectclassname]) )
     {
         if( !class_exists($objectclassname."Repository") )
         {
             ob_start();
-            \TRMEngine\Helpers\TRMLib::ap($this->RepositoryNameArray);
+            TRMLib::ap($this->RepositoryNameArray);
             $debinf = ob_get_clean();
-            throw new \Exception( $debinf . "Не найден класс репозитория для объектов тип {$objectclassname}!");
+            throw new TRMRepositoryGetObjectException( $debinf . "Не найден класс репозитория для объектов тип {$objectclassname}!");
         }
         $this->RepositoryNameArray[$objectclassname] = $objectclassname."Repository";
     }

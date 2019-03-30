@@ -23,7 +23,7 @@ use TRMEngine\TRMDBObject;
  * для работы с БД использует статический объект TRMDBObject,
  * который работает через MySQLi
  */
-abstract class TRMSqlDataSource implements TRMDataSourceInterface
+class TRMSqlDataSource implements TRMDataSourceInterface
 {
 /**
  * константы для индексов массива параметров дочерних таблиц
@@ -740,6 +740,7 @@ public function getDataFrom()
     {
         throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
     }
+
     $this->QueryString = "";
     return $result;
 }

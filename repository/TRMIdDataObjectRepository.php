@@ -85,11 +85,12 @@ private function addIdDataObjectToContainer(TRMIdDataObjectInterface $DataObject
  * @param string $objectname - имя объекта для поиска по значению
  * @param string $fieldname - поле для поиска по значению
  * @param mixed $value - значение для проверки 
- * @param string $operator - оператор, по которому будет сравниваться значение $value со значением находящимся в поле $fieldname объекта $do
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
  * 
  * @return TRMIdDataObjectInterface
  */
-public function getOne($objectname, $fieldname, $value, $operator = "=")
+public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface $DataObject = null)
 {
     // если запрос объекта по Id-полю
     if( $objectname === $this->IdFieldName[0] && $fieldname === $this->IdFieldName[1] )
@@ -98,37 +99,41 @@ public function getOne($objectname, $fieldname, $value, $operator = "=")
         if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
         {
             // и вернем его
-            return self::$IdDataObjectContainer[$this->ObjectTypeName][$value];
+            return $DataObject = self::$IdDataObjectContainer[$this->ObjectTypeName][$value];
         }
     }
-    // будет произведен поиск в постоянном (Persist) хранилище, в данной реализации в БД
-    $DataObject = parent::getOne( $objectname, $fieldname, $value, $operator);
+    // будет произведен поиск в постоянном хранилище DataSource, в данной реализации в БД
+    $NewDataObject = parent::getOneBy( $objectname, $fieldname, $value, $DataObject);
     
     // если из БД получить объект не удалось, то getId вернет null
-    if( $DataObject === null ) { return null; }
+    if( $NewDataObject === null ) { return null; }
     
     // Если полученный объект уже есть в локальном хранилище, 
     // то нужно вернуть оттуда, 
     // приоритет на стороне клинета, так как в локальном объетке могут быть на записанные изменения,
     // их нельзя тереть
-    $id = $DataObject->getId();
+    $id = $NewDataObject->getId();
     if( null !== $id && isset(self::$IdDataObjectContainer[$this->ObjectTypeName][$id]) )
     {
         return self::$IdDataObjectContainer[$this->ObjectTypeName][$id];
     }
     
     // сохраняем ссылку на текущий объект в локальном массиве
-    $this->addIdDataObjectToContainer($DataObject);
+    $this->addIdDataObjectToContainer($NewDataObject);
 
-    return $DataObject;
+    return $NewDataObject;
 }
 
 /**
  * @param array $DataArray - массив с данными, из которых будет создан объект
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
  * 
- * @return TRMDataObjectInterface - созданный объект данных, который обрабатывает этот экземпляр репозитория
+ * @return TRMDataObjectInterface - если объект уже присутсвует с таким ID в локальном хранилище, 
+ * то вернется он,
+ * иначе созданный объект данных, который обрабатывает этот экземпляр репозитория
  */
-protected function getDataObjectFromDataArray(array $DataArray)
+protected function getDataObjectFromDataArray(array $DataArray, TRMDataObjectInterface $DataObject = null)
 {
     $IdArr = $this->getIdFieldName();
     // проверяем, есть ли данные в поле с ID для данного объекта
@@ -140,16 +145,16 @@ protected function getDataObjectFromDataArray(array $DataArray)
         // если в локальном реползитории уже есть объект с таким Id, то веренем его...
         if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
         {
-            return self::$IdDataObjectContainer[$this->ObjectTypeName][$id];
+            return $DataObject = self::$IdDataObjectContainer[$this->ObjectTypeName][$id];
         }
     }
     // если не найден в локальном хранилище, то вызываем родительский метод,
     // где будет создан новый объект с эти данными
-    $DataObject = parent::getDataObjectFromDataArray($DataArray);
+    $NewDataObject = parent::getDataObjectFromDataArray($DataArray, $DataObject);
     
-    $this->addIdDataObjectToContainer($DataObject);
+    $this->addIdDataObjectToContainer($NewDataObject);
     
-    return $DataObject;
+    return $NewDataObject;
 }
 
 /**
@@ -157,13 +162,15 @@ protected function getDataObjectFromDataArray(array $DataArray)
  * никакие условия кроме выборки по ID не срабатывают и удаляются!
  * 
  * @param scalar $id - идентификатор (Id) объекта
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
  * 
  * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
  */
-public function getById($id)
+public function getById($id, TRMDataObjectInterface $DataObject = null)
 {
     $IdArr = $this->getIdFieldName();
-    return $this->getOneBy( $IdArr[0], $IdArr[1], $id );
+    return $this->getOneBy( $IdArr[0], $IdArr[1], $id, $DataObject );
 }
 
 /**
@@ -176,7 +183,7 @@ public function doUpdate()
 {
 // Не можем вызвать родительский метод, мотому что там очищается коллекция!
 //    parent::doUpdate();
-    if( !$this->CollectionToUpdate->count() ) { return; }
+    if( !$this->CollectionToUpdate || !$this->CollectionToUpdate->count() ) { return; }
 
     $this->DataSource->update( $this->CollectionToUpdate );
     // если были добавлены новые объекты, то у них появился новый ID,
@@ -194,12 +201,12 @@ public function doUpdate()
 }
 
 /**
- * производите фактичесое удаление данных объетов коллекции из постоянного хранилища DataSource
+ * производите фактичесое удаление объетов данных коллекции из постоянного хранилища DataSource
  * при этом убирает удаляемые объекты по ID из локального хранилища
  */
 public function doDelete()
 {
-    if( !$this->CollectionToUpdate->count() ) { return; }
+    if( !$this->CollectionToDelete || !$this->CollectionToDelete->count() ) { return; }
 
     // если были добавлены новые объекты, то у них появился новый ID,
     // проверяем наличие всех обновленных записей на наличие в локальном ID-хранилище 

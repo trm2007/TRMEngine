@@ -2,10 +2,9 @@
 
 namespace TRMEngine\Repository;
 
+use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
-use TRMEngine\DataObject\TRMDataObject;
 use TRMEngine\Exceptions\TRMObjectCreateException;
-use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
 
 /**
  * класс для работы с хранилищем объектов, зависимых от родительского объекта
@@ -53,27 +52,24 @@ function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
     reset($ParentRelationIdFieldName);
 }
 
-
 /**
- * возвращает объект с коллекцией для заданного родителя
+ * возвращает коллекцию объектов, которые зависят от заданного родителя
  * 
  * @param TRMIdDataObjectInterface $parentobject - объект родителя, 
  * который будет установлен для коллекции и для которого будет выбрана из репозитория данная коллекция
- * @return TRMDataObject
+ * @return TRMDataObjectsCollectionInterface
  */
-public function getByParent( TRMIdDataObjectInterface $parentobject )
+public function getByParent( TRMIdDataObjectInterface $ParentObject, TRMDataObjectsCollectionInterface $Collection = null )
 {
-    try
-    {
-        $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
+    $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
 
-        return $this->getBy( $ParentRelationIdFieldName[0], $ParentRelationIdFieldName[1], $parentobject->getId() );
-    }
-    catch( TRMRepositoryGetObjectException $e )
-    {
-        return null;
-    }
+    return $this->getBy(
+            $ParentRelationIdFieldName[0], 
+            $ParentRelationIdFieldName[1], 
+            $ParentObject->getId(), 
+            $Collection 
+            );
 }
 
 
-} // TRMParentedRelationCollectionRepository
+} // TRMParentedDataObjectRepository

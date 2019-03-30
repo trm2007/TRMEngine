@@ -66,7 +66,8 @@ protected $DependenciesArray = array();
  * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
  * @param TRMDataObjectsCollection $do - добавляемая коллекция, как дочерняя
  * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
- * @param string $FieldName - имя поля основного суб-объекта в главном объекте, по которому связывается зависимость
+ * @param string $FieldName - имя поля основного суб-объекта в главном объекте, 
+ * по которому установлена связь зависимостью
  */
 public function setDependence($Index, TRMDataObjectsCollection $do, $ObjectName, $FieldName )
 {

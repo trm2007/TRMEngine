@@ -214,11 +214,6 @@ public function getDataObject($Index);
  */
 public function getObjectsArray();
 
-} // TRMDataObjectsContainerInterface
-
-
-interface TRMRelationDataObjectsContainerInterface extends TRMDataObjectsContainerInterface
-{
 /**
  * помещает объект данных с именем $Index в массив-контейнер зависимостей, 
  * сохраняется только ссылка, объект не клонируется!!!
@@ -226,7 +221,8 @@ interface TRMRelationDataObjectsContainerInterface extends TRMDataObjectsContain
  * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
  * @param TRMIdDataObjectInterface $do - добавляемый объект
  * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
- * @param string $FieldName - имя поля основного суб-объекта в главном объекте, по которому связывается зависимость
+ * @param string $FieldName - имя поля основного суб-объекта в главном объекте, 
+ * по которому установлена связь зависимостью
  */
 public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName );
 
@@ -247,5 +243,12 @@ public function getDependence($Index);
  * например, список характеристик для товара, то вернется true, если зависимость не утсанвлена, то - false
  */
 public function isDependence($Index);
+
+
+} // TRMDataObjectsContainerInterface
+
+
+interface TRMRelationDataObjectsContainerInterface extends TRMDataObjectsContainerInterface
+{
 
 } // TRMRelationDataObjectsContainerInterface

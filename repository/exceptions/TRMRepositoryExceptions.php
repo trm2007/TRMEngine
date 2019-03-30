@@ -7,8 +7,13 @@ use TRMEngine\Exceptions\TRMException;
 /**
  * выбрасывается, если репозиторий не смог получить объект
  */
-class TRMRepositoryGetObjectException extends TRMException {
-
+class TRMRepositoryGetObjectException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " Ошика при работе с репозиториями! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
 }
 
 
