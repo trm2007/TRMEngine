@@ -13,32 +13,18 @@ use TRMEngine\DataSource\Exceptions\TRMDataSourceSQLNoSafetyFieldsException;
 use TRMEngine\DataSource\Exceptions\TRMDataSourceWrongTableSortException;
 use TRMEngine\DataSource\Interfaces\TRMDataSourceInterface;
 use TRMEngine\Exceptions\TRMSqlQueryException;
-use TRMEngine\Helpers\TRMLib;
-use TRMEngine\TRMDBObject;
+use TRMEngine\Helpers\TRMState;
 
 /**
- * абстрактный класс,
- * общий для всех классов обработки записей из таблиц БД,
+ * общий для всех классов обработки записей из таблиц БД MySQL,
  * принимает в качестве зависимости объет DataMapper,
  * для работы с БД использует статический объект TRMDBObject,
  * который работает через MySQLi
  */
-class TRMSqlDataSource implements TRMDataSourceInterface
+class TRMSqlDataSource extends TRMState implements TRMDataSourceInterface
 {
-/**
- * константы для индексов массива параметров дочерних таблиц
- */
-//const DATASOURCE_MAIN_FIELD_NAME_INDEX = "MainFieldName";
-//const DATASOURCE_CHILD_FIELD_NAME_INDEX = "ChildFieldName";
-//const DATASOURCE_OPERATOR_INDEX = "Operator";
-//const DATASOURCE_ALIAS_NAME_INDEX = "AliasName";
-//const DATASOURCE_JOIN_INDEX = "Join";
-
-/**
- * если не указан тип Join, то принимается это значение = "LEFT"
- */
+/** если не указан тип Join, то принимается это значение = "LEFT" */
 const DATASOURCE_JOIN_DEFAULT = "LEFT";
-
 /** константа показывающая, что нужно брать имена полей в кавычки */
 const NEED_QUOTE = 32000;
 /** константа показывающая, что брать имена полей в кавычки НЕ нужно */
@@ -64,11 +50,6 @@ protected $UpdateQueryString = "";
 protected $DeleteQueryString = "";
 
 /**
- * @var TRMDataObjectInterface - ссылка на объект данных, содержащий массив значений для всех полей данной записи, могут быть собраны из нескольких таблиц
- */
-protected $DataObject;
-
-/**
  * @var array - массив полей и значений $Params[FieldName] = array( FieldValue, Operator, AndOr... ),
  * значения которых будут использоваться при запросе SELECT в секции WHERE
  */
@@ -89,25 +70,19 @@ protected $OrderFields = array();
  * @var array - массив полей для группировки - array( fieldname1 => "" ) для GROUP BY
  */
 protected $GroupFields = array();
+
 /**
- * @var TRMSafetyFields - объект полей для каждой таблицы в запросе,
- * указана возможность чтения/записи поля, его тип, индекс и т.д.
- */
-protected $SafetyFields;
-/**
- * @var \mysqli - объект MySQLi для работы с БД MySQL
+ * @var \mysqli - объект MySQLi для работы с БД MySQL, внедряется как зависимость через конструктор
  */
 protected $MySQLiObject;
 
 
 /**
- * 
- * @param TRMSafetyFields $SafetyFields - DataMapprt для объекта, с которым будет работать этот DataSource
+ * @param \mysqli $MySQLiObject - драйвер для работы с MySQL
  */
-public function __construct(TRMSafetyFields $SafetyFields) //$MainTableName, array $MainIndexFields, array $SecondTablesArray = null, $MainAlias = null )
+public function __construct( \mysqli $MySQLiObject ) //$MainTableName, array $MainIndexFields, array $SecondTablesArray = null, $MainAlias = null )
 {
-    $this->setSafetyFields($SafetyFields);
-    $this->MySQLiObject = TRMDBObject::$newlink; // TRMDIContainer::getStatic("TRMDBObject")->$newlink;
+    $this->MySQLiObject = $MySQLiObject; // TRMDBObject::$newlink; // TRMDIContainer::getStatic("TRMDBObject")->$newlink;
 }
 
 /**
@@ -221,21 +196,6 @@ public static function makeValidJoinOperator($join, $default = TRMSqlDataSource:
 }
 
 /**
- * @return TRMSafetyFields - объект DataMapper для текущего набора данных
- */
-function getSafetyFields()
-{
-    return $this->SafetyFields;
-}
-/**
- * @param TRMSafetyFields $SafetyFields - объект DataMapper для текущего набора данных
- */
-function setSafetyFields(TRMSafetyFields $SafetyFields)
-{
-    $this->SafetyFields = $SafetyFields;
-}
-
-/**
  * очистка параметров WHERE запроса и строк запросов SELECT, UPDATE/INSERT, DELETE
  */
 public function clear()
@@ -256,21 +216,23 @@ public function clearParams()
 
 /**
  * формирует часть запроса со списком полей, которые выбираются из таблиц
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  *
  * @return string - строка со списком полей
  * 
  * @throws TRMDataSourceSQLNoSafetyFieldsException
  */
-private function generateFieldsString()
+private function generateFieldsString( TRMSafetyFields $SafetyFields )
 {
-    if( !$this->SafetyFields || !$this->SafetyFields->count() )
+    if( !$SafetyFields->count() )
     {
-        throw new TRMDataSourceSQLNoSafetyFieldsException(__METHOD__ );
+        throw new TRMDataSourceSQLNoSafetyFieldsException( __METHOD__  . " - " . get_class($this) );
     }
     $fieldstr = "";
-    foreach( $this->SafetyFields as $TableName => $TableState )
+    foreach( $SafetyFields as $TableName => $TableState )
     {        
-        $TableAlias = $this->SafetyFields->getAliasForTableName($TableName);
+        $TableAlias = $SafetyFields->getAliasForTableName($TableName);
         $tn = empty($TableAlias) ? $TableName : $TableAlias;
         foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $fieldname => $state )
         {
@@ -294,13 +256,15 @@ private function generateFieldsString()
 
 /**
  * формирует часть запроса связанную с JOIN таблиц
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  *
  * @return string - строка с JOIN-частью запроса
  */
-private function generateJoinString()
+private function generateJoinString( TRMSafetyFields $SafetyFields )
 {
     $JoinedTables = array();
-    foreach( $this->SafetyFields as $CurrentTableName => $CurrentTableState )
+    foreach( $SafetyFields as $CurrentTableName => $CurrentTableState )
     {
         foreach ( $CurrentTableState[TRMDataMapper::FIELDS_INDEX] as $CurrentFieldName => $CurrentFieldState )
         {
@@ -394,7 +358,7 @@ public function generateJoinStringForTable($TableName, array &$TableState)
     foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldRelation )
     {
         $joinstr .= "`" . $FieldRelation[TRMDataMapper::OBJECT_NAME_INDEX] . "`.`" .  $FieldRelation[TRMDataMapper::FIELD_NAME_INDEX] . "`";
-        // оператор сравнивает родительский элемент, котороый изначально ссылался через Relation в $this->SafetyFields
+        // оператор сравнивает родительский элемент, котороый изначально ссылался через Relation в $SafetyFields
         // он идет первым!
         // с текущим элементом присоединяемой таблицы, он идет вторым дальше...
         $joinstr .= $FieldRelation["Operator"];
@@ -442,16 +406,18 @@ private function generateWhereString()
  * формирует список таблиц и их псевдонимов для секции FROM SELECT-запроса
  * имена таблиц и их псевдонимы берутся из SafetyFields
  * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
+ * 
  * @return string - строка вида "`table1` AS `t1`, `table2` AS `ttt`"
  */
-private function generateFromStr()
+private function generateFromStr( TRMSafetyFields $SafetyFields )
 {
-    $MainTables = $this->SafetyFields->getObjectsNamesWithoutBackRelations();
+    $MainTables = $SafetyFields->getObjectsNamesWithoutBackRelations();
     $fromstr="";
     foreach($MainTables as $TableName)
     {
         $fromstr .= "`{$TableName}`";
-        $alias = $this->SafetyFields->getAliasForTableName($TableName);
+        $alias = $SafetyFields->getAliasForTableName($TableName);
         if( $alias )
         {
             $fromstr .= " AS `{$alias}`";
@@ -463,18 +429,21 @@ private function generateFromStr()
 
 /**
  * формирует и возвращает строку SQL-запроса к БД для выбора записи
- * параметры WHERE устанавливаются перед вызовом этой функции с помощью - addWhereParam или addWhereParamFromArray
+ * параметры WHERE устанавливаются перед вызовом этой функции 
+ * с помощью - addWhereParam или addWhereParamFromArray
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  *
  * @return string
  * 
  * @throws TRMDataSourceSQLEmptyTablesListException
  */
-public function makeSelectQuery() // array $params = null, $limit = 1, $offset = null)
+public function makeSelectQuery( TRMSafetyFields $SafetyFields )
 {
     // строка с перечислением полей для выборки 
-    $fieldstr = $this->generateFieldsString();
+    $fieldstr = $this->generateFieldsString($SafetyFields);
 
-    $fromstr = $this->generateFromStr();
+    $fromstr = $this->generateFromStr($SafetyFields);
     
     if(empty($fromstr))
     {
@@ -484,7 +453,7 @@ public function makeSelectQuery() // array $params = null, $limit = 1, $offset =
     $this->QueryString = "SELECT " . $fieldstr . " FROM " . $fromstr;
     
     // строка с секцией JOIN, присоединяются все таблицы из массива Tables
-    $joinstr = $this->generateJoinString();
+    $joinstr = $this->generateJoinString($SafetyFields);
     if( strlen($joinstr) ) { $this->QueryString .= $joinstr; }
 
     // строка с условиями WHERE
@@ -711,13 +680,15 @@ public function executeQuery($query)
  * вспомогательная функция для проверки и формирования запроса к БД
  * отправляет запрос на выполнение
  * функция вызывается из getFromDB и addFromDB
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  *
  * @return \mysqli_result - объект-результат выполнения запроса
  * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
  */
-private function runSelectQuery()
+private function runSelectQuery( TRMSafetyFields $SafetyFields )
 {
-    if( !$this->makeSelectQuery() )
+    if( !$this->makeSelectQuery( $SafetyFields ) )
     {
         throw new TRMSqlQueryException( __METHOD__ . " Неудачно сформирован запрос к БД" );
     }
@@ -729,13 +700,15 @@ private function runSelectQuery()
  * считывает данные из БД используя запрос, 
  * который формируется функция makeSelectQuery на основе SafetyFields 
  * и Where параметров
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  *
  * @return \mysqli_result - объект с результатом запроса
  * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
  */
-public function getDataFrom()
+public function getDataFrom( TRMSafetyFields $SafetyFields )
 {
-    $result = $this->runSelectQuery();
+    $result = $this->runSelectQuery($SafetyFields);
     if( !$result )
     {
         throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
@@ -746,25 +719,7 @@ public function getDataFrom()
 }
 
 /**
- * считываем данные из БД используя запрос, который возвращает функция makeSelectQuery
- * добавляет полученное множество к имеющимся данным
- *
- * @return int - количество прочитанных строк из БД
- * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
- */
-//public function addDataFrom() // array $params = null)
-//{
-//    $result = $this->runSelectQuery(); //$params);
-//    if( !$result )
-//    {
-//        throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
-//    }
-//    $this->DataObject->mergeDataArray( TRMDBObject::fetchAll($result) ); //$result->fetch_all(MYSQLI_ASSOC) );
-//    return $result->num_rows;
-//}
-
-/**
- *  
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param array $IndexesNames - после работы функции будет содержать поля, 
  * которые следует включать в секцию WHERE update-запроса, 
  * проверяет сначала наличие первичных индексов, 
@@ -784,13 +739,13 @@ public function getDataFrom()
  * @throws TRMDataSourceWrongTableSortException
  * @throws TRMDataSourceNoUpdatebleFieldsException
  */
-private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, array &$UpdatableFieldsNames, array &$CurrentKeyFlag = null )
+private function generateIndexesAndUpdatableFieldsNames( TRMSafetyFields $SafetyFields, array &$IndexesNames, array &$UpdatableFieldsNames, array &$CurrentKeyFlag = null )
 {
     // сортирует данные в DataMapper, таким образом,
     // что бы сначала шли все назависимые объеты, 
     // например, производители, группы, ед. измерения,
     // у уже потом зависимые от них 
-    if(!$this->SafetyFields->sortObjectsForRelationOrder())
+    if(!$SafetyFields->sortObjectsForRelationOrder())
     {
         throw new TRMDataSourceWrongTableSortException(__METHOD__ . " отсортировать массив с таблицами не удалось");
     }
@@ -807,11 +762,11 @@ private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, a
     $UpdatableFieldsNames = array();
     $IndexesNames = array();
     
-    foreach( $this->SafetyFields as $TableName => $TableState )
+    foreach( $SafetyFields as $TableName => $TableState )
     {
         
         // получаем массив доступных для записи полей в очередной таблице $TableName
-        $UpdatableFieldsNames[$TableName] = $this->SafetyFields->getUpdatableFieldsNamesFor($TableName);
+        $UpdatableFieldsNames[$TableName] = $SafetyFields->getUpdatableFieldsNamesFor($TableName);
         // если массив оказался пустым, 
         // то продолжаем цикл
         if( empty($UpdatableFieldsNames[$TableName]) )
@@ -829,7 +784,7 @@ private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, a
         // для поиска записи по совпаденияю всех значений во всех полях таблицы
         foreach( $Keys as $Key )
         {
-            $IndexesNames[$TableName] = $this->SafetyFields->getIndexFieldsNames($TableName, $Key);
+            $IndexesNames[$TableName] = $SafetyFields->getIndexFieldsNames($TableName, $Key);
             if( !empty($IndexesNames[$TableName]) )
             {
                 // сохраняем вид ключа, что бы знать по ключевым полям будем делать Update, или по уникальным...
@@ -874,7 +829,7 @@ private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, a
  * так же используются для поиска объекта, если не заданы индексные поля $IndexesNames
  * @param array $CurrentKeyFlag - какие поля проверять - "PRI", "UNI", "*"
  * 
- * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
+ * @return void
  */
 protected function generateSQLUpdateQueryString(
         TRMDataObjectInterface $DataObject,
@@ -882,64 +837,51 @@ protected function generateSQLUpdateQueryString(
         array $UpdatableFieldsNames,
         array $CurrentKeyFlag)
 {
-    if( !$DataObject->count() ) { return true; }
-    // массив с неудачно добавленными строками!!!
-    $ErrorRows = array();
+    if( !$DataObject->count() ) { return; }
 
+    // с 2019-03-30 - работа с объектом, как с единичной записью, поэтому только 0-я строка используется!
+    $RowNum = 0;
     // массив с данными объекта
-    $Row = $DataObject->getDataArray();
+    $Row = $DataObject->getDataArray()[$RowNum];
     foreach ($UpdatableFieldsNames as $TableName => $FieldsNames)
     {
-        try
+        // если проверяемые данные для очередной таблицы должны быть в первичном ключе,
+        // но они там отсутсвуют, значит это новая запись,
+        // добавляем ее и переходим к следующей
+        if( $CurrentKeyFlag[$TableName] == "PRI" && !$DataObject->presentDataIn($RowNum, $TableName, $IndexesNames[$TableName] ) )
         {
-            // если проверяемые данные для очередной таблицы должны быть в первичном ключе,
-            // но они там отсутсвуют, значит это новая запись,
-            // добавляем ее и переходим к следующей
-            if( $CurrentKeyFlag[$TableName] == "PRI" && !$DataObject->presentDataIn($RowNum, $TableName, $IndexesNames[$TableName] ) )
-            {
-                // в функцию добавления
-                // передаем сами данные, номер строки в объекте данных из которой вставляются данные,
-                // и где потом должны быть обновлены автоинкрементные поля,
-                // если такие обнаружатся,
-                // а так же передаем массив с полями доступными для обновления ,
-                // что бы не получать его заново рпсходуя ресурсы...
-                // в этой реализации массив передается по ссылке!!!
-                $CurrentInsertId = $this->insertRowToOneTable($TableName, $Row[$TableName], $FieldsNames);
+            // в функцию добавления
+            // передаем сами данные, номер строки в объекте данных из которой вставляются данные,
+            // и где потом должны быть обновлены автоинкрементные поля,
+            // если такие обнаружатся,
+            // а так же передаем массив с полями доступными для обновления ,
+            // что бы не получать его заново рпсходуя ресурсы...
+            // в этой реализации массив передается по ссылке!!!
+            $CurrentInsertId = $this->insertRowToOneTable($TableName, $Row[$TableName], $FieldsNames);
 
 // можно менять метод вставки и вызывать ON DUPLICATE KEY ... UPDATE
-//                $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row[$TableName], $FieldsNames);
+//            $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row[$TableName], $FieldsNames);
 
-                // если ID не вернулся, значит обновления авто-инкрементного поля в БД не произошло, 
-                // переходим к другой таблице
-                if( !$CurrentInsertId ) { continue; }
+            // если ID не вернулся, значит обновления авто-инкрементного поля в БД не произошло, 
+            // переходим к другой таблице
+            if( !$CurrentInsertId ) { continue; }
 
-                /**
-                 * нужно обновить данные по Relation у объектов, 
-                 * которые ссылались на поле AUTO_INCREMENT только-что добавленной записи
-                 */
-                $this->checkAutoIncrementFieldUpdate( $DataObject, $TableName, $RowNum, $CurrentInsertId);
+            /**
+             * нужно обновить данные по Relation у объектов, 
+             * которые ссылались на поле AUTO_INCREMENT только-что добавленной записи
+             */
+            $this->checkAndUpdateAutoIncrementFieldsAfterInsert( $DataObject, $TableName, $RowNum, $CurrentInsertId);
 
-                //$this->addNewRowToAndSetLastId( $Row, $RowNum, $UpdatableFieldsNames );
-                // после добавления, переходим к следующей записи в объекте данных
-                continue;
-            }
-            else
-            {
-                // если данные есть в первичном или уникальном ключе
-                // значит запись для этой таблицы нужно обновить
-                $this->UpdateQueryString .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $Row[$TableName], $FieldsNames, $IndexesNames[$TableName] );
-            }
+            //$this->addNewRowToAndSetLastId( $Row, $RowNum, $UpdatableFieldsNames );
+            // после добавления, переходим к следующей записи в объекте данных
+            continue;
         }
-        catch( TRMSqlQueryException $e )
+        else
         {
-            $ErrorRows[$RowNum] = $e->getMessage();
+            // если данные есть в первичном или уникальном ключе
+            // значит запись для этой таблицы нужно обновить
+            $this->UpdateQueryString .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $Row[$TableName], $FieldsNames, $IndexesNames[$TableName] );
         }
-    }
-
-    if(!empty($ErrorRows))
-    {
-        TRMLib::sp(__METHOD__ . " Часть записей не удалось обновить в БД ");
-        TRMLib::ap($ErrorRows);
     }
 }
 
@@ -949,19 +891,22 @@ protected function generateSQLUpdateQueryString(
  * то добавляет ее, если при вставке встретится дубликат ключа или уникального поля,
  * то возникнет ошибка!!!
  *
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
  * 
  * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
  */
-public function update(TRMDataObjectsCollection $DataCollection)
+public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection)
 {
+    $this->clearState();
+
     $IndexesNames = array();
     $UpdatableFieldsNames = array();
     $CurrentKeyFlag = array();
 
     try
     {
-        $this->generateIndexesAndUpdatableFieldsNames($IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
+        $this->generateIndexesAndUpdatableFieldsNames($SafetyFields, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
     }
     catch (TRMDataSourceNoUpdatebleFieldsException $ex)
     {
@@ -969,12 +914,25 @@ public function update(TRMDataObjectsCollection $DataCollection)
     }
     foreach( $DataCollection as $DataObject )
     {
-        // функция добавляет строки UPDATE к $this->UpdateQueryString
-        // в тоже время вставки INSERT выполняются мгновенно, 
-        // как только встретится запись без ключевых полей, что бы отслпдить LastID
-        $this->generateSQLUpdateQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
+        try
+        {
+            // функция добавляет строки UPDATE к $this->UpdateQueryString
+            // в тоже время вставки INSERT выполняются мгновенно, 
+            // как только встретится запись без ключевых полей, что бы отследить LastID
+            $this->generateSQLUpdateQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
+        }
+        catch(TRMDataSourceSQLInsertException $e)
+        {
+            $this->setStateCode(1);
+            $this->addStateString( $e->getMessage() );
+        }
     }
 
+    if( $this->getStateCode() )
+    {
+        throw new TRMSqlQueryException("Не удалось добавить следующие записи: " . $this->getStateString() );
+    }
+    
     if( !empty($this->UpdateQueryString) )
     {
         // фактическое выполнение запроса UPDATE, 
@@ -1044,7 +1002,7 @@ private function insertRowToOneTable( $TableName, array &$Row, array &$FieldsNam
     // не можем вызвать completeMultiQuery, так как надо отслеживать insert_id для каждой таблицы!!!
     if( !$this->MySQLiObject->query($InsertQuery) )
     {
-        throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " );
+        throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " . get_class($this) );
     }
     return $this->MySQLiObject->insert_id;
 }
@@ -1070,27 +1028,28 @@ private function insertODKURowToOneTable( $TableName, array &$Row, array &$Field
     {
         $InsertQuery .= "'" . addcslashes( $Row[ $FieldName ], "'" ) . "',";
         $ODKUStr .= "`{$FieldName}` = VALUES(`{$FieldName}`),";
-
     }
     $InsertQuery = rtrim($InsertQuery, ",") . ")" . rtrim($ODKUStr, ",") . ";";
 
     // не можем вызвать completeMultiQuery, так как надо отслеживать insert_id для каждой таблицы!!!
     if( !$this->MySQLiObject->query($InsertQuery) )
     {
-        throw new TRMDataSourceSQLInsertException( __METHOD__ . " не удалось добавить запись: [{$InsertQuery}]" );
+        throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " . get_class($this) );
     }
     return $this->MySQLiObject->insert_id;
 }
 
 /**
  * добавляет новую запись в БД, 
- * в данной версии вызывается update(), 
+ * в данной версии вызывается update(),
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * 
  * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
  */
-public function insert(TRMDataObjectsCollection $DataCollection)
+public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection )
 {
-    return $this->update($DataCollection);
+    return $this->update($SafetyFields, $DataCollection);
 }
 
 
@@ -1098,16 +1057,17 @@ public function insert(TRMDataObjectsCollection $DataCollection)
  * проверяет связь только что обновленного поля AUTO_INCREMENT в $TableName
  * с другими таблицами, если на это поле кто-то ссылается, то обновляет значение на вновь установленное
  * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectInterface $DataObject - объект с данными
  * @param string $TableName - имя таблицы, где произошло обновление автоинкрементного поля
  * @param string $RowNum - номер строки с данными в DataObject
  * @param string $CurrentInsertId - полученное ID после выполенеия оператора INSERT в MySQL
  */
-private function checkAutoIncrementFieldUpdate( TRMDataObjectInterface $DataObject, $TableName, $RowNum, $CurrentInsertId)
+private function checkAndUpdateAutoIncrementFieldsAfterInsert( TRMSafetyFields $SafetyFields, TRMDataObjectInterface $DataObject, $TableName, $RowNum, $CurrentInsertId)
 {
     // getAutoIncrementFieldsNamesFor возвращает массив с auto_increment полями для таблицы $TableName
     // при правильной схеме такое поле должно быть ОДНО !
-    $AutoIncFieldsArray = $this->SafetyFields->getAutoIncrementFieldsNamesFor($TableName);
+    $AutoIncFieldsArray = $SafetyFields->getAutoIncrementFieldsNamesFor($TableName);
     // если в схеме Дата-маппера для данной таблицы не описаны поля auti_increment, 
     // завершаем выполнение
     if( empty($AutoIncFieldsArray) ) { return; }
@@ -1120,7 +1080,7 @@ private function checkAutoIncrementFieldUpdate( TRMDataObjectInterface $DataObje
         // добавленного в очередную таблицу $TableName
         $DataObject->setData($RowNum, $TableName, $AutoIncFieldName, $CurrentInsertId);
         // получаем массив ссылаюшихся (зависимых) полей по всем таблицам
-        $BackRelationArray = $this->SafetyFields->getBackRelationFor($TableName, $AutoIncFieldName);
+        $BackRelationArray = $SafetyFields->getBackRelationFor($TableName, $AutoIncFieldName);
         if( empty($BackRelationArray) ) { continue; }
 
         // для всех объектов
@@ -1131,7 +1091,7 @@ private function checkAutoIncrementFieldUpdate( TRMDataObjectInterface $DataObje
             {
                 // устанавливаем новые данные ссылающегося поля!!!
                 // только если оно само не является автоинкрементным
-                if( !$this->SafetyFields->isFieldAutoIncrement($BackTableName, $BackFieldName) )
+                if( !$SafetyFields->isFieldAutoIncrement($BackTableName, $BackFieldName) )
                 {
                     $DataObject->setData($RowNum, $BackTableName, $BackFieldName, $CurrentInsertId);
                 }
@@ -1153,27 +1113,27 @@ private function checkAutoIncrementFieldUpdate( TRMDataObjectInterface $DataObje
  * которые должны проверяться при поиске в БД для сравнения с текущим удаляемым объетом 
  * @param array $UpdatableFieldsNames - все поля, которые могут быть изменены у данного объект, 
  * так же используются для поиска объекта, если не заданы индексные поля $IndexesNames
+ * @param string $DeleteFromStr - заранее сформированная строка со списком таблиц, из которых происходит удаление,
+ * эта строка одинаковая для всех записей, 
+ * @param string $UsingStr - строка для секции Delete-запроса USING 
+ * `table1` as `table1`, `description` as `description` 
+ * (без слова USING)
  * 
  * @return boolean - возвращает результат запроса DELETE
  */
-
 protected function generateSQLDeleteQueryString(
         TRMDataObjectInterface $DataObject, 
         array &$IndexesNames, 
-        array &$UpdatableFieldsNames)
+        array &$UpdatableFieldsNames,
+        $DeleteFromStr,
+        $UsingStr)
 {
     if( !$DataObject->count() ) { return true; }
 
-    $DeleteFromStr = "`" . implode("`,`", array_keys($UpdatableFieldsNames) ) . "`";
-    $UsingStr = "";
-    foreach( array_keys($UpdatableFieldsNames) as $TableName )
-    {
-        $UsingStr .= "`$TableName` AS `$TableName`,";
-    }
-    $UsingStr = rtrim($UsingStr, ",");
-
-    // массив с данными объекта
-    $Row = $DataObject->getDataArray();
+    // массив с данными объекта, 
+    // с 2019-03-30 объект - это единичная зпрись, 
+    // поэтому работаем только с 0-й строкой данных
+    $Row = $DataObject->getDataArray()[0];
 
     $CurrentWhereString = "";
     // $UpdatableFieldsNames - нужен только для списка таблиц, в которых есть доступные для изменения данные,
@@ -1193,7 +1153,7 @@ protected function generateSQLDeleteQueryString(
         // за это отвечает 3-й элемент массива $Keys => * в функции generateIndexesAndUpdatableFieldsNames
         foreach( $IndexesNames[$TableName] as $FieldName )
         {
-            $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( $Row[ $FieldName ], "'" ) . "' AND ";
+            $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( $Row[$TableName][ $FieldName ], "'" ) . "' AND ";
         }
     }
 
@@ -1219,10 +1179,11 @@ protected function generateSQLDeleteQueryString(
  * так же удалются записи из дочерних таблиц, 
  * если у них стоит хотя бы одно поле доступное для редактирования - UPDATABLE_FIELD
  * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
  * @return boolean - возвращает результат запроса DELETE
  */
-public function delete(TRMDataObjectsCollection $DataCollection)
+public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection)
 {
     $IndexesNames = array();
     $UpdatableFieldsNames = array();
@@ -1231,11 +1192,19 @@ public function delete(TRMDataObjectsCollection $DataCollection)
     // затем на уникальные ключи для идентификации записи для удаления,
     // и если не найдены, тогда используем для сравнения все поля записи , 
     // что бы по ним по все идентифицировать запись
-    $this->generateIndexesAndUpdatableFieldsNames($IndexesNames, $UpdatableFieldsNames);
+    $this->generateIndexesAndUpdatableFieldsNames($SafetyFields, $IndexesNames, $UpdatableFieldsNames);
+
+    $DeleteFromStr = "`" . implode("`,`", array_keys($UpdatableFieldsNames) ) . "`";
+    $UsingStr = "";
+    foreach( array_keys($UpdatableFieldsNames) as $TableName )
+    {
+        $UsingStr .= "`$TableName` AS `$TableName`,";
+    }
+    $UsingStr = rtrim($UsingStr, ",");
 
     foreach( $DataCollection as $DataObject )
     {
-        $this->generateSQLDeleteQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames);
+        $this->generateSQLDeleteQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames, $DeleteFromStr, $UsingStr);
     }
 
     if( !empty($this->DeleteQueryString) )

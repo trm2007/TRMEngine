@@ -139,7 +139,11 @@ protected function completeSafetyField( $FieldName, $ObjectName, array $FieldSta
     }
     // объединяем переданные параметры и уже существующие для поля, 
     // заменяя старые значения на новый
-    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array_merge($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName], $FieldState);
+    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = 
+            array_merge(
+                    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName], 
+                    $FieldState
+                    );
     // если какой-то из параметров не задан, 
     // то присваиваем ему значение по умолчанию из массива self::$IndexArray
     foreach( self::$IndexArray as $Index => $Value)
@@ -189,12 +193,14 @@ public function setSafetyFieldsFor( array $Fields, $ObjectName, $DefaultState = 
 {
     if( !isset($this->SafetyFieldsArray[$ObjectName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName] = array( "State" => $DefaultState, TRMDataMapper::FIELDS_INDEX => array() );
+        $this->SafetyFieldsArray[$ObjectName] = array( 
+            TRMDataMapper::STATE_INDEX => $DefaultState, 
+            TRMDataMapper::FIELDS_INDEX => array() 
+        );
     }
 
     foreach( $Fields as $FieldName => $FieldState )
     {
-//        $this->setSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
         $this->completeSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
     }
     $this->rewind();
@@ -243,11 +249,11 @@ public function setSafetyFieldState( $FieldName, $ObjectName, $State = TRMDataMa
 {
     if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]["State"] = $State;
+        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::STATE_INDEX] = $State;
     }
     else
     {
-        $this->setSafetyField($FieldName, $ObjectName, array( "State" => $State ) );
+        $this->setSafetyField($FieldName, $ObjectName, array( TRMDataMapper::STATE_INDEX => $State ) );
     }
 }
 
@@ -265,7 +271,7 @@ public function getSafetyFieldState( $FieldName, $ObjectName )
     {
         return null;
     }
-    return $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]["State"];
+    return $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::STATE_INDEX];
 }
 
 /**

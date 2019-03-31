@@ -745,16 +745,12 @@ public function setConfig( $filename )
     if( !is_file($filename) )
     {
         throw new TRMEMailExceptions( __METHOD__ . " Файл с настройками получить на удалось [{$filename}]!" );
-            //TRMLib::dp( __METHOD__ . " Файл с настройками получить на удалось [{$filename}]!" );
-            //return false;
     }
     $this->config = include($filename);
 
     if( !is_array($this->config) || empty($this->config) )
     {
         throw new TRMEMailExceptions( __METHOD__ . " Файл конфигурации вернул неверный формат данных [{$filename}]!" );
-            //TRMLib::dp( __METHOD__ . " Файл конфигурации вернул неверный формат данных [{$filename}]!" );
-            //return false;
     }
    
     if( isset($this->config["emailto"]) ) { $this->setEmailTo($this->config["emailto"]); }

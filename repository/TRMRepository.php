@@ -29,12 +29,6 @@ protected $DataSource = null;
 protected $ObjectTypeName = ""; //TRMDataObject::class; //"TRMDataObject";
 /**
  * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
- * полученных при последнем вызове одного из методов getBy,
- * getOne - тоже заолняет коллекцию, но только одним объектом!
- */
-protected $GetCollection;
-/**
- * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
  * добавленных в репозиторий, которые нужно обновить или добавить в постоянное хранилище DataSource
  */
 protected $CollectionToUpdate;
@@ -61,7 +55,6 @@ public function __construct($objectclassname)
 {
     $this->ObjectTypeName = (string)$objectclassname;
     
-    $this->GetCollection = new TRMDataObjectsCollection();
     $this->CollectionToInsert = new TRMDataObjectsCollection();
     $this->CollectionToUpdate = new TRMDataObjectsCollection();
     $this->CollectionToDelete = new TRMDataObjectsCollection();
@@ -128,19 +121,14 @@ public function getOne( TRMDataObjectInterface $DataObject = null )
 {
     $this->DataSource->setLimit( 1 );
 
-    $this->GetCollection->clearCollection();
-
     // в случае ошибочного запроса DataSource->getDataFrom() выбрасывает исключение
-    $result = $this->DataSource->getDataFrom();
+    $result = $this->DataSource->getDataFrom( $this->DataMapper );
     // если в апросе нет данных, возвращается путсая коллекция
     if( !$result->num_rows ) { return null; }
 
     // должна вернуться только одна строка,
     // из нее создается объект данных
-    $DataObject = $this->getDataObjectFromDataArray($result->fetch_row(), $DataObject);
-    $this->GetCollection->addDataObject( $DataObject );
-
-    return $DataObject;
+    return $this->getDataObjectFromDataArray($result->fetch_row(), $DataObject);
 }
 
 /**
@@ -200,10 +188,17 @@ public function getBy($objectname, $fieldname, $value, TRMDataObjectsCollectionI
  */
 public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
 {
-    $this->GetCollection->clearCollection();
+    if( isset($Collection) )
+    {
+        $NewGetCollection = $Collection;
+    }
+    else
+    {
+        $NewGetCollection = new TRMDataObjectsCollection();
+    }
 
     // в случае ошибочного запроса DataSource->getDataFrom() выбрасывает исключение
-    $result = $this->DataSource->getDataFrom();
+    $result = $this->DataSource->getDataFrom($this->DataMapper);
     // если в апросе нет данных, возвращается путсая коллекция
     if( !$result->num_rows ) { return null; }
 
@@ -211,14 +206,10 @@ public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
     while( $Row = $result->fetch_row() )
     {
         // в коллекцию всегда добавляется новый объект
-        $this->GetCollection->addDataObject( $this->getDataObjectFromDataArray($Row) );
-    }
-    if( isset($Collection) )
-    {
-        $Collection = $this->GetCollection;
+        $NewGetCollection->addDataObject( $this->getDataObjectFromDataArray($Row) );
     }
 
-    return $this->GetCollection;
+    return $NewGetCollection;
 }
 /**
  * @param array $DataArray - массив с данными, из которых будет создан объект
@@ -279,14 +270,19 @@ public function updateCollection(TRMDataObjectsCollectionInterface $Collection )
 /**
  * фактически обновляет объекты из подготовительной коллекции,
  * в случае работы с БД отправляет SQL-серверу UPDATE-запрос
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после обновления сохранить коллекцию обновленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doUpdate нужно очистить коллекцию,
+ * что бы не повторять обновление в будущем 2 раза!
  */
-public function doUpdate()
+public function doUpdate( $ClearCollectionFlag = true )
 {
     if( $this->CollectionToUpdate->count() )
     {
-        $this->DataSource->update( $this->CollectionToUpdate );
+        $this->DataSource->update( $this->DataMapper, $this->CollectionToUpdate );
     }
-    $this->CollectionToUpdate->clearCollection();
+    if( $ClearCollectionFlag ) { $this->CollectionToUpdate->clearCollection(); }
 }
 
 /**
@@ -310,14 +306,24 @@ public function insertCollection(TRMDataObjectsCollectionInterface $Collection )
 }
 /**
  * производит фактический вызов метода добавляения данных в постоянное хранилище DataSource
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после удаления сохранить коллекцию удаленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doDelete нужно очистить коллекцию,
+ * что бы не повторять удаление в будущем 2 раза!
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после обновления сохранить коллекцию добавленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doInsert нужно очистить коллекцию,
+ * что бы не повторять вставку в будущем 2 раза!
  */
-public function doInsert()
+public function doInsert( $ClearCollectionFlag = true )
 {
     if( $this->CollectionToInsert->count() )
     {
-        $this->DataSource->update( $this->CollectionToInsert );
+        $this->DataSource->insert( $this->DataMapper, $this->CollectionToInsert );
     }
-    $this->CollectionToInsert->clearCollection();
+    if( $ClearCollectionFlag ) { $this->CollectionToInsert->clearCollection(); }
 }
 /**
  * Добавляет объект в подготовительную коллекцию для дальнейшего удаления в DataSource
@@ -340,20 +346,25 @@ public function deleteCollection(TRMDataObjectsCollectionInterface $Collection )
 }
 /**
  * производит фактичесоке удаление данных объетов коллекции из постоянного хранилища DataSource
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после удаления сохранить коллекцию удаленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doDelete нужно очистить коллекцию,
+ * что бы не повторять удаление в будущем 2 раза!
  */
-public function doDelete()
+public function doDelete( $ClearCollectionFlag = true )
 {
     if( $this->CollectionToDelete->count() )
     {
-        $this->DataSource->delete( $this->CollectionToDelete );
+        $this->DataSource->delete( $this->DataMapper, $this->CollectionToDelete );
     }
-    $this->CollectionToDelete->clearCollection();
+    if( $ClearCollectionFlag ) { $this->CollectionToDelete->clearCollection(); }
 }
 
 /**
  * Все данные, которые были добавлены в коллекции для вставки, добавления и удаления 
- * будут фактически добавлены, всталвены и удалены, соответсвенно из полстоянного хранилища DataSource. 
- * вызывается сначала doInsert, затем - , затем - doDelete !
+ * будут фактически добавлены, всталвены и удалены, соответсвенно из постоянного хранилища DataSource. 
+ * вызывается сначала doInsert, затем - doUpdate, затем - doDelete !
  */
 public function doAll()
 {

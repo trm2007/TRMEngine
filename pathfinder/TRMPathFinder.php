@@ -91,7 +91,6 @@ public function process( Request $Request, RequestHandlerInterface $Handler )
     }
     catch(ResourceNotFoundException $e)
     {
-        //TRMLib::debugPrint( "Не найден маршрут" . $e->getMessage() );
         throw new TRMPathNotFoundedException( $Request->getUri() );
     }
     

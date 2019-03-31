@@ -27,20 +27,6 @@ public function setLimit( $Count , $StartPosition = null );
  */
 public function setOrder( array $orderfields );
 /**
- * @return TRMSafetyFields - объект DataMapper для текущего набора данных
- */
-function getSafetyFields();
-/**
- * @param TRMSafetyFields $SafetyFields - объект DataMapper для текущего набора данных
- */
-function setSafetyFields(TRMSafetyFields $SafetyFields);
-/**
- * получить последнее значение auto_increment поля для основной таблицы!
- * 
- * @return int - значение для поля auto_increment после операции вставки записи
- */
-//public function getLastId();
-/**
  * очистка параметров WHERE запроса и строки текущего запроса
  */
 public function clear();
@@ -103,12 +89,13 @@ public function generateParamsFrom($tablename, array $params);
 public function executeQuery($query);
 /**
  * считываем данные из БД используя запрос, который возвращает функция makeSelectQuery
- * перезаписывает связанный объект с данными
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  *
  * @return \mysqli_result - количество прочитанных строк из БД
  * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
  */
-public function getDataFrom();
+public function getDataFrom(TRMSafetyFields $SafetyFields);
 /**
  * считываем данные из БД используя запрос, который возвращает функция makeSelectQuery
  * добавляет полученное множество к имеющимся данным
@@ -122,10 +109,20 @@ public function getDataFrom();
  * если записи еще нет в таблице, т.е. нет ID для текущей строки, то добавляет ее,
  * в данной версии использует INSERT ... ON DUPLICATE KEY UPDATE ...
  *
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
+ * 
  * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
  */
-public function update(TRMDataObjectsCollection $DataCollection);
+public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection);
+/**
+ * добавляет новую запись в БД, 
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
+ * 
+ * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
+ */
+public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection );
 /**
  * удаляет записи коллекции из таблиц БД,
  * из основной таблицы удаляются записи, которые удовлетворяют значению сохраненного ID-поля,
@@ -134,9 +131,11 @@ public function update(TRMDataObjectsCollection $DataCollection);
  * так же удалются записи из дочерних таблиц, 
  * если у них стоит хотя бы одно поле доступное для редактирования - TRM_AR_UPDATABLE_FIELD
  * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
+ * 
  * @return boolean - возвращает результат запроса DELETE
  */
-public function delete(TRMDataObjectsCollection $DataCollection);
+public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection);
 
 } // TRMDataSourceInterface

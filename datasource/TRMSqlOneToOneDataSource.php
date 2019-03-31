@@ -11,9 +11,12 @@ use TRMEngine\DataMapper\TRMSafetyFields;
 class TRMSqlOneToOneDataSource extends TRMSqlDataSource
 {
 
-public function __construct(TRMSafetyFields $SafetyFields)
+/**
+ * @param \mysqli $MySQLiObject - הנאיגונ הכÿ נאבמעû ס MySQL
+ */
+public function __construct( \mysqli $MySQLiObject ) //$MainTableName, array $MainIndexFields, array $SecondTablesArray = null, $MainAlias = null )
 {
-    parent::__construct($SafetyFields);
+    parent::__construct($MySQLiObject);
     $this->StartPosition = null;
     $this->Count = 1;
 }

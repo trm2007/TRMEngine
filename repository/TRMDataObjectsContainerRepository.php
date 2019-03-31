@@ -17,12 +17,6 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
 {
 /**
  * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
- * полученных при последнем вызове одного из методов getBy,
- * getOne - тоже заолняет коллекцию, но только одним объектом!
- */
-protected $GetCollection;
-/**
- * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
  * добавленных в репозиторий, которые нужно обновить или добавить в постоянное хранилище DataSource
  */
 protected $CollectionToUpdate;
@@ -190,6 +184,27 @@ function update( TRMDataObjectInterface $Container )
         }
     }
 }
+/**
+ * @param TRMDataObjectsCollectionInterface $Collection - коллекция объектов-контейнеров, 
+ * которые будут добавлен в коллекцию обновляемых
+ */
+public function updateCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection)
+{
+    foreach( $Collection as $Container )
+    {
+        $this->update($Container);
+    }
+}
+
+public function insert(TRMDataObjectInterface $DataObject)
+{
+    $this->update($DataObject);
+}
+
+public function insertCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection)
+{
+    $this->updateCollection($Collection);
+}
 
 /**
  * удаляет основной объект, без зависимостей!!!
@@ -224,6 +239,17 @@ public function delete( TRMDataObjectInterface $Container )
 
     $this->getMainRepository()->delete( $Container->getMainDataObject() );
 }
+/**
+ * @param TRMDataObjectsCollectionInterface $Collection - коллекция объектов-контейнеров, 
+ * которые будут добавлен в коллекцию удаляемых
+ */
+public function deleteCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection)
+{
+    foreach( $Collection as $Container )
+    {
+        $this->delete($Container);
+    }
+}
 
 /**
  * сохраняет составной объект с главным объектом и вспомогательными в виде коллекции
@@ -250,9 +276,6 @@ public function validateContainerObject( TRMDataObjectsContainerInterface $Conta
     }
 }
 
-    public function deleteCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection) {
-        
-    }
 
     public function doDelete() {
         
@@ -286,20 +309,10 @@ public function validateContainerObject( TRMDataObjectsContainerInterface $Conta
         
     }
 
-    public function insert(TRMDataObjectInterface $DataObject) {
-        
-    }
-
-    public function insertCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection) {
-        
-    }
 
     public function setIdFieldName(array $IdFieldName) {
         
     }
 
-    public function updateCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection) {
-        
-    }
 
 } // TRMRepositoiesContainer

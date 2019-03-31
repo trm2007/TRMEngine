@@ -105,9 +105,6 @@ public static function getConfigArray()
  */
 static public $newlink = null;
 
-static $QB;
-
-
 /**
  * подключение к базе в конструкторе объекта, если соединение уже есть, то оставляем его
  */

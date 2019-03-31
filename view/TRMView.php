@@ -285,7 +285,6 @@ function setVar($name, $value)
 {
     if(!is_string($name) )
     {
-//        TRMLib::debugPrint("»м€ добавл€емой переменной должно быть строкой!");
         return false;
     }
 
@@ -475,7 +474,6 @@ function setContent($name, $content)
 {
     if( !is_string($name) )
     {
-//        TRMLib::debugPrint("»м€ добавл€емого контента должно быть строкой!");
         return false;
     }
 

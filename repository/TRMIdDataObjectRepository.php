@@ -18,13 +18,9 @@ use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
 abstract class TRMIdDataObjectRepository extends TRMRepository implements TRMIdDataObjectRepositoryInterface
 {
 /**
- * @var array - имя поля, содержащего ID записи
+ * @var array - array(имя суб-объекта, имя поля), содержащего ID записи
  */
 protected $IdFieldName;
-/**
- * @var string - имя объекта, в котором есть поле, содержащее ID записи
- */
-protected $IdObjectName;
 
 /**
  * @var array(TRMIdDataObjectInterface) - массив объектов, получаемых и создаваемых через данный репозиторий, 
@@ -34,21 +30,12 @@ protected $IdObjectName;
 protected static $IdDataObjectContainer = array();
 
 
-public function __construct($objectclassname)
-{
-    parent::__construct($objectclassname);
-    if( !isset(self::$IdDataObjectContainer[$objectclassname]) )
-    {
-        self::$IdDataObjectContainer[$objectclassname] = array();
-    }
-}
-
 /**
  * @return array - array(имя суб-объекта, имя поля) для ID у обрабатываемых данным репозиторием объектов
  */
 public function getIdFieldName()
 {
-    return array( $this->IdObjectName, $this->IdFieldName);
+    return $this->IdFieldName;
 }
 
 /**
@@ -57,8 +44,8 @@ public function getIdFieldName()
  */
 public function setIdFieldName( array $IdFieldName )
 {
-    $this->IdObjectName = reset($IdFieldName);
-    $this->IdFieldName = next($IdFieldName);
+    $this->IdFieldName[0] = reset($IdFieldName);
+    $this->IdFieldName[1] = next($IdFieldName);
     reset($IdFieldName);
 }
 
@@ -73,7 +60,7 @@ private function addIdDataObjectToContainer(TRMIdDataObjectInterface $DataObject
     $id = $DataObject->getId();
     if( null !== $id )
     {
-        self::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $DataObject;
+        static::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $DataObject;
     }
 }
 
@@ -96,10 +83,10 @@ public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface
     if( $objectname === $this->IdFieldName[0] && $fieldname === $this->IdFieldName[1] )
     {
         // проверяем, если объект с таки Id уже есть в локальном массиве, то 
-        if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
+        if( isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
         {
-            // и вернем его
-            return $DataObject = self::$IdDataObjectContainer[$this->ObjectTypeName][$value];
+            // вернем его
+            return $DataObject = static::$IdDataObjectContainer[$this->ObjectTypeName][$value];
         }
     }
     // будет произведен поиск в постоянном хранилище DataSource, в данной реализации в БД
@@ -113,9 +100,9 @@ public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface
     // приоритет на стороне клинета, так как в локальном объетке могут быть на записанные изменения,
     // их нельзя тереть
     $id = $NewDataObject->getId();
-    if( null !== $id && isset(self::$IdDataObjectContainer[$this->ObjectTypeName][$id]) )
+    if( null !== $id && isset(static::$IdDataObjectContainer[$this->ObjectTypeName][$id]) )
     {
-        return self::$IdDataObjectContainer[$this->ObjectTypeName][$id];
+        return static::$IdDataObjectContainer[$this->ObjectTypeName][$id];
     }
     
     // сохраняем ссылку на текущий объект в локальном массиве
@@ -143,9 +130,9 @@ protected function getDataObjectFromDataArray(array $DataArray, TRMDataObjectInt
         // если есть, получаем ID
         $id = $DataArray[$IdArr[0]][$IdArr[1]];
         // если в локальном реползитории уже есть объект с таким Id, то веренем его...
-        if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        if( isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
         {
-            return $DataObject = self::$IdDataObjectContainer[$this->ObjectTypeName][$id];
+            return $DataObject = static::$IdDataObjectContainer[$this->ObjectTypeName][$id];
         }
     }
     // если не найден в локальном хранилище, то вызываем родительский метод,
@@ -178,44 +165,53 @@ public function getById($id, TRMDataObjectInterface $DataObject = null)
  * в постоянном хранилище,
  * если данных какого объекта из коллекции нет в постоянном хранилище, то добавляет новые,
  * при этом сохраняет новые объекты с ID в локальном хранилище
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после обновления сохранить коллекцию обновленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doUpdate нужно очистить коллекцию,
+ * что бы не повторять обновление в будущем 2 раза!
+ * 
+ * @return void
  */
-public function doUpdate()
+public function doUpdate( $ClearCollectionFlag = true )
 {
-// Не можем вызвать родительский метод, мотому что там очищается коллекция!
-//    parent::doUpdate();
-    if( !$this->CollectionToUpdate || !$this->CollectionToUpdate->count() ) { return; }
-
-    $this->DataSource->update( $this->CollectionToUpdate );
+    parent::doUpdate( false );
+    if( !$this->CollectionToUpdate->count() ) { return; }
     // если были добавлены новые объекты, то у них появился новый ID,
     // проверяем наличие всех обновленных записей на наличие в локальном ID-хранилище 
     foreach( $this->CollectionToUpdate as $CurrentDataObject )
     {
         $id = $CurrentDataObject->getId();
-        if( !isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        if( !isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
         {
-            self::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $CurrentDataObject;
+            static::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $CurrentDataObject;
         }
         
     }
-    $this->CollectionToUpdate->clearCollection();
+    if( $ClearCollectionFlag ) { $this->CollectionToUpdate->clearCollection(); }
 }
 
 /**
  * производите фактичесое удаление объетов данных коллекции из постоянного хранилища DataSource
  * при этом убирает удаляемые объекты по ID из локального хранилища
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после удаления сохранить коллекцию удаленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doDelete нужно очистить коллекцию,
+ * что бы не повторять удаление в будущем 2 раза!
  */
-public function doDelete()
+public function doDelete( $ClearCollectionFlag = true )
 {
-    if( !$this->CollectionToDelete || !$this->CollectionToDelete->count() ) { return; }
+    if( !$this->CollectionToDelete->count() ) { return; }
 
     // если были добавлены новые объекты, то у них появился новый ID,
     // проверяем наличие всех обновленных записей на наличие в локальном ID-хранилище 
     foreach( $this->CollectionToDelete as $CurrentDataObject )
     {
         $id = $CurrentDataObject->getId();
-        if( $id && isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        if( $id && isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
         {
-            unset(self::$IdDataObjectContainer[$this->ObjectTypeName][$id]);
+            unset(static::$IdDataObjectContainer[$this->ObjectTypeName][$id]);
         }
         
     }
