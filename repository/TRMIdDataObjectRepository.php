@@ -177,8 +177,9 @@ public function getById($id, TRMDataObjectInterface $DataObject = null)
  */
 public function doUpdate( $ClearCollectionFlag = true )
 {
-    parent::doUpdate( false );
     if( !$this->CollectionToUpdate->count() ) { return; }
+
+    parent::doUpdate( false );
     // если были добавлены новые объекты, то у них появился новый ID,
     // проверяем наличие всех обновленных записей на наличие в локальном ID-хранилище 
     foreach( $this->CollectionToUpdate as $CurrentDataObject )

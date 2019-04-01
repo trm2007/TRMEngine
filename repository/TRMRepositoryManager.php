@@ -77,7 +77,6 @@ public function getRepository($objectclassname)
 
 /**
  * Возвращает объект Repository для объекта данных $object,
- * при этом устанавливает объект $object как объект данных для репозитория
  * 
  * @param TRMDataObjectInterface $object - объект, для которого нужно получить объект хранилища
  * @return TRMRepositoryInterface

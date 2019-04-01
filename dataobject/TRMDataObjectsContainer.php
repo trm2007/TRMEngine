@@ -3,10 +3,10 @@
 namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Exceptions\TRMDataObjectContainerNoMainException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectSContainerWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
-use TRMEngine\DataObject\Interfaces\TRMRelationDataObjectsContainerInterface;
 
 /**
  * класс контейнер объектов данных, используется для составных объектов.
@@ -163,10 +163,10 @@ public function clearDependencies()
 
 /**
  * 
- * @param \TRMEngine\DataObject\TRMDataObjectsCollection $Collection - коллекция, 
+ * @param TRMDataObjectsCollection $Collection - коллекция, 
  * для каждого объекта которой нужно установить родителем данный объект контейнера
  */
-public function setParentFor( TRMDataObjectsCollection $Collection, \TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface $Parent)
+public function setParentFor( TRMDataObjectsCollection $Collection, TRMIdDataObjectInterface $Parent)
 {
     foreach( $Collection as $Object )
     {

@@ -113,10 +113,17 @@ public function getDataSource()
  * @return self - возвращает указатель на себя, это дает возможность писать такие выражения:
  * $this->setWhereCondition(...)->setWhereCondition(...)->setWhereCondition(...)...
  */
-public function setWhereCondition($objectname, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE )
+public function addCondition($objectname, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE )
 {
     $this->DataSource->addWhereParam($objectname, $fieldname, $data, $operator, $andor, $quote, $alias, $dataquote);
     return $this;
+}
+/**
+ * очищает условия для выборки (в SQL-запросах секция WHERE)
+ */
+public function clearCondition()
+{
+    $this->DataSource->clearParams();
 }
 
 /**
@@ -162,8 +169,8 @@ public function getOne( TRMDataObjectInterface $DataObject = null )
  */
 public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface $DataObject = null)
 {
-    $this->DataSource->clearParams();
-    $this->DataSource->addWhereParam($objectname, $fieldname, $value);
+    $this->clearCondition();
+    $this->addCondition($objectname, $fieldname, $value);
     
     return $this->getOne( $DataObject );
 }
@@ -181,8 +188,8 @@ public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface
  */
 public function getBy($objectname, $fieldname, $value, TRMDataObjectsCollectionInterface $Collection = null)
 {
-    $this->DataSource->clearParams();
-    $this->DataSource->addWhereParam($objectname, $fieldname, $value);
+    $this->clearCondition();
+    $this->addCondition($objectname, $fieldname, $value);
     return $this->getAll($Collection);
 }
 
@@ -270,7 +277,6 @@ public function update( TRMDataObjectInterface $DataObject )
     // то addDataObject без специального флага не добавит его,
     // поэтому дубли объектов не появятся
     $this->CollectionToUpdate->addDataObject($DataObject);
-    
 }
 /**
  * @param TRMDataObjectsCollectionInterface $Collection - коллекция, объекты которой будут добавлен в коллекцию сохраняемых
@@ -293,8 +299,9 @@ public function doUpdate( $ClearCollectionFlag = true )
     if( $this->CollectionToUpdate->count() )
     {
         $this->DataSource->update( $this->DataMapper, $this->CollectionToUpdate );
+
+        if( $ClearCollectionFlag ) { $this->CollectionToUpdate->clearCollection(); }
     }
-    if( $ClearCollectionFlag ) { $this->CollectionToUpdate->clearCollection(); }
 }
 
 /**
@@ -334,8 +341,9 @@ public function doInsert( $ClearCollectionFlag = true )
     if( $this->CollectionToInsert->count() )
     {
         $this->DataSource->insert( $this->DataMapper, $this->CollectionToInsert );
+
+        if( $ClearCollectionFlag ) { $this->CollectionToInsert->clearCollection(); }
     }
-    if( $ClearCollectionFlag ) { $this->CollectionToInsert->clearCollection(); }
 }
 /**
  * Добавляет объект в подготовительную коллекцию для дальнейшего удаления в DataSource
@@ -369,8 +377,9 @@ public function doDelete( $ClearCollectionFlag = true )
     if( $this->CollectionToDelete->count() )
     {
         $this->DataSource->delete( $this->DataMapper, $this->CollectionToDelete );
+
+        if( $ClearCollectionFlag ) { $this->CollectionToDelete->clearCollection(); }
     }
-    if( $ClearCollectionFlag ) { $this->CollectionToDelete->clearCollection(); }
 }
 
 /**

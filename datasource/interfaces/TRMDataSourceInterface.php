@@ -32,7 +32,7 @@ public function setOrder( array $orderfields );
 public function clear();
 
 /**
- * очистка параметров WHERE запроса и строк запросов SELECT, UPDATE/INSERT, DELETE
+ * очистка параметров для WHERE-условий в SQL-запросе
  */
 public function clearParams();
 /**

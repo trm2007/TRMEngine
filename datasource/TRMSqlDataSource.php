@@ -390,12 +390,12 @@ private function generateWhereString()
 
             $wherestr .= $param["andor"] . " " . $key . " " . $param["operator"];
 
-            if( $param["operator"] == "IN" || $param["operator"] == "NOT IN" ) { $wherestr .= " (" . $param["value"] . ") "; }
+            if( $param["operator"] == "IN" || $param["operator"] == "NOT IN" ) { $wherestr .= " (" . trim( $param["value"], "() " ) . ") "; }
             else if( $param["operator"] == "IS" || 
                      $param["operator"] == "NOT" || 
                      (isset($param["dataquote"]) && $param["dataquote"] == TRMSqlDataSource::NOQUOTE)
                     ) { $wherestr .= " " . $param["value"] . " "; }
-            else { $wherestr .= "'" . trim($param["value"], "'") . "' "; }
+            else { $wherestr .= "'" . addcslashes( trim($param["value"], "'"), "'" ) . "' "; }
         }
     }
 
@@ -933,11 +933,12 @@ public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
         throw new TRMSqlQueryException("Не удалось добавить следующие записи: " . $this->getStateString() );
     }
     
+\TRMEngine\Helpers\TRMLib::sp($this->UpdateQueryString);
     if( !empty($this->UpdateQueryString) )
     {
         // фактическое выполнение запроса UPDATE, 
         // в случае неудачи выбрасывается исключение!
-        $this->completeMultiQuery($this->UpdateQueryString);
+//        $this->completeMultiQuery($this->UpdateQueryString);
         $this->UpdateQueryString = "";
     }
     
@@ -958,7 +959,7 @@ private function makeUpdateRowQueryStrForOneTable( $TableName, array &$Row, arra
     $UpdateQuery = "UPDATE `{$TableName}` SET ";
     foreach( $FieldsNames as $FieldName )
     {
-        $UpdateQuery .= "`{$FieldName}` = '" . addcslashes( $Row[ $FieldName ], "'" ) . "',";
+        $UpdateQuery .= "`{$FieldName}` = '" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "',";
     }
     $UpdateQuery = rtrim($UpdateQuery, ",");
 
@@ -969,7 +970,7 @@ private function makeUpdateRowQueryStrForOneTable( $TableName, array &$Row, arra
 
         foreach( $WhereFieldsNamesForTable as $FieldName )
         {
-            $UpdateQuery .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( $Row[ $FieldName ], "'" ) . "' AND ";
+            $UpdateQuery .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "' AND ";
         }
         $UpdateQuery = rtrim($UpdateQuery, "AND ");
     }
@@ -995,7 +996,7 @@ private function insertRowToOneTable( $TableName, array &$Row, array &$FieldsNam
     $InsertQuery = "INSERT INTO `{$TableName}` ({$FieldsNamesStr}) VALUES(";
     foreach( $FieldsNames as $FieldName )
     {
-        $InsertQuery .= "'" . addcslashes( $Row[ $FieldName ], "'" ) . "',";
+        $InsertQuery .= "'" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "',";
     }
     $InsertQuery = rtrim($InsertQuery, ",") . ");";
 
@@ -1026,7 +1027,7 @@ private function insertODKURowToOneTable( $TableName, array &$Row, array &$Field
     $ODKUStr = "ON DUPLICATE KEY UPDATE ";
     foreach( $FieldsNames as $FieldName )
     {
-        $InsertQuery .= "'" . addcslashes( $Row[ $FieldName ], "'" ) . "',";
+        $InsertQuery .= "'" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "',";
         $ODKUStr .= "`{$FieldName}` = VALUES(`{$FieldName}`),";
     }
     $InsertQuery = rtrim($InsertQuery, ",") . ")" . rtrim($ODKUStr, ",") . ";";
@@ -1153,7 +1154,7 @@ protected function generateSQLDeleteQueryString(
         // за это отвечает 3-й элемент массива $Keys => * в функции generateIndexesAndUpdatableFieldsNames
         foreach( $IndexesNames[$TableName] as $FieldName )
         {
-            $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( $Row[$TableName][ $FieldName ], "'" ) . "' AND ";
+            $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( trim( $Row[$TableName][ $FieldName ], "'" ), "'" ) . "' AND ";
         }
     }
 
@@ -1206,10 +1207,10 @@ public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
     {
         $this->generateSQLDeleteQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames, $DeleteFromStr, $UsingStr);
     }
-
+\TRMEngine\Helpers\TRMLib::sp($this->DeleteQueryString);
     if( !empty($this->DeleteQueryString) )
     {
-        $this->completeMultiQuery($MultiQueryStr);
+//        $this->completeMultiQuery($this->DeleteQueryString);
         $this->DeleteQueryString = "";
     }
     return true;

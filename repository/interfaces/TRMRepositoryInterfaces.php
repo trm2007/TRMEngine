@@ -4,12 +4,43 @@ namespace TRMEngine\Repository\Interfaces;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
+use TRMEngine\DataSource\TRMSqlDataSource;
 
 /**
  * интерфейс для объектов репозитория, используемых в системе TRMEngine
  */
 interface TRMRepositoryInterface
 {
+/**
+ * устанавливает условие для WHERE секции SQL-запроса при выборке из БД,
+ * 
+ * @param string $objectname - имя объекта, содержащее поле для сравнения
+ * @param string $fieldname - имя поля для сравнения
+ * @param string|numeric|boolean $data - данные для сравнения
+ * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
+ * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
+ * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::TRM_AR_QUOTE
+ * @param string $alias - альяс для таблицы из которой сравнивается поле
+ * @param integer $dataquote - если нужно оставить сравниваемое выражение без кавычек, 
+ * то этот аргумент доложен быть - TRMSqlDataSource::NOQUOTE
+ * 
+ * @return self - возвращает указатель на себя, это дает возможность писать такие выражения:
+ * $this->setWhereCondition(...)->setWhereCondition(...)->setWhereCondition(...)...
+ */
+public function addCondition(
+        $objectname, 
+        $fieldname, 
+        $data, 
+        $operator = "=", 
+        $andor = "AND", 
+        $quote = TRMSqlDataSource::NEED_QUOTE, 
+        $alias = null, 
+        $dataquote = TRMSqlDataSource::NEED_QUOTE );
+/**
+ * очищает условия для выборки (в SQL-запросах секция WHERE)
+ */
+public function clearCondition();
+
 /**
  * Производит выборку одной записи, 
  * если ранее для $this->DataSource были установлены какие-то условия, то они будут использованы для выборки,
@@ -84,8 +115,13 @@ public function updateCollection(TRMDataObjectsCollectionInterface $Collection )
 /**
  * фактически обновляет объекты из подготовительной коллекции,
  * в случае работы с БД отправляет SQL-серверу UPDATE-запрос
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после обновления сохранить коллекцию обновленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doUpdate нужно очистить коллекцию,
+ * что бы не повторять обновление в будущем 2 раза!
  */
-public function doUpdate();
+public function doUpdate( $ClearCollectionFlag = true );
 
 /**
  * Добавляет объект в подготовительную коллекцию для дальнейшей вставки в DataSource
@@ -99,8 +135,13 @@ public function insert( TRMDataObjectInterface $DataObject );
 public function insertCollection( TRMDataObjectsCollectionInterface $Collection );
 /**
  * производит фактический вызов метода добавляения данных в постоянное хранилище DataSource
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после обновления сохранить коллекцию добавленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doInsert нужно очистить коллекцию,
+ * что бы не повторять вставку в будущем 2 раза!
  */
-public function doInsert();
+public function doInsert( $ClearCollectionFlag = true );
 
 /**
  * добавляет данные объекта в хранилище, 
@@ -119,8 +160,13 @@ function delete(TRMDataObjectInterface $DataObject);
 public function deleteCollection( TRMDataObjectsCollectionInterface $Collection );
 /**
  * производит фактичесоке удаление данных объетов коллекции из постоянного хранилища DataSource
+ * 
+ * @param bool $ClearCollectionFlag - если нужно после удаления сохранить коллекцию удаленных объектов, 
+ * то этот флаг следует утсановить в false, это может понадобиться дочерним методам,
+ * но перед завершением дочернего doDelete нужно очистить коллекцию,
+ * что бы не повторять удаление в будущем 2 раза!
  */
-public function doDelete();
+public function doDelete( $ClearCollectionFlag = true );
 
 
 } // TRMRepositoryInterface
