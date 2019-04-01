@@ -35,19 +35,21 @@ protected static $IdDataObjectContainer = array();
  */
 public function getIdFieldName()
 {
-    return $this->IdFieldName;
+    $type = $this->ObjectTypeName;
+    
+    return $type::getIdFieldName();
 }
 
 /**
  * @param array $IdFieldName - array(имя суб-объекта, имя поля) 
  * для ID у обрабатываемых данным репозиторием объектов
  */
-public function setIdFieldName( array $IdFieldName )
-{
-    $this->IdFieldName[0] = reset($IdFieldName);
-    $this->IdFieldName[1] = next($IdFieldName);
-    reset($IdFieldName);
-}
+//public function setIdFieldName( array $IdFieldName )
+//{
+//    $this->IdFieldName[0] = reset($IdFieldName);
+//    $this->IdFieldName[1] = next($IdFieldName);
+//    reset($IdFieldName);
+//}
 
 /**
  * добавляет объект, который обрабатывает этот Repository, в локальный контейнер, 

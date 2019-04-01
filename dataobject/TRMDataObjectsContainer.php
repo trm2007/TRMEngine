@@ -24,9 +24,7 @@ use TRMEngine\DataObject\Interfaces\TRMRelationDataObjectsContainerInterface;
  * производитель никак не зависит от товара, 
  * но товар связан через свой ID_vendor и зависит от производителя по его ID...
  */
-abstract class TRMDataObjectsContainer implements 
-        TRMDataObjectsContainerInterface, 
-        TRMRelationDataObjectsContainerInterface
+class TRMDataObjectsContainer implements TRMDataObjectsContainerInterface
 {
 /**
  * @var TRMIdDataObjectInterface - основной объект с уникальным идентификатором ID,
@@ -37,13 +35,7 @@ protected $MainDataObject;
  * @var array(TRMDataObjectsCollection) - массив с коллекциями объектов данных, дополняющих основной объект, 
  * например коллекция характеристик, доп.изображения, комплекты, скидки и т.д.
  */
-protected $ObjectsArray = array();
-/**
- * @var integer - текущая позиция указателя, для реализации интерфейса итератора - Iterator
- */
-private $Position = 0;
-
-
+protected $ChildCollectionsArray = array();
 /**
  * @var array(TRMIdDataObjectInterface) - массив объектов данных, дополняющих основной объект, 
  * например коллекция характеристик, доп.изображения, комплекты, скидки и т.д.
@@ -56,110 +48,13 @@ protected $DependenciesObjectsArray = array();
  * для связи с ID-зависимости
  * (..., "ObjectIndex" => array( "RelationSubObjectName" => type, "RelationFieldName" =>fieldname ), ... )
  */
-protected $DependenciesArray = array();
-
-
-/**
- * помещает объект данных с именем $Index в массив-контейнер зависимостей, 
- * сохраняется только ссылка, объект не клонируется!!!
- * 
- * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMIdDataObjectInterface $do - добавляемая коллекция, как дочерняя
- * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
- * @param string $FieldName - имя поля основного суб-объекта в главном объекте, 
- * по которому установлена связь зависимостью
- */
-public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName )
-{
-    $this->DependenciesArray[$Index] = array( strval($ObjectName), strval($FieldName) ); 
-    
-    $this->setDataObject($Index, $do);
-}
+protected $DependenciesFieldsArray = array();
 
 /**
- * возвращает массив с именами полей зависимости с индексом $Index
- * 
- * @param string $Index - имя/номер-индекс объекта в контейнере
- * 
- * @return array - имя суб-объекта и поля в суб-объекте главного объекта, 
- * по которому установлена связь с ID зависимости под индексом $Index
+ * @var integer - текущая позиция указателя, для реализации интерфейса итератора - Iterator
  */
-public function getDependence($Index)
-{
-    return isset($this->DependenciesArray[$Index]) ? $this->DependenciesArray[$Index] : null;
-}
+private $Position = 0;
 
-/**
- * возвращает объект зависимости с индексом $Index из контейнера объектов
- * 
- * @param string $Index - имя/номер-индекс объекта в контейнере
- * 
- * @return TRMIdDataObjectInterface - коллекция с объектами данных, сохраненная в контейнере
- */
-public function getDependenceObject($Index)
-{
-    return $this->getDataObject($Index);
-}
-
-/**
- * 
- * @param string $Index - индекс объекта в контейнере
- * @return bool - если объект в контейнере под этим индексом зафиксирован как зависимый от главного,
- * например, список характеристик для товара, то вернется true, если зависимость не утсанвлена, то - false
- */
-public function isDependence($Index)
-{
-    return key_exists($Index, $this->DependenciesArray);
-}
-
-/**
- * @return array - массив массивов с зависимостями вида:
- * array("ObjectName" => array( "RelationSubObjectName" => type, "RelationFieldName" =>fieldname ), ... )
- */
-public function getDependenciesArray()
-{
-    return $this->DependenciesArray;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * магический метод,
- * позволяет получать объекты из контейнера обращаясь к ним как к свойствам класса
- * TRMDataObjectsContainer->ObjectName
- * 
- * @param string $name - имя свойства-объекта
- * @return TRMDataObjectInterface
- */
-public function __get($name)
-{
-    return $this->getDataObject($name);
-}
-/**
- * магический метод,
- * позволяет добавлять объекты в контейнер, обращаясь к ним как к свойствам класса
- * TRMDataObjectsContainer->ObjectName = $value;
- * 
- * @param string $name
- * @param TRMDataObjectInterface $value
- */
-/*
-public function __set($name, $value)
-{
-    $this->setDataObject($name, $value);
-}
-*/
 
 /**
  * @return TRMIdDataObjectInterface - возвращает главный (сохраненный под 0-м номером в массиве) объект данных
@@ -179,28 +74,117 @@ public function setMainDataObject(TRMIdDataObjectInterface $do)
     $this->MainDataObject = $do;
 }
 
-/**
- * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
- * 
- * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectsCollection $do - добавляемый объект
- */
-public function setChildObject($Index, TRMDataObjectsCollection $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
-{
-    $do->setParentDataObject($this);
 
-    $this->setDataObject($Index, $do);
+/**
+ * помещает объект данных с именем $Index в массив-контейнер зависимостей, 
+ * сохраняется только ссылка, объект не клонируется!!!
+ * 
+ * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
+ * @param TRMIdDataObjectInterface $do - добавляемая коллекция, как дочерняя
+ * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
+ * @param string $FieldName - имя поля основного суб-объекта в главном объекте, 
+ * по которому установлена связь зависимостью
+ */
+public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName )
+{
+    $this->DependenciesFieldsArray[$Index] = array( strval($ObjectName), strval($FieldName) ); 
+    
+    $this->DependenciesObjectsArray[$Index] = $do;
 }
 
 /**
- * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
+ * возвращает массив с именами полей зависимости с индексом $Index
+ * 
+ * @param string $Index - имя/номер-индекс объекта в контейнере
+ * 
+ * @return array - имя суб-объекта и поля в суб-объекте главного объекта, 
+ * по которому установлена связь с ID зависимости под индексом $Index
+ */
+public function getDependenceField($Index)
+{
+    return isset($this->DependenciesFieldsArray[$Index]) ? $this->DependenciesFieldsArray[$Index] : null;
+}
+/**
+ * 
+ * @return array(TRMIdDataObjectInterface) - возвращает массив 
+ * со всеми зависимосяти для главного объекта из контейнера
+ */
+public function getDependenciesObjectsArray()
+{
+    return $this->DependenciesObjectsArray;
+}
+
+/**
+ * возвращает объект зависимости с индексом $Index из контейнера объектов
+ * 
+ * @param string $Index - имя/номер-индекс объекта в контейнере
+ * 
+ * @return TRMIdDataObjectInterface - коллекция с объектами данных, сохраненная в контейнере
+ */
+public function getDependenceObject($Index)
+{
+    if( !isset($this->DependenciesObjectsArray[$Index]) )
+    {
+        throw new TRMDataObjectSContainerWrongIndexException( get_class($this) . " - " . __METHOD__ . " - " . $Index );
+    }
+    return $this->DependenciesObjectsArray[$Index];
+}
+
+/**
+ * 
+ * @param string $Index - индекс объекта в контейнере
+ * @return bool - если объект в контейнере под этим индексом зафиксирован как зависимый от главного,
+ * например, список характеристик для товара, то вернется true, если зависимость не утсанвлена, то - false
+ */
+public function isDependence($Index)
+{
+    return key_exists($Index, $this->DependenciesFieldsArray);
+}
+
+/**
+ * @return array - массив массивов с зависимостями вида:
+ * array("ObjectName" => array( "RelationSubObjectName" => type, "RelationFieldName" =>fieldname ), ... )
+ */
+public function getDependenciesFieldsArray()
+{
+    return $this->DependenciesFieldsArray;
+}
+
+/**
+ * очищает массив с доп. объектами данных,
+ * так же у этих объектов обнуляет ссылку на этот родительский контейнер
+ */
+public function clearDependencies()
+{
+    $this->DependenciesFieldsArray = array();
+    $this->DependenciesObjectsArray = array();
+}
+
+
+/**
+ * 
+ * @param \TRMEngine\DataObject\TRMDataObjectsCollection $Collection - коллекция, 
+ * для каждого объекта которой нужно установить родителем данный объект контейнера
+ */
+public function setParentFor( TRMDataObjectsCollection $Collection, \TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface $Parent)
+{
+    foreach( $Collection as $Object )
+    {
+        $Object->setParentDataObject($Parent);
+    }
+}
+
+/**
+ * помещает коллекцию дочерних объект данных в массив под номером $Index, 
+ * сохраняется только ссылка, объекты не клонируются!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectInterface $do - добавляемый объект
+ * @param TRMDataObjectsCollection $Collection - добавляемый объект-коллекция
  */
-private function setDataObject($Index, TRMDataObjectInterface $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
+public function setChildCollection($Index, TRMDataObjectsCollection $Collection) // был TRMParentedDataObject, но позже сделал для все объектов данных
 {
-    $this->ObjectsArray[$Index] = $do;
+    $this->ChildCollectionsArray[$Index] = $Collection;
+    $this->setParentFor($Collection, $this);
 }
 
 /**
@@ -210,37 +194,34 @@ private function setDataObject($Index, TRMDataObjectInterface $do) // был TRMPar
  * 
  * @return TRMDataObjectInterface - объект из контейнера
  */
-public function getDataObject($Index)
+public function getChildCollection($Index)
 {
-    if( isset($this->ObjectsArray[$Index]) ) { return $this->ObjectsArray[$Index]; }
+    if( isset($this->ChildCollectionsArray[$Index]) ) { return $this->ChildCollectionsArray[$Index]; }
     return null;
 }
 
 /**
  * @return array - возвращает массив объектов данных, дополняющих основной объект
  */
-public function getObjectsArray()
+public function getChildCollectionsArray()
 {
-    return $this->ObjectsArray;
+    return $this->ChildCollectionsArray;
 }
 
 /**
  * очищает массив с доп. объектами данных,
  * так же у этих объектов обнуляет ссылку на этот родительский контейнер
  */
-public function clearObjectsArray()
+public function clearChildCollectionsArray()
 {
     // так как в массиве хранятся ссылки на реальные объекты, то они не удаляются при опустошении массива,
     // поэтому вручную устанавливаем для каждого объекта данных родителя в null, 
     // чтобы они не ссылались на контейнер из которого они удалены
-    foreach( $this->ObjectsArray as $object )
+    foreach( $this->ChildCollectionsArray as $Collection )
     {
-        if( method_exists($object, "setParentDataObject") )
-        {
-            $object->setParentDataObject(null);
-        }
+        $this->setParentFor( $Collection, null );
     }
-    $this->ObjectsArray = array();
+    $this->ChildCollectionsArray = array();
 }
 
 /**
@@ -261,7 +242,7 @@ public function getOwnData()
         "Main" => $this->MainDataObject->getOwnData(), 
         "Children" => array() );
     
-    foreach ($this->ObjectsArray as $Name => $Child)
+    foreach ($this->ChildCollectionsArray as $Name => $Child)
     {
         if( $Child->count() )
         {
@@ -283,7 +264,7 @@ public function getOwnData()
  *      "NameOfChild3" => данные третьего дочернего объекта,
  * ...
  *      )
- * ), при этом в массиве $this->ObjectsArray - уже должны быть проинициализированны объекты, 
+ * ), при этом в массиве $this->ChildCollectionsArray - уже должны быть проинициализированны объекты, 
  * соответсвующих типов, что бы принять данные, и объект $this->MainDataObject тоже должен быть создан
  * 
  * @throws TRMDataObjectContainerNoMainException - в текущей версии если не установлены данные в главной части контейнера - Main, тогда выбрасывается исключение
@@ -305,7 +286,7 @@ public function setOwnData(array $data)
      */
     $this->MainDataObject->setOwnData($data["Main"]);
 
-    foreach( $this->ObjectsArray as $Name => $Child )
+    foreach( $this->ChildCollectionsArray as $Name => $Child )
     {
         if( !isset($data["Children"][$Name]) )
         {
@@ -378,6 +359,8 @@ public function presentDataIn($rownum, $objectname, array &$fieldname)
 {
     $this->MainDataObject->presentDataIn($rownum, $objectname, $fieldname);
 }
+
+
 /****************************************************************************
  * реализация интерфейса TRMIdDataObjectInterface
  ****************************************************************************/
@@ -438,7 +421,7 @@ public function setFieldValue($objectname, $fieldname, $value)
  */
 public function count()
 {
-    return count($this->ObjectsArray);
+    return count($this->ChildCollectionsArray);
 }
 
 
@@ -448,7 +431,7 @@ public function count()
  */
 public function current()
 {
-    return current($this->ObjectsArray);
+    return current($this->ChildCollectionsArray);
 }
 
 /**
@@ -458,7 +441,7 @@ public function current()
  */
 public function key()
 {
-    return key($this->ObjectsArray);
+    return key($this->ChildCollectionsArray);
 }
 
 /**
@@ -466,7 +449,7 @@ public function key()
  */
 public function next()
 {
-    next($this->ObjectsArray);
+    next($this->ChildCollectionsArray);
     ++$this->Position;
 }
 
@@ -475,19 +458,19 @@ public function next()
  */
 public function rewind()
 {
-    reset($this->ObjectsArray);
+    reset($this->ChildCollectionsArray);
     $this->Position = 0;
 }
 
 /**
  * если счетчик превышает или равен размеру массива, значит в этом элеменет уже ничего нет,
- * $this->Position всегда должна быть < count($this->ObjectsArray)
+ * $this->Position всегда должна быть < count($this->ChildCollectionsArray)
  * 
  * @return boolean
  */
 public function valid()
 {
-    return ($this->Position < count($this->ObjectsArray));
+    return ($this->Position < count($this->ChildCollectionsArray));
 }
 
 

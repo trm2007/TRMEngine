@@ -152,7 +152,7 @@ public function getIdFieldName();
  * @param array $IdFieldName - array(имя суб-объекта, имя поля) 
  * для ID у обрабатываемых данным репозиторием объектов
  */
-public function setIdFieldName( array $IdFieldName );
+//public function setIdFieldName( array $IdFieldName );
 
 
 } // TRMIdDataObjectRepositoryInterface

@@ -5,7 +5,7 @@ namespace TRMEngine\Repository;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DiContainer\TRMDIContainer;
 use TRMEngine\Helpers\TRMLib;
-use TRMEngine\Repository\Exeptions\TRMRepositoryGetObjectException;
+use TRMEngine\Repository\Exceptions\TRMRepositoryGetObjectException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
 /**
@@ -85,7 +85,6 @@ public function getRepository($objectclassname)
 public function getRepositoryFor(TRMDataObjectInterface $object)
 {
     $r = $this->getRepository( get_class($object) );
-    $r->setObject($object);
     return $r;
 }
 

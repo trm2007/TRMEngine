@@ -141,22 +141,28 @@ protected function displayError($errno,$errstr,$errfile,$errline,$rescode=503)
     }
     if(defined("DEBUG") )
     {
-        echo "Режим отладки включен<br>\n";
-
-        $msgstr = "error_reporting: ".ini_get("error_reporting")."<br>\n";
-        printf($msgstr);
-        $msgstr = "display_errors: ".ini_get('display_errors')."<br>\n";
-        printf($msgstr);
-
-        echo "<pre>";
-        echo "Номер ошибки: <b>"; var_dump($errno); echo "</b><br>\n";
-        echo "Файл в котором произошла ошибка: <b>"; var_dump($errfile); echo "</b><br>\n";
-        echo "Строка на которой произошла ошибка: <b>"; var_dump($errline); echo "</b><br>\n";
-        echo "Код: <b>"; var_dump($rescode); echo "</b><br>\n";
-        echo "</pre>";
-TRMLib::dp($errstr, TRMLib::DefaultDebugTextColor, true);
+        static::printErrorDebug($errno, $errstr, $errfile, $errline, $rescode);
     }
     exit();
+}
+
+static public function printErrorDebug($errno,$errstr,$errfile,$errline,$rescode)
+{
+    echo "<div class='trm_debug_info'>";
+    echo "<h1>Режим отладки включен</h1>" . PHP_EOL;
+
+    echo "error_reporting: ".ini_get("error_reporting")."<br>" . PHP_EOL;
+    echo "display_errors: ".ini_get('display_errors')."<br>" . PHP_EOL;
+
+    echo "<pre>" . PHP_EOL;
+    echo "Номер (тип) ошибки: <b>{$errno}</b><br>" . PHP_EOL;
+    echo "Файл в котором произошла ошибка: <b>{$errfile}</b><br>" . PHP_EOL;
+    echo "Строка на которой произошла ошибка: <b>{$errline}</b><br>" . PHP_EOL;
+    echo "Код: <b>{$rescode}</b><br>" . PHP_EOL;
+    echo "</pre>" . PHP_EOL;
+    echo "</div>";
+
+    TRMLib::dp($errstr, TRMLib::DefaultDebugTextColor, true);
 }
 
 /**

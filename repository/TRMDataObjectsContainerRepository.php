@@ -3,11 +3,12 @@
 namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
+use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DataObject\TRMDataObjectsContainer;
 use TRMEngine\DiContainer\TRMDIContainer;
-use TRMEngine\Repository\Exeptions\TRMRepositoryNoDataObjectException;
-use TRMEngine\Repository\Exeptions\TRMRepositoryUnknowDataObjectClassException;
+use TRMEngine\Repository\Exceptions\TRMRepositoryNoDataObjectException;
+use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
 use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
 
 /**
@@ -15,21 +16,6 @@ use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
  */
 class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInterface
 {
-/**
- * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
- * добавленных в репозиторий, которые нужно обновить или добавить в постоянное хранилище DataSource
- */
-protected $CollectionToUpdate;
-/**
- * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
- * добавленных в репозиторий, которые нужно обновить или добавить в постоянное хранилище DataSource
- */
-protected $CollectionToInsert;
-/**
- * @var TRMDataObjectsCollectionInterface - коллекция объектов , 
- * которые подготовлены к удалению из постоянного хранилища DataSource
- */
-protected $CollectionToDelete;
 /**
  * @var string - имя типа данных, с которыми работает данный экземпляр класса Repository
  */
@@ -48,7 +34,7 @@ public function __construct( $objectclassname )
     {
         throw new TRMRepositoryUnknowDataObjectClassException( $objectclassname . " не зарегистрирован в системе - " . get_class($this) );
     }
-    if( !is_a($objectclassname, TRMDataObjectsContainer::class) )
+    if( !is_subclass_of($objectclassname, TRMDataObjectsContainer::class) )
     {
         throw new TRMRepositoryUnknowDataObjectClassException( $objectclassname . " не является контейнером - " . get_class($this) );
     }
@@ -69,6 +55,17 @@ public function getMainRepository( TRMDataObjectsContainerInterface $Container )
 }
 
 /**
+ * {inheritDoc}
+ */
+public function getById($id, TRMDataObjectInterface $DataObject = null)
+{
+    $IdFieldName = $this->getIdFieldName();
+    $Container = $this->getOneBy($IdFieldName[0], $IdFieldName[1], $id, $DataObject);
+    
+    return $Container;
+}
+
+/**
  * Производит выборку главного объекта, удовлетворяющего указанному значению для указанного поля,
  * поочередно вызывает метод getOneBy для репозиториев всех объектов-зависимостей,
  * от которых зависит главный объект контейнера, передавая ссылку в getBy через getDependence().
@@ -85,52 +82,52 @@ public function getMainRepository( TRMDataObjectsContainerInterface $Container )
  */
 public function getOneBy( $objectname, $fieldname, $value, TRMDataObjectInterface $DataObject = null)
 {
-    // если передан объект для обработки, 
-    // проверяем его на соответствие типу
-    if( $DataObject && $this->validateContainerObject($DataObject) )
+    if( $DataObject === null )
     {
-        $Container = $DataObject;
+        $Container = new $this->ObjectTypeName;
     }
     else
     {
-        // иначе создаем новый объект контейнера данных и работаем с ним
-        $Container = new $this->ObjectTypeName;
+        // если передан объект для обработки, 
+        // проверяем его на соответствие типу,
+        // если не пройдет проверка , validateContainerObject выбрасывает исключение
+        $this->validateContainerObject($DataObject);
+        $Container = $DataObject;
     }
-
-    // получаем данные для главной части составного объекта, 
+    
+    // получаем данные для главного объекта контейнера, 
     // без главного объекта нет смысла продолжать работу, 
     // поэтому проверям, что он получен getOneBy,
-    if( !$this->getMainRepository()->getOneBy( $objectname, $fieldname, $value, $Container->getMainDataObject() ) )
+    if( !$this->getMainRepository($Container)->getOneBy( 
+            $objectname, 
+            $fieldname, 
+            $value, 
+            $Container->getMainDataObject() ) )
     {
         throw new TRMRepositoryNoDataObjectException( "Данные для главного объекта получить не удалось - "  . get_class($this) );
     }
-
-    // цикл по всем объектам в контейнере
-    foreach( $Container as $Index => $DataObject )
+    // цикл по всем дочерним коллекциям в контейнере
+    foreach( $Container as $Index => $Collection )
     {
-        $DependIndex = $Container->getDependence($Index);
-        // если проверяемого объекта нет в зависимостях для главного объекта в контейнере, 
-        // то это дочерние коллекции,
-        // для них вызываем getByParent 
-        if( !$DependIndex )
-        {
-            // здесь будет коллекция объектов, для которых будет задан тип,
-            // и его можно получить через ->getObjectsType()
-            $DataObject = TRMDIContainer::getStatic(TRMRepositoryManager::class)
-                    ->getRepositoryFor( $DataObject->getObjectsType() )
-                    ->getByParent( $Container->getMainDataObject(), $DataObject );
-        }
+        // это дочерние типизированные коллекции,
+        // у каждого репозиторя объектов, которые хранятся в коллекциях, вызываем getByParent, 
+        // тип для объектов коллекции можно получить через ее метод ->getObjectsType()
+        $Collection = TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepository( $Collection->getObjectsType() )
+                ->getByParent( $Container->getMainDataObject(), $Collection );
+    }
+    // цикл по всем объектам-зависимостям в контейнере
+    foreach( $Container->getDependenciesObjectsArray() as $Index => $DataObject )
+    {
+        $DependIndex = $Container->getDependenceField($Index);
         // Если это объект-зависимость для главного, то
         // для него вызываем getById
-        else
-        {
-            TRMDIContainer::getStatic(TRMRepositoryManager::class)
-                    ->getRepositoryFor( $DataObject )
-                    ->getById(
-                            $Container->getMainDataObject()->getFieldValue( $DependIndex[0], $DependIndex[1] ),
-                            $DataObject
-                            );
-        }
+        TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepositoryFor( $DataObject )
+                ->getById(
+                        $Container->getMainDataObject()->getFieldValue( $DependIndex[0], $DependIndex[1] ),
+                        $DataObject
+                        );
     }
 
     return $Container;
@@ -155,28 +152,23 @@ function update( TRMDataObjectInterface $Container )
     
     $this->getMainRepository()->update( $Container->getMainDataObject() );
 
-    // цикл по всем объектам в контейнере
-    foreach( $Container as $Index => $DataObjectsCollection )
+    // цикл по всем дочерним коллекциям в контейнере,
+    // реализация итератора не затрагивает зависимости
+    foreach( $Container as $DataObjectsCollection )
     {
-        // если проверяемого объекта нет в зависимостях для главного объекта в контейнере, 
-        // то это дочерние коллекции, для них вызываем updateCollection
-        // Если это объект-зависимость для главного объекта контейнера, 
-        // то зависимость не трогаем, она - автономный объект, обновляется и удаляется независимо!
-        if( !$Container->isDependence($Index) )
-        {
-            // добавляем коллекцию объектов $DataObjectsCollection 
-            // к предварительной для обновления в репозитории
-            TRMDIContainer::getStatic(TRMRepositoryManager::class)
-                    ->getRepository( $DataObjectsCollection->getObjectsType() )
-                    ->updateCollection( $DataObjectsCollection );
-        }
+        // это дочерние коллекции, для них вызываем updateCollection
+        // добавляем коллекцию объектов $DataObjectsCollection 
+        // к предварительной для обновления в репозитории
+        TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepository( $DataObjectsCollection->getObjectsType() )
+                ->updateCollection( $DataObjectsCollection );
     }
 }
 /**
  * @param TRMDataObjectsCollectionInterface $Collection - коллекция объектов-контейнеров, 
  * которые будут добавлен в коллекцию обновляемых
  */
-public function updateCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection)
+public function updateCollection(TRMDataObjectsCollectionInterface $Collection)
 {
     foreach( $Collection as $Container )
     {
@@ -184,14 +176,27 @@ public function updateCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjects
     }
 }
 
-public function insert(TRMDataObjectInterface $DataObject)
+public function insert(TRMDataObjectInterface $Container)
 {
-    $this->update($DataObject);
+    $this->validateContainerObject($Container);
+    
+    $this->getMainRepository()->update( $Container->getMainDataObject() );
+
+    // цикл по всем дочерним коллекциям в контейнере
+    foreach( $Container as $DataObjectsCollection )
+    {
+        TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepository( $DataObjectsCollection->getObjectsType() )
+                ->insertCollection( $DataObjectsCollection );
+    }
 }
 
-public function insertCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection)
+public function insertCollection(TRMDataObjectsCollectionInterface $Collection)
 {
-    $this->updateCollection($Collection);
+    foreach( $Collection as $Container )
+    {
+        $this->insert($Container);
+    }
 }
 
 /**
@@ -210,21 +215,14 @@ public function delete( TRMDataObjectInterface $Container )
 {
     $this->validateContainerObject($Container);
 
-    // цикл по всем объектам в контейнере
-    foreach( $Container as $Index => $DataObjectsCollection )
+    // цикл по всем дочерним коллекциям в контейнере
+    foreach( $Container as $DataObjectsCollection )
     {
-        // если проверяемого объекта нет в зависимостях для главного объекта в контейнере, 
-        // то это дочерние коллекции, для них вызываем deleteCollection
-        // Если это объект-зависимость для главного, 
-        // то его не трогаем, это автономный объект и обновляется, и удаляется независимо!
-        if( !$Container->isDependence($Index) )
-        {
-            // добавляем коллекцию объектов $DataObjectsCollection 
-            // к предварительной для удаления в репозитории
-            TRMDIContainer::getStatic(TRMRepositoryManager::class)
-                    ->getRepository( $DataObjectsCollection->getObjectsType() )
-                    ->deleteCollection( $DataObjectsCollection );
-        }
+        // добавляем коллекцию объектов $DataObjectsCollection 
+        // к предварительной для удаления в репозитории
+        TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepository( $DataObjectsCollection->getObjectsType() )
+                ->deleteCollection( $DataObjectsCollection );
     }
 
     $this->getMainRepository()->delete( $Container->getMainDataObject() );
@@ -233,7 +231,7 @@ public function delete( TRMDataObjectInterface $Container )
  * @param TRMDataObjectsCollectionInterface $Collection - коллекция объектов-контейнеров, 
  * которые будут добавлен в коллекцию удаляемых
  */
-public function deleteCollection(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection)
+public function deleteCollection(TRMDataObjectsCollectionInterface $Collection)
 {
     foreach( $Collection as $Container )
     {
@@ -264,6 +262,7 @@ public function validateContainerObject( TRMDataObjectsContainerInterface $Conta
     {
         throw new TRMRepositoryUnknowDataObjectClassException( get_class($Container) . " для " . get_class($this) );
     }
+    return true;
 }
 
 
@@ -279,15 +278,11 @@ public function validateContainerObject( TRMDataObjectsContainerInterface $Conta
         
     }
 
-    public function getAll(\TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection = null) {
+    public function getAll(TRMDataObjectsCollectionInterface $Collection = null) {
         
     }
 
-    public function getBy($objectname, $fieldname, $value, \TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface $Collection = null) {
-        
-    }
-
-    public function getById($id, TRMDataObjectInterface $DataObject = null) {
+    public function getBy($objectname, $fieldname, $value, TRMDataObjectsCollectionInterface $Collection = null) {
         
     }
 
@@ -302,12 +297,12 @@ public function getIdFieldName()
     return $type::getIdFieldName(); //$this->MainDataObject->getIdFieldName();
 }
 
-public function setIdFieldName(array $IdFieldName)
-{
-    $type = $this->ObjectTypeName;
-    return $type::setIdFieldName($IdFieldName);
-
-}
+//public function setIdFieldName(array $IdFieldName)
+//{
+//    $type = $this->ObjectTypeName;
+//    return $type::setIdFieldName($IdFieldName);
+//
+//}
 
 
 } // TRMRepositoiesContainer

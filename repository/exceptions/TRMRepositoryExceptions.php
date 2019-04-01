@@ -1,6 +1,6 @@
 <?php
 
-namespace TRMEngine\Repository\Exeptions;
+namespace TRMEngine\Repository\Exceptions;
 
 use TRMEngine\Exceptions\TRMException;
 

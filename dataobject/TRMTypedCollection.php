@@ -3,8 +3,10 @@
 namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Exceptions\TRMDataObjectSCollectionWrongIndexException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectSCollectionWrongTypeException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
+use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
 
 /**
  * класс для работы с коллекциями однотипных объектов DataObject
@@ -46,7 +48,7 @@ public function getObjectsType()
  */
 public function validateObject(TRMDataObjectInterface $DataObject)
 {
-    if( get_class($DataObject) !== static::$ObjectsType )
+    if( get_class($DataObject) !== $this->ObjectsType )
     {
         throw new TRMDataObjectSCollectionWrongTypeException( get_class($this) . "-" . get_class($DataObject) );
     }
@@ -76,7 +78,7 @@ public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false )
 {
     $this->validateObject($DataObject);
-    return parent::addDataObject($Index, $DataObject);
+    return parent::addDataObject($DataObject, $AddDuplicateFlag);
 }
 
 /**
@@ -91,9 +93,9 @@ public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicate
  */
 public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $AddDuplicateFlag = false )
 {
-    if( $Collection::$ObjectsType !== static::$ObjectsType )
+    if( $Collection->ObjectsType !== $this->ObjectsType )
     {
-        throw new TRMDataObjectSCollectionWrongTypeException( get_class($this) . "-" . get_class($Collection::$ObjectsType) );
+        throw new TRMDataObjectSCollectionWrongTypeException( get_class($this) . "-" . get_class($Collection->ObjectsType) );
     }
     parent::mergeCollection($Collection, $AddDuplicateFlag);
 }

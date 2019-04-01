@@ -116,6 +116,21 @@ public function clearCollection()
     $this->Position = 0;
 }
 
+/**
+ * меняет во всех записях значение поля $FieldName на новое значение $FieldValue, если разрешена запись
+ *
+ * @param string $ObjectName - имя объекта, в котором меняется значение 
+ * @param string $FieldName - имя поля в объектах данных
+ * @param mixed $FieldValue - новое значение
+ */
+public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
+{
+    foreach( $this->DataObjectsArray as $Object )
+    {
+        $Object->setFieldValue( $ObjectName, $FieldName, $FieldValue );
+    }
+}
+
 // ********************    **************************************************
 
 public function count()

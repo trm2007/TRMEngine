@@ -8,6 +8,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\DataObject\TRMDataObjectsCollection;
 use TRMEngine\DataSource\Interfaces\TRMDataSourceInterface;
 use TRMEngine\DataSource\TRMSqlDataSource;
+use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
 /**

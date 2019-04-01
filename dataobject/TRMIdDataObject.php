@@ -108,16 +108,16 @@ public function getId()
 {
     // с 24.03.2019
     // IdFieldName - это массив содержащий array( имя объекта, имя поля )
-    if( !isset($this->IdFieldName[0]) || !isset($this->IdFieldName[1]) )
+    if( !isset(static::$IdFieldName[0]) || !isset(static::$IdFieldName[1]) )
     {
         throw new TRMException( __METHOD__ . " - не установлен IdFieldName!");
     }
 
     if( !isset($this->DataArray[0]) ) { return null; }
-    if( !isset($this->DataArray[0][$this->IdFieldName[0]]) ) { return null; }
-    if( !isset($this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]]) ) { return null; }
+    if( !isset($this->DataArray[0][static::$IdFieldName[0]]) ) { return null; }
+    if( !isset($this->DataArray[0][static::$IdFieldName[0]][static::$IdFieldName[1]]) ) { return null; }
 
-    $data = $this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]];
+    $data = $this->DataArray[0][static::$IdFieldName[0]][static::$IdFieldName[1]];
     
     // проверяем на равенство null, так как далее приведение null к int вернет 0 
     // раньше ID мог быть только целочисленным...
@@ -134,11 +134,11 @@ public function getId()
  */
 public function setId($id)
 {
-    if( !isset($this->IdFieldName[0]) || !isset($this->IdFieldName[1]) )
+    if( !isset(static::$IdFieldName[0]) || !isset(static::$IdFieldName[1]) )
     {
         throw new TRMException( __METHOD__ . " - не установлен IdFieldName!");
     }
-    $this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]] = $id;
+    $this->DataArray[0][static::$IdFieldName[0]][static::$IdFieldName[1]] = $id;
 }
 
 /**
@@ -147,7 +147,7 @@ public function setId($id)
  */
 public function resetId()
 {
-    $this->setData( 0, $this->IdFieldName[0], $this->IdFieldName[1], null );
+    $this->setData( 0, static::$IdFieldName[0], static::$IdFieldName[1], null );
 }
 
 /**

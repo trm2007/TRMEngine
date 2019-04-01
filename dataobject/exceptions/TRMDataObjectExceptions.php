@@ -38,6 +38,15 @@ class TRMDataObjectContainerNoMainException extends TRMDataObjectContainerExcept
     }
 }
 
+class TRMDataObjectSContainerWrongIndexException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " Ошибка в коллекции объектов данных! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+}
+
 
 /**
  * выбрасывается при ошибке в работе с коллекцией объектов данных TRMDataObjectsCollection и их наслдениками

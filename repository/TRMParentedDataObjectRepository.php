@@ -33,20 +33,20 @@ public function __construct($objectclassname)
 /**
  * @return array -  array( имя родительского объекта, имя поля для связи )
  */
-static public function getParentRelationIdFieldName()
+public function getParentRelationIdFieldName()
 {
     $type = $this->ObjectTypeName;
-    return $type::$ParentRelationIdFieldName;
+    return $type::getParentIdFieldName();
 }
 /**
  * @param array $ParentRelationIdFieldName - array( имя родительского объекта, имя поля для связи )
  */
-static public function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
-{
-    static::$ParentRelationIdFieldName[0] = reset($ParentRelationIdFieldName);
-    static::$ParentRelationIdFieldName[1] = next($ParentRelationIdFieldName);
-    reset($ParentRelationIdFieldName);
-}
+//static public function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
+//{
+//    static::$ParentRelationIdFieldName[0] = reset($ParentRelationIdFieldName);
+//    static::$ParentRelationIdFieldName[1] = next($ParentRelationIdFieldName);
+//    reset($ParentRelationIdFieldName);
+//}
 
 /**
  * возвращает коллекцию объектов, которые зависят от заданного родителя
@@ -57,7 +57,7 @@ static public function setParentRelationIdFieldName(array $ParentRelationIdField
  */
 public function getByParent( TRMIdDataObjectInterface $ParentObject, TRMDataObjectsCollectionInterface $Collection = null )
 {
-    $ParentRelationIdFieldName = $this->getParentRelationIdFieldName();
+    $ParentRelationIdFieldName = static::getParentRelationIdFieldName();
 
     return $this->getBy(
             $ParentRelationIdFieldName[0], 
