@@ -11,34 +11,33 @@ use TRMEngine\DataObject\Interfaces\TRMParentedDataObjectInterface;
  *
  * @author TRM
  */
-abstract class TRMParentedCollectionDataObject extends TRMCollectionDataObject implements TRMParentedDataObjectInterface
+abstract class TRMParentedDataObject extends TRMCollectionDataObject implements TRMParentedDataObjectInterface
 {
 /**
- * @var array - массив = (имя объекта, имя свойства) содержащего Id родителя в коллекции
+ * @var array - массив = (имя объекта, имя свойства) содержащего Id родителя в коллекции,
+ * должен определяться в каждом дочернем классе со своими именами
  */
-private $ParentIdFieldName;
+static protected $ParentIdFieldName;
 /**
  * @var TRMIdDataObjectInterface - ссылка на объект родителя для набора из текущей коллекции...
  */
 protected $ParentDataObject = null;
 
 
-abstract public function __construct();
-
 /**
  * @return array - имя свойства содержащего Id родителя в коллекции
  */
-function getParentIdFieldName()
+static public function getParentIdFieldName()
 {
-    return $this->ParentIdFieldName;
+    return static::$ParentIdFieldName;
 }
 /**
  * @param array $ParentIdFieldName - имя свойства содержащего Id родителя в коллекции
  */
-function setParentIdFieldName(array $ParentIdFieldName)
+static public function setParentIdFieldName(array $ParentIdFieldName)
 {
-    $this->ParentIdFieldName[0] = reset($ParentIdFieldName);
-    $this->ParentIdFieldName[1] = next($ParentIdFieldName);
+    static::$ParentIdFieldName[0] = reset($ParentIdFieldName);
+    static::$ParentIdFieldName[1] = next($ParentIdFieldName);
     reset($ParentIdFieldName);
 }
 

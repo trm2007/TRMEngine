@@ -15,9 +15,10 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 abstract class TRMIdDataObject extends TRMDataObject implements \ArrayAccess, TRMIdDataObjectInterface
 {
 /**
- * @var array - имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
+ * @var array - имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
+ * должен быть объявлен в каждом дочернем классе!!!
  */
-private $IdFieldName;
+// static protected $IdFieldName;
 
 /**
  * возвращает массив с данными (возвращается только одна - 1-я строка), 
@@ -49,9 +50,9 @@ public function setOwnData( array $data )
  * @return array - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
  * возвращается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
-public function getIdFieldName()
+static public function getIdFieldName()
 {
-    return $this->IdFieldName;
+    return static::$IdFieldName;
 }
 
 /**
@@ -59,10 +60,10 @@ public function getIdFieldName()
  * обычно совпадает с именем ID-поля из БД,
  * передается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
-public function setIdFieldName( array $IdFieldName ) 
+static public function setIdFieldName( array $IdFieldName ) 
 {
-    $this->IdFieldName[0] = reset($IdFieldName);
-    $this->IdFieldName[1] = next($IdFieldName);
+    static::$IdFieldName[0] = reset($IdFieldName);
+    static::$IdFieldName[1] = next($IdFieldName);
     reset($IdFieldName);
 }
 

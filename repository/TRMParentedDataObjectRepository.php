@@ -18,19 +18,14 @@ abstract class TRMParentedDataObjectRepository extends TRMRepository
  * например, дл€ соотношени€ ( ID-товара-1 - [ID-товара-M, ID-характеристики-M] - ID-характеристики-1 )
  * такую роль играет ID-товара-M, дл€ одного товара выбираетс€ коллекци€ характеристик
  */
-private $ParentRelationIdFieldName;
-/**
- * @var array - им€ пол€ из св€зующей-основной таблицы (определющее дочернее отношени€ многое-ко-многому), 
- * по которому будет установлена св€зь со второй таблицей
- */
-protected $RelationIdFieldName;
+static protected $ParentRelationIdFieldName = array();
 
 
 public function __construct($objectclassname)
 {
-    if( empty($this->ParentRelationIdFieldName) )
+    if( empty(static::$ParentRelationIdFieldName) )
     {
-        throw new TRMObjectCreateException("¬ дочернем конструкторе не указано им€ пол€, содержащее значение родительского ID дл€ объектов ". get_class($this), 500);
+        throw new TRMObjectCreateException("¬ дочернем объекте не указано им€ пол€, содержащее значение родительского ID дл€ объектов ". get_class($this), 500);
     }
     parent::__construct($objectclassname);
 }
@@ -38,17 +33,18 @@ public function __construct($objectclassname)
 /**
  * @return array -  array( им€ родительского объекта, им€ пол€ дл€ св€зи )
  */
-function getParentRelationIdFieldName()
+static public function getParentRelationIdFieldName()
 {
-    return $this->ParentRelationIdFieldName;
+    $type = $this->ObjectTypeName;
+    return $type::$ParentRelationIdFieldName;
 }
 /**
  * @param array $ParentRelationIdFieldName - array( им€ родительского объекта, им€ пол€ дл€ св€зи )
  */
-function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
+static public function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
 {
-    $this->ParentRelationIdFieldName[0] = reset($ParentRelationIdFieldName);
-    $this->ParentRelationIdFieldName[1] = next($ParentRelationIdFieldName);
+    static::$ParentRelationIdFieldName[0] = reset($ParentRelationIdFieldName);
+    static::$ParentRelationIdFieldName[1] = next($ParentRelationIdFieldName);
     reset($ParentRelationIdFieldName);
 }
 

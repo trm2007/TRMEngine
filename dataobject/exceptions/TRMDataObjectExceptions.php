@@ -59,3 +59,12 @@ class TRMDataObjectSCollectionWrongIndexException extends TRMException
         parent::__construct($message, $code, $previous);
     }
 }
+
+class TRMDataObjectSCollectionWrongTypeException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " Неверный тип объекта! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+}

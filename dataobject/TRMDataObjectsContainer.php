@@ -64,12 +64,12 @@ protected $DependenciesArray = array();
  * сохраняется только ссылка, объект не клонируется!!!
  * 
  * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectsCollection $do - добавляемая коллекция, как дочерняя
+ * @param TRMIdDataObjectInterface $do - добавляемая коллекция, как дочерняя
  * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
  * @param string $FieldName - имя поля основного суб-объекта в главном объекте, 
  * по которому установлена связь зависимостью
  */
-public function setDependence($Index, TRMDataObjectsCollection $do, $ObjectName, $FieldName )
+public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName )
 {
     $this->DependenciesArray[$Index] = array( strval($ObjectName), strval($FieldName) ); 
     
@@ -94,7 +94,7 @@ public function getDependence($Index)
  * 
  * @param string $Index - имя/номер-индекс объекта в контейнере
  * 
- * @return TRMDataObjectsCollection - коллекция с объектами данных, сохраненная в контейнере
+ * @return TRMIdDataObjectInterface - коллекция с объектами данных, сохраненная в контейнере
  */
 public function getDependenceObject($Index)
 {
@@ -196,9 +196,9 @@ public function setChildObject($Index, TRMDataObjectsCollection $do) // был TRMP
  * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectsCollection $do - добавляемый объект
+ * @param TRMDataObjectInterface $do - добавляемый объект
  */
-private function setDataObject($Index, TRMDataObjectsCollection $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
+private function setDataObject($Index, TRMDataObjectInterface $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
 {
     $this->ObjectsArray[$Index] = $do;
 }
@@ -208,7 +208,7 @@ private function setDataObject($Index, TRMDataObjectsCollection $do) // был TRMP
  * 
  * @param integer $Index - номер объекта в контейнере
  * 
- * @return TRMDataObjectsCollection - объект из контейнера
+ * @return TRMDataObjectInterface - объект из контейнера
  */
 public function getDataObject($Index)
 {
@@ -394,13 +394,19 @@ public function resetId()
     $this->MainDataObject->resetId();
 }
 
-public function getIdFieldName()
+static public function getIdFieldName()
 {
-    return $this->MainDataObject->getIdFieldName();
+    $type = static::getMainDataObjectType();
+    return $type::getIdFieldName();
 }
-public function setIdFieldName(array $IdFieldName)
+static public function setIdFieldName(array $IdFieldName)
 {
-    $this->MainDataObject->setIdFieldName($IdFieldName);
+    $type = static::getMainDataObjectType();
+    $type::setIdFieldName($IdFieldName);
+}
+static public function getMainDataObjectType()
+{
+    return static::$MainDataObjectType;
 }
 
 /**

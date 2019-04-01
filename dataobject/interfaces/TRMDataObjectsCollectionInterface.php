@@ -68,3 +68,23 @@ public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $
 public function clearCollection();
 
 } // TRMDataObjectsCollectionInterface
+
+
+interface TRMTypedCollection extends TRMDataObjectsCollectionInterface
+{
+/**
+ * @return string - тип сохраняемых объектов в коллекциях данного типа
+ */
+public function getObjectsType();
+
+/**
+ * проверяет соответствие типа объекта установленному для коллекции
+ * 
+ * @param TRMDataObjectInterface $DataObject - проверяемый объект
+ * 
+ * @throws TRMDataObjectSCollectionWrongTypeException
+ */
+public function validateObject(TRMDataObjectInterface $DataObject);
+
+
+} // TRMTypedCollection

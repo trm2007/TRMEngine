@@ -53,18 +53,29 @@ protected $DataMapper;
  */
 public function __construct($objectclassname)
 {
-    $this->ObjectTypeName = (string)$objectclassname;
+    if( !class_exists($objectclassname) )
+    {
+        throw new TRMRepositoryUnknowDataObjectClassException( $objectclassname );
+    }
+    $this->ObjectTypeName = $objectclassname;
     
     $this->CollectionToInsert = new TRMDataObjectsCollection();
     $this->CollectionToUpdate = new TRMDataObjectsCollection();
     $this->CollectionToDelete = new TRMDataObjectsCollection();
 }
 
-function getDataMapper() {
+/**
+ * @return TRMDataMapper
+ */
+function getDataMapper()
+{
     return $this->DataMapper;
 }
-
-function setDataMapper(TRMDataMapper $DataMapper) {
+/**
+ * @param TRMDataMapper $DataMapper
+ */
+function setDataMapper(TRMDataMapper $DataMapper)
+{
     $this->DataMapper = $DataMapper;
 }
 

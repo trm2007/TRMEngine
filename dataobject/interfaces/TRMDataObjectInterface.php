@@ -100,14 +100,14 @@ interface TRMIdDataObjectInterface extends TRMDataObjectInterface
  * @return array - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
  * возвращается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
-public function getIdFieldName();
+static public function getIdFieldName();
 
 /**
  * @param array $IdFieldName - устанавливает имя свойства для идентификатора объекта, 
  * обычно совпадает с именем ID-поля из БД,
  * передается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
  */
-public function setIdFieldName( array $IdFieldName ) ;
+static public function setIdFieldName( array $IdFieldName ) ;
 
 /**
  * возвращает для объекта значение идентификатора - Id
@@ -161,11 +161,11 @@ interface TRMParentedDataObjectInterface extends TRMDataObjectInterface
 /**
  * @return array - имя свойства внутри объекта содержащего Id родителя
  */
-function getParentIdFieldName();
+static public function getParentIdFieldName();
 /**
  * @param array $ParentIdFieldName - имя свойства внутри объекта содержащего Id родителя
  */
-function setParentIdFieldName(array $ParentIdFieldName);
+static public function setParentIdFieldName(array $ParentIdFieldName);
 /**
  * @return TRMIdDataObjectInterface - возвращает объект родителя
  */
@@ -244,6 +244,11 @@ public function getDependence($Index);
  */
 public function isDependence($Index);
 
+/**
+ * возвращает тип главного объекта в контейнере, 
+ * именно для этого тип объектов в дальнейшем должен возвращаться IdFieldName
+ */
+static public function getMainDataObjectType();
 
 } // TRMDataObjectsContainerInterface
 
