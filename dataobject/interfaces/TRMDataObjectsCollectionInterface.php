@@ -2,7 +2,7 @@
 
 namespace TRMEngine\DataObject\Interfaces;
 
-use TRMEngine\DataObject\Exceptions\TRMDataObjectSCollectionWrongIndexException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 
 /**
@@ -16,7 +16,7 @@ interface TRMDataObjectsCollectionInterface extends \ArrayAccess, \Iterator, \Co
  * @param int $Index - индекс запрашиваемого объекта в массиве-коллекции
  * 
  * @return TRMDataObjectInterface - объект данных
- * @throws TRMDataObjectSCollectionWrongIndexException
+ * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function getDataObject($Index);
 
@@ -24,7 +24,7 @@ public function getDataObject($Index);
  * @param int $Index - целочисленный индекс объекта в коллекции объектов
  * @param TRMDataObjectInterface $DataObject - объект для установки в коллекции
  * 
- * @throws TRMDataObjectSCollectionWrongIndexException
+ * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject);
 

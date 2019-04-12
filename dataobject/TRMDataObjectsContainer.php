@@ -3,7 +3,7 @@
 namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Exceptions\TRMDataObjectContainerNoMainException;
-use TRMEngine\DataObject\Exceptions\TRMDataObjectSContainerWrongIndexException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
@@ -125,7 +125,7 @@ public function getDependenceObject($Index)
 {
     if( !isset($this->DependenciesObjectsArray[$Index]) )
     {
-        throw new TRMDataObjectSContainerWrongIndexException( get_class($this) . " - " . __METHOD__ . " - " . $Index );
+        throw new TRMDataObjectsContainerWrongIndexException( get_class($this) . " - " . __METHOD__ . " - " . $Index );
     }
     return $this->DependenciesObjectsArray[$Index];
 }
@@ -277,13 +277,7 @@ public function setOwnData(array $data)
     {
         throw new TRMDataObjectContainerNoMainException( __METHOD__ );
     }
-    // все остальные могут быть пустыми
-    /*
-    if( !isset($data["Children"]) )
-    {
-        throw new Exception( __METHOD__ . " Неверный формат данных! Отсутсвует ключ Children!");
-    }
-     */
+
     $this->MainDataObject->setOwnData($data["Main"]);
 
     foreach( $this->ChildCollectionsArray as $Name => $Child )
@@ -317,26 +311,26 @@ public function setDataArray(array $data)
 }
 /**
  * возвращает данные только для основного-главного объекта!!!
- * @parm integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого получаются данные
+ * 
+ * @param string $objectname - имя объекта , для которого получаются данные
  * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
  *
  * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
  */
-public function getData($rownum, $objectname, $fieldname)
+public function getData($objectname, $fieldname)
 {
-    return $this->MainDataObject->getData($rownum, $objectname, $fieldname);
+    return $this->MainDataObject->getData($objectname, $fieldname);
 }
 /**
  * Устанавливает данные только в основном объекте
- * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого устанавливаются данные
+ * 
+ * @param string $objectname - имя объекта, для которого устанавливаются данные
  * @param string $fieldname - имя поля (столбца), в которое производим запись значения
  * @param mixed $value - само записываемое значение
  */
-public function setData($rownum, $objectname, $fieldname, $value)
+public function setData($objectname, $fieldname, $value)
 {
-    $this->MainDataObject->setData($rownum, $objectname, $fieldname, $value);
+    $this->MainDataObject->setData($objectname, $fieldname, $value);
 }
 
 /**
@@ -351,13 +345,13 @@ public function mergeDataArray(array $data)
 
 /**
  * проверяет наличие данных только в основном объекте!!!
- * @param integer  $rownum
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
- * @param array $fieldname
+ * 
+ * @param string $objectname - имя sub-объекта в главном объекте данных, для которого проверяется наобор данных
+ * @param array $fieldname - массив с именами полей sub-объекта $objectname, в которых проверяется наличие данных
  */
-public function presentDataIn($rownum, $objectname, array &$fieldname)
+public function presentDataIn($objectname, array &$fieldname)
 {
-    $this->MainDataObject->presentDataIn($rownum, $objectname, $fieldname);
+    $this->MainDataObject->presentDataIn($objectname, $fieldname);
 }
 
 
@@ -390,29 +384,6 @@ static public function setIdFieldName(array $IdFieldName)
 static public function getMainDataObjectType()
 {
     return static::$MainDataObjectType;
-}
-
-/**
- * возврашает значение хранящееся в поле $fieldname объекта $objectname
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля
- * @return mixed|null - если есть значение в поле $fieldname, то вернется его значение, либо null,
- */
-public function getFieldValue($objectname, $fieldname)
-{
-    $this->MainDataObject->getData(0, $objectname, $fieldname);
-}
-/**
- * устанавливает значение в поле $fieldname объекта $objectname
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля
- * @param mixed -  значение, которое должено быть установлено в поле $fieldname объекта $objectname
- */
-public function setFieldValue($objectname, $fieldname, $value)
-{
-    $this->MainDataObject->setData(0, $objectname, $fieldname, $value);
 }
 
 /**
@@ -471,6 +442,58 @@ public function rewind()
 public function valid()
 {
     return ($this->Position < count($this->ChildCollectionsArray));
+}
+
+public function addRow(array $Data)
+{
+    $this->MainDataObject->addRow($Data);
+}
+
+public function clear()
+{
+    $this->MainDataObject->clear();
+    $this->clearChildCollectionsArray();
+    $this->clearDependencies();
+}
+
+public function fieldExists($objectname, $fieldname)
+{
+    $this->MainDataObject->fieldExists($objectname, $fieldname);
+}
+
+public function getRow($Index)
+{
+    $this->MainDataObject->getRow($Index);
+}
+
+public function setRow($Index, $value)
+{
+    $this->MainDataObject->setRow($Index, $value);
+}
+
+public function keyExists($Index)
+{
+    $this->MainDataObject->keyExists($Index);
+}
+
+public function offsetExists($offset)
+{
+    return array_key_exists($offset, $this->ChildCollectionsArray);
+}
+
+public function offsetGet($offset)
+{
+    return $this->ChildCollectionsArray[$offset];
+}
+
+public function offsetSet($offset, $value)
+{
+    $this->ChildCollectionsArray[$offset] = $value;
+}
+
+public function offsetUnset($offset)
+{
+    unset($this->ChildCollectionsArray[$offset]);
 }
 
 

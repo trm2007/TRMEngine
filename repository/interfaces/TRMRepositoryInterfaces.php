@@ -102,12 +102,12 @@ public function getBy($objectname, $fieldname, $value, TRMDataObjectsCollectionI
  * 
  * @param TRMDataObjectInterface $DataObject - объект, данные которого нужно сохранить в репозитории
  */
-function save(TRMDataObjectInterface $DataObject);
+public function save(TRMDataObjectInterface $DataObject);
 /**
  * обновляет или добавляет (если у объекта не установлено значение в уникальном поле или в поле первичного ключа) данные объекта в хранилище
  * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию сохраняемых
  */
-function update(TRMDataObjectInterface $DataObject);
+public function update(TRMDataObjectInterface $DataObject);
 /**
  * @param TRMDataObjectsCollectionInterface $Collection - коллекция, объекты которой будут добавлен в коллекцию сохраняемых
  */
@@ -153,7 +153,7 @@ public function doInsert( $ClearCollectionFlag = true );
  * удаляет все данные об объекте из хранилища
  * @param TRMDataObjectInterface $DataObject - объект, который будет добавлен в коллекцию сохраняемых
  */
-function delete(TRMDataObjectInterface $DataObject);
+public function delete(TRMDataObjectInterface $DataObject);
 /**
  * @param TRMDataObjectsCollectionInterface $Collection - коллекция, объекты которой будут добавлен в коллекцию удаляемых
  */

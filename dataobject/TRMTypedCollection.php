@@ -2,8 +2,8 @@
 
 namespace TRMEngine\DataObject;
 
-use TRMEngine\DataObject\Exceptions\TRMDataObjectSCollectionWrongIndexException;
-use TRMEngine\DataObject\Exceptions\TRMDataObjectSCollectionWrongTypeException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongTypeException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
@@ -44,13 +44,13 @@ public function getObjectsType()
  * 
  * @param TRMDataObjectInterface $DataObject - проверяемый объект
  * 
- * @throws TRMDataObjectSCollectionWrongTypeException
+ * @throws TRMDataObjectsCollectionWrongTypeException
  */
 public function validateObject(TRMDataObjectInterface $DataObject)
 {
     if( get_class($DataObject) !== $this->ObjectsType )
     {
-        throw new TRMDataObjectSCollectionWrongTypeException( get_class($this) . "-" . get_class($DataObject) );
+        throw new TRMDataObjectsCollectionWrongTypeException( get_class($this) . "-" . get_class($DataObject) );
     }
 }
 
@@ -58,7 +58,7 @@ public function validateObject(TRMDataObjectInterface $DataObject)
  * @param int $Index - целочисленный индекс объекта в коллекции объектов
  * @param TRMDataObjectInterface $DataObject - объект для установки в коллекции
  * 
- * @throws TRMDataObjectSCollectionWrongIndexException
+ * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 {
@@ -95,7 +95,7 @@ public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $
 {
     if( $Collection->ObjectsType !== $this->ObjectsType )
     {
-        throw new TRMDataObjectSCollectionWrongTypeException( get_class($this) . "-" . get_class($Collection->ObjectsType) );
+        throw new TRMDataObjectsCollectionWrongTypeException( get_class($this) . "-" . get_class($Collection->ObjectsType) );
     }
     parent::mergeCollection($Collection, $AddDuplicateFlag);
 }

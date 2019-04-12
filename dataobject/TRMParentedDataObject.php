@@ -11,13 +11,13 @@ use TRMEngine\DataObject\Interfaces\TRMParentedDataObjectInterface;
  *
  * @author TRM
  */
-abstract class TRMParentedDataObject extends TRMCollectionDataObject implements TRMParentedDataObjectInterface
+abstract class TRMParentedDataObject extends TRMDataObject implements TRMParentedDataObjectInterface
 {
 /**
  * @var array - массив = (имя объекта, имя свойства) содержащего Id родителя в коллекции,
  * должен определяться в каждом дочернем классе со своими именами
  */
-static protected $ParentIdFieldName;
+// static protected $ParentIdFieldName;
 /**
  * @var TRMIdDataObjectInterface - ссылка на объект родителя для набора из текущей коллекции...
  */

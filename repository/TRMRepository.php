@@ -68,14 +68,14 @@ public function __construct($objectclassname)
 /**
  * @return TRMDataMapper
  */
-function getDataMapper()
+public function getDataMapper()
 {
     return $this->DataMapper;
 }
 /**
  * @param TRMDataMapper $DataMapper
  */
-function setDataMapper(TRMDataMapper $DataMapper)
+public function setDataMapper(TRMDataMapper $DataMapper)
 {
     $this->DataMapper = $DataMapper;
 }
@@ -103,7 +103,7 @@ public function getDataSource()
  * @param string $objectname - имя объекта, содержащее поле для сравнения
  * @param string $fieldname - имя поля для сравнения
  * @param string|numeric|boolean $data - данные для сравнения
- * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
+ * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), по умолчанию =
  * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
  * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::TRM_AR_QUOTE
  * @param string $alias - альяс для таблицы из которой сравнивается поле
@@ -111,7 +111,7 @@ public function getDataSource()
  * то этот аргумент доложен быть - TRMSqlDataSource::TRM_AR_NOQUOTE
  * 
  * @return self - возвращает указатель на себя, это дает возможность писать такие выражения:
- * $this->setWhereCondition(...)->setWhereCondition(...)->setWhereCondition(...)...
+ * $this->addCondition(...)->addCondition(...)->addCondition(...)...
  */
 public function addCondition($objectname, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE )
 {
@@ -145,6 +145,7 @@ public function getOne( TRMDataObjectInterface $DataObject = null )
     // если в апросе нет данных, возвращается путсая коллекция
     if( !$result->num_rows ) { return null; }
 
+    $this->clearCondition();
     // должна вернуться только одна строка,
     // из нее создается объект данных
     return $this->getDataObjectFromDataArray($result->fetch_row(), $DataObject);
@@ -227,6 +228,7 @@ public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
         // в коллекцию всегда добавляется новый объект
         $NewGetCollection->addDataObject( $this->getDataObjectFromDataArray($Row) );
     }
+    $this->clearCondition();
 
     return $NewGetCollection;
 }
@@ -249,7 +251,7 @@ protected function getDataObjectFromDataArray( array $DataArray, TRMDataObjectIn
     {
         foreach( array_keys($TableState[TRMDataMapper::FIELDS_INDEX]) as $FieldName )
         {
-            $DataObject->setData(0, $TableName, $FieldName, $DataArray[$k++]);
+            $DataObject->setData( $TableName, $FieldName, $DataArray[$k++]);
         }
     }
     return $DataObject;

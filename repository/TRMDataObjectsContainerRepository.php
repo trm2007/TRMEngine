@@ -150,9 +150,9 @@ protected function getAllChildCollectionForContainer( TRMDataObjectsContainerInt
         // это дочерние типизированные коллекции,
         // у каждого репозиторя объектов, которые хранятся в коллекциях, вызываем getByParent, 
         // тип для объектов коллекции можно получить через ее метод ->getObjectsType()
-        TRMDIContainer::getStatic(TRMRepositoryManager::class)
-            ->getRepository( $Collection->getObjectsType() )
-            ->getByParent( $Container->getMainDataObject(), $Collection );
+        $Rep = TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepository( $Collection->getObjectsType() );
+        $Rep->getByParent( $Container->getMainDataObject(), $Collection );
     }
 }
 /**
@@ -170,7 +170,7 @@ protected function getAllDependenciesObjectsForContainer( TRMDataObjectsContaine
         TRMDIContainer::getStatic(TRMRepositoryManager::class)
                 ->getRepositoryFor( $DataObject )
                 ->getById(
-                        $Container->getMainDataObject()->getFieldValue( $DependIndex[0], $DependIndex[1] ),
+                        $Container->getMainDataObject()->getData( $DependIndex[0], $DependIndex[1] ),
                         $DataObject
                         );
     }
@@ -264,7 +264,7 @@ public function getAll(TRMDataObjectsCollectionInterface $ContainerCollection = 
     {
         throw new TRMRepositoryNoDataObjectException( "Данные для главных объектов получить не удалось - "  . get_class($this) );
     }
-    // перебираем все главные объекты, полученные по уловию
+    // перебираем все главные объекты, полученные по условию
     foreach( $MainDataObjectsCollection as $MainDataObject )
     {
         // для каждого главного объекта создается свой контейнер

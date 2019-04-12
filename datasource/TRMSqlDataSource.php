@@ -839,10 +839,8 @@ protected function generateSQLUpdateQueryString(
 {
     if( !$DataObject->count() ) { return; }
 
-    // с 2019-03-30 - работа с объектом, как с единичной записью, поэтому только 0-я строка используется!
-    $RowNum = 0;
     // массив с данными объекта
-    $Row = $DataObject->getDataArray()[$RowNum];
+    //$Row = $DataObject->getDataArray();
     foreach ($UpdatableFieldsNames as $TableName => $FieldsNames)
     {
         // если проверяемые данные для очередной таблицы должны быть в первичном ключе,
@@ -857,7 +855,7 @@ protected function generateSQLUpdateQueryString(
             // а так же передаем массив с полями доступными для обновления ,
             // что бы не получать его заново рпсходуя ресурсы...
             // в этой реализации массив передается по ссылке!!!
-            $CurrentInsertId = $this->insertRowToOneTable($TableName, $Row[$TableName], $FieldsNames);
+            $CurrentInsertId = $this->insertRowToOneTable($TableName, $DataObject[$TableName], $FieldsNames);
 
 // можно менять метод вставки и вызывать ON DUPLICATE KEY ... UPDATE
 //            $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row[$TableName], $FieldsNames);
@@ -870,7 +868,7 @@ protected function generateSQLUpdateQueryString(
              * нужно обновить данные по Relation у объектов, 
              * которые ссылались на поле AUTO_INCREMENT только-что добавленной записи
              */
-            $this->checkAndUpdateAutoIncrementFieldsAfterInsert( $DataObject, $TableName, $RowNum, $CurrentInsertId);
+            $this->checkAndUpdateAutoIncrementFieldsAfterInsert( $DataObject, $TableName, $CurrentInsertId);
 
             //$this->addNewRowToAndSetLastId( $Row, $RowNum, $UpdatableFieldsNames );
             // после добавления, переходим к следующей записи в объекте данных
@@ -880,7 +878,7 @@ protected function generateSQLUpdateQueryString(
         {
             // если данные есть в первичном или уникальном ключе
             // значит запись для этой таблицы нужно обновить
-            $this->UpdateQueryString .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $Row[$TableName], $FieldsNames, $IndexesNames[$TableName] );
+            $this->UpdateQueryString .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $DataObject[$TableName], $FieldsNames, $IndexesNames[$TableName] );
         }
     }
 }
@@ -933,12 +931,11 @@ public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
         throw new TRMSqlQueryException("Не удалось добавить следующие записи: " . $this->getStateString() );
     }
     
-\TRMEngine\Helpers\TRMLib::sp($this->UpdateQueryString);
     if( !empty($this->UpdateQueryString) )
     {
         // фактическое выполнение запроса UPDATE, 
         // в случае неудачи выбрасывается исключение!
-//        $this->completeMultiQuery($this->UpdateQueryString);
+        $this->completeMultiQuery($this->UpdateQueryString);
         $this->UpdateQueryString = "";
     }
     
@@ -1061,10 +1058,9 @@ public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection 
  * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectInterface $DataObject - объект с данными
  * @param string $TableName - имя таблицы, где произошло обновление автоинкрементного поля
- * @param string $RowNum - номер строки с данными в DataObject
  * @param string $CurrentInsertId - полученное ID после выполенеия оператора INSERT в MySQL
  */
-private function checkAndUpdateAutoIncrementFieldsAfterInsert( TRMSafetyFields $SafetyFields, TRMDataObjectInterface $DataObject, $TableName, $RowNum, $CurrentInsertId)
+private function checkAndUpdateAutoIncrementFieldsAfterInsert( TRMSafetyFields $SafetyFields, TRMDataObjectInterface $DataObject, $TableName, $CurrentInsertId)
 {
     // getAutoIncrementFieldsNamesFor возвращает массив с auto_increment полями для таблицы $TableName
     // при правильной схеме такое поле должно быть ОДНО !
@@ -1079,7 +1075,7 @@ private function checkAndUpdateAutoIncrementFieldsAfterInsert( TRMSafetyFields $
     {
         // обновляем данные в автоинкрементном поле для самого объекта 
         // добавленного в очередную таблицу $TableName
-        $DataObject->setData($RowNum, $TableName, $AutoIncFieldName, $CurrentInsertId);
+        $DataObject->setData($TableName, $AutoIncFieldName, $CurrentInsertId);
         // получаем массив ссылаюшихся (зависимых) полей по всем таблицам
         $BackRelationArray = $SafetyFields->getBackRelationFor($TableName, $AutoIncFieldName);
         if( empty($BackRelationArray) ) { continue; }
@@ -1094,7 +1090,7 @@ private function checkAndUpdateAutoIncrementFieldsAfterInsert( TRMSafetyFields $
                 // только если оно само не является автоинкрементным
                 if( !$SafetyFields->isFieldAutoIncrement($BackTableName, $BackFieldName) )
                 {
-                    $DataObject->setData($RowNum, $BackTableName, $BackFieldName, $CurrentInsertId);
+                    $DataObject->setData($BackTableName, $BackFieldName, $CurrentInsertId);
                 }
             }
         }
@@ -1133,8 +1129,7 @@ protected function generateSQLDeleteQueryString(
 
     // массив с данными объекта, 
     // с 2019-03-30 объект - это единичная зпрись, 
-    // поэтому работаем только с 0-й строкой данных
-    $Row = $DataObject->getDataArray()[0];
+    //$Row = $DataObject->getDataArray();
 
     $CurrentWhereString = "";
     // $UpdatableFieldsNames - нужен только для списка таблиц, в которых есть доступные для изменения данные,
@@ -1154,7 +1149,7 @@ protected function generateSQLDeleteQueryString(
         // за это отвечает 3-й элемент массива $Keys => * в функции generateIndexesAndUpdatableFieldsNames
         foreach( $IndexesNames[$TableName] as $FieldName )
         {
-            $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( trim( $Row[$TableName][ $FieldName ], "'" ), "'" ) . "' AND ";
+            $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( trim( $DataObject[$TableName][ $FieldName ], "'" ), "'" ) . "' AND ";
         }
     }
 
@@ -1207,10 +1202,10 @@ public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
     {
         $this->generateSQLDeleteQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames, $DeleteFromStr, $UsingStr);
     }
-\TRMEngine\Helpers\TRMLib::sp($this->DeleteQueryString);
+
     if( !empty($this->DeleteQueryString) )
     {
-//        $this->completeMultiQuery($this->DeleteQueryString);
+        $this->completeMultiQuery($this->DeleteQueryString);
         $this->DeleteQueryString = "";
     }
     return true;

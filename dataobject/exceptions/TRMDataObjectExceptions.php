@@ -38,7 +38,7 @@ class TRMDataObjectContainerNoMainException extends TRMDataObjectContainerExcept
     }
 }
 
-class TRMDataObjectSContainerWrongIndexException extends TRMException
+class TRMDataObjectsContainerWrongIndexException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
@@ -51,7 +51,7 @@ class TRMDataObjectSContainerWrongIndexException extends TRMException
 /**
  * выбрасывается при ошибке в работе с коллекцией объектов данных TRMDataObjectsCollection и их наслдениками
  */
-class TRMDataObjectSCollectionException extends TRMException
+class TRMDataObjectsCollectionException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
@@ -60,7 +60,7 @@ class TRMDataObjectSCollectionException extends TRMException
     }
 }
 
-class TRMDataObjectSCollectionWrongIndexException extends TRMException
+class TRMDataObjectsCollectionWrongIndexException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
@@ -69,7 +69,7 @@ class TRMDataObjectSCollectionWrongIndexException extends TRMException
     }
 }
 
-class TRMDataObjectSCollectionWrongTypeException extends TRMException
+class TRMDataObjectsCollectionWrongTypeException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {

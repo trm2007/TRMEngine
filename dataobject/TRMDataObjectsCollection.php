@@ -2,7 +2,7 @@
 
 namespace TRMEngine\DataObject;
 
-use TRMEngine\DataObject\Exceptions\TRMDataObjectSCollectionWrongIndexException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 
@@ -26,13 +26,13 @@ protected $DataObjectsArray = array();
  * @param int $Index - индекс запрашиваемого объекта в массиве-коллекции
  * 
  * @return TRMDataObjectInterface - объект данных
- * @throws TRMDataObjectSCollectionWrongIndexException
+ * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function getDataObject($Index)
 {
     if( !key_exists($Index, $this->DataObjectsArray) )
     {
-        throw new TRMDataObjectSCollectionWrongIndexException();
+        throw new TRMDataObjectsCollectionWrongIndexException();
     }
     return $this->DataObjectsArray[$Index];
 }
@@ -41,13 +41,13 @@ public function getDataObject($Index)
  * @param int $Index - целочисленный индекс объекта в коллекции объектов
  * @param TRMDataObjectInterface $DataObject - объект для установки в коллекции
  * 
- * @throws TRMDataObjectSCollectionWrongIndexException
+ * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 {
     if( !key_exists($Index, $this->DataObjectsArray) )
     {
-        throw new TRMDataObjectSCollectionWrongIndexException();
+        throw new TRMDataObjectsCollectionWrongIndexException();
     }
     $this->DataObjectsArray[$Index] = $DataObject;
 }
@@ -127,7 +127,7 @@ public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
 {
     foreach( $this->DataObjectsArray as $Object )
     {
-        $Object->setFieldValue( $ObjectName, $FieldName, $FieldValue );
+        $Object->setData( $ObjectName, $FieldName, $FieldValue );
     }
 }
 

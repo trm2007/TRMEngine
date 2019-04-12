@@ -2,6 +2,7 @@
 
 namespace TRMEngine\DataObject;
 
+use TRMEngine\DataArray\TRMDataArray;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 
 /**
@@ -10,101 +11,23 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
  *
  * @author TRM
  */
-class TRMDataObject implements TRMDataObjectInterface
+class TRMDataObject extends TRMDataArray implements TRMDataObjectInterface
 {
-/**
- * @var array - двумерный массив данных
- */
-protected $DataArray = array();
 
 /**
- * @var integer - текущая позиция указателя, для реализации интерфейса итератора
- */
-private $Position;
-
-/**
- * возвращает данные, характерные только для данного экземпляра
- */
-public function getOwnData()
-{
-    return $this->DataArray; 
-}
-/**
- * устанавливает данные, характерные только для данного экземпляра, 
- * старые значения все удаляются
+ * проверяет наличие поля с именем fieldname в sub-объекте $objectname
  * 
- * @param array $data - массив с данными, в объекте сохранится дубликат массива 
- */
-public function setOwnData( array $data )
-{
-    $this->clear();
-    $this->DataArray = $data;
-}
-
-/**
- * возвращает указатель на объект = свой экземпляр класса
- * @return $this
- */
-/*
-public function getDataObject()
-{
-    return $this;
-}*/
-
-/**
- * возвращает весь массив с данными, вернется дубликат,
- * так как массив передается по значению ( версия PHP 5.3 ) !!!
- *
- * @return array
- */
-public function getDataArray()
-{
-    return $this->DataArray;
-}
-
-/**
- * задает данные для всего массива DataArray, старые данные стираются.
- * пользоваться прямым присвоение следует осторожно,
- * так как передаваться должен двумерный массив, даже состоящий из одной строки!!!
- *
- * @param array $data - массив с данными, в объекте сохранится дубликат массива, 
- * так как массив передается по значению ( версия PHP 5.3 ) !!! 
- */
-public function setDataArray( array $data )
-{
-    $this->clear();
-    $this->DataArray = $data;
-}
-
-/**
- * "склеивает" два массива с данными, проверка на уникальность не проводится,
- * при использовании этого метода нужно быть осторожным с передаваемым массивом, 
- * он должен быть двумерным и каждая запись-строка должна иметь численный индекс
- *
- * @param array $data - массив для склеивания
- */
-public function mergeDataArray( array $data )
-{
-    $this->DataArray = array_merge( $this->DataArray, $data );
-}
-
-
-/**
- * проверяет наличие ключа (поля с именем fieldname) у строки с номером rownum
- * 
- * @param integer $rownum - номер строки
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется наличие поля $fieldname
+ * @param string $objectname - имя sub-объекта, для которого проверяется наличие поля $fieldname
  * @param string $fieldname - имя искомого поля
+ * 
  * @return boolean - если найден, возвращает true, если ключ отсутствует - false
  */
-public function keyExists( $rownum, $objectname, $fieldname )
+public function fieldExists( $objectname, $fieldname )
 {
-    // Такой строки нет
-    if( !isset($this->DataArray[$rownum]) ) { return false; }
     // Такого объекта нет
-    if( !isset($this->DataArray[$rownum][$objectname]) ) { return false; }
+    if( !isset($this->DataArray[$objectname]) ) { return false; }
     // Такого поля нет
-    if( !array_key_exists($fieldname, $this->DataArray[$rownum][$objectname]) ) { return false; }
+    if( !array_key_exists($fieldname, $this->DataArray[$objectname]) ) { return false; }
 
     // найдено !
     return true;
@@ -113,101 +36,60 @@ public function keyExists( $rownum, $objectname, $fieldname )
 /**
  * записывает данные в конкретную ячейку
  *
- * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого устанавливаются данные
+ * @param string $objectname - имя sub-объекта, для которого устанавливаются данные
  * @param string $fieldname - имя поля (столбца), в которое производим запись значения
  * @param mixed $value - значение-данные поля 
  */
-public function setData( $rownum, $objectname, $fieldname, $value )
+public function setData( $objectname, $fieldname, $value )
 {
-    // проверяем наличие строки с таким номером, если нет, то создаем как пустой массив и затем записываем значение
-    if( !isset($this->DataArray[$rownum]) )
+    if( !isset($this->DataArray[$objectname]) )
     {
-        $this->DataArray[$rownum] = array( $objectname => array( $fieldname => $value ) );
-    }
-    else if( !isset($this->DataArray[$rownum][$objectname]) )
-    {
-        $this->DataArray[$rownum][$objectname] = array( $fieldname => $value );
+        $this->DataArray[$objectname] = array( $fieldname => $value );
     }
     else
     {
-        $this->DataArray[$rownum][$objectname][$fieldname] = $value;
+        $this->DataArray[$objectname][$fieldname] = $value;
     }
 }
 
 /**
  * получает данные из конкретной ячейки
  *
- * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого получаются данные
+ * @param string $objectname - имя sub-объекта, для которого получаются данные
  * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
  *
  * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
  */
-public function getData( $rownum, $objectname, $fieldname )
+public function getData( $objectname, $fieldname )
 {
-    // если таике индексы не установлены, то возвращается 
-    if( !$this->keyExists($rownum, $objectname, $fieldname) ) { return null; }
-    return $this->DataArray[$rownum][$objectname][$fieldname];
+    if( !$this->fieldExists($objectname, $fieldname) ) { return null; }
+    
+    return $this->DataArray[$objectname][$fieldname];
 }
 
 /**
- * возвращает массив данных для указанной строки с номером $rownum из общего массива
- * 
- * @parm integer $rownum - номер строки в массиве (таблице) начиная с 0
+ * проверяет наличие данных в полях с именами из набора $fieldnames 
+ * для объекта $objectname в строке с номером $rownum
  *
- * @return array|null - строка(массив) данных с запрашиваемым номером, или null, если такого номера нет
+ * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
+ * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
+ *
+ * @return boolean - если найдены поля и установлены значения, то возвращается true, иначе false
  */
-public function getRow( $rownum )
+public function presentDataIn( $objectname, array &$fieldnames )
 {
-    if( !isset($this->DataArray[$rownum]) )
+    if( empty( $this->DataArray ) ) { return false; }
+    if( !isset( $this->DataArray[$objectname] ) ) { return false; }
+
+    foreach( $fieldnames as $field )
     {
-            return null;
+        if( !array_key_exists($field, $this->DataArray[$objectname]) ||
+            empty( $this->DataArray[$objectname][$field] ) )
+        {
+            return false;
+        }
     }
-    return $this->DataArray[$rownum];
-}
-
-/**
- * устанавливает данные для строки с номером $rownum из массива $row
- * 
- * @parm integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param array $row - строка-массив с данными
- *
- */
-public function setRow( $rownum, array $row )
-{
-    $this->DataArray[$rownum] = $row;
-}
-
-/**
- * добавляет строку данных из массива $row
- *
- * @param array $row - строка-массив с данными для добавления
- */
-public function addRow( array $row )
-{
-	$this->DataArray[] = $row;
-}
-
-/**
- * склейка данных в строке с номером $rownum и данных из массива $row
- * если в переданном массиве содержатся поля, которые уже есть в общем массиве данных,
- * то они заменяются на новые значения, 
- * если таких полей нет, то они добавятся с данными
- *
- * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param array $row - массив-строка с данными для соединения
- */
-public function mergeRow( $rownum, array $row )
-{
-	if( isset($this->DataArray[$rownum]) )
-	{
-		$this->DataArray[$rownum] = array_merge($this->DataArray[$rownum], $row);
-	}
-	else
-	{
-		$this->DataArray[$rownum] = $row;
-	}
+    return true;
 }
 
 /**
@@ -289,38 +171,13 @@ public function presentFieldNamesIn( $rownum, array &$fieldnames )
  */
 
 /**
- * проверяет наличие данных в полях с именами из набора $fieldnames 
- * для объекта $objectname в строке с номером $rownum
- *
- * @param integer $rownum - номер строки, в которой происходит проверка, из локального набора данных, отсчет с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
- * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
- *
- * @return boolean - если найдены поля и установлены значения, то возвращается true, иначе false
- */
-public function presentDataIn( $rownum, $objectname, array &$fieldnames )
-{
-    if( !isset( $this->DataArray[$rownum] ) ) { return false; }
-    if( !isset( $this->DataArray[$rownum][$objectname] ) ) { return false; }
-
-    foreach( $fieldnames as $field )
-    {
-        if( !array_key_exists($field, $this->DataArray[$rownum][$objectname]) ||
-            empty( $this->DataArray[$rownum][$objectname][$field] ) )
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
  * меняет во всех записях значение поля $FieldName на новое значение $FieldValue
  *
  * @param string $ObjectName - имя объекта, в котором меняется значение 
  * @param string $FieldName - имя поля-колонки
  * @param mixed $FieldValue - новое значение
  */
+/*
 public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
 {
     foreach( $this->DataArray as $i => &$row)
@@ -332,6 +189,8 @@ public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
         }
     }
 }
+ * 
+ */
 
 /**
  * удаляет из массива записи, в которых поле $FieldName удовлетворяет значению $FieldValue
@@ -362,55 +221,6 @@ public function removeBy( $FieldName, $FieldValue, $count = 0 )
  * 
  */
 
-
-/**
- * очистка данных и установка указателя для итератора в начало
- */
-public function clear()
-{
-    $this->DataArray = array();
-    $this->Position = 0;
-}
-
-
-/**
- * реализация метода интерфейса Countable
- *
- * @return integer - количество элементов в массиве DataArray
- */
-public function count()
-{
-    return count($this->DataArray);
-}
-
-
-/**
- * Устанавливает внутренний счетчик итератора в начало - реализация интерфейса Iterator
- */
-public function rewind()
-{
-    $this->Position = 0;
-}
-
-public function current()
-{
-    return $this->DataArray[$this->Position]; //  $this->DataArray[$this->Position];
-}
-
-public function key()
-{
-    return $this->Position;
-}
-
-public function next()
-{
-    ++$this->Position;
-}
-
-public function valid()
-{
-    return isset($this->DataArray[$this->Position]);
-}
 
 
 } // TRMDataObject
