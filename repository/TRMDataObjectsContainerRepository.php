@@ -77,7 +77,7 @@ public function __construct( $ObjectTypeName )
 public function getIdFieldName()
 {
     $type = $this->ObjectTypeName;
-    return $type::getIdFieldName(); //$this->MainDataObject->getIdFieldName();
+    return $type::getIdFieldName();
 }
 
 /**
@@ -136,6 +136,15 @@ public function addCondition(
 public function clearCondition()
 {
     $this->MainDataObjectRepository->clearCondition();
+}
+
+/**
+ * @param int $Count - количество выбираемых элементов для коллекуии главного объекта!
+ * @param int $StartPosition - позиция, с которой начинается выборка, null - с начала (по умолчанию)
+ */
+public function setLimit($Count, $StartPosition = null)
+{
+    $this->MainDataObjectRepository->setLimit($Count, $StartPosition);
 }
 
 /**
@@ -529,5 +538,19 @@ public function doUpdate( $ClearCollectionFlag = true )
     if( $ClearCollectionFlag ) { $this->CollectionToUpdate->clearCollection(); }
 }
 
+public function clearQueryParams()
+{
+    $this->MainDataObjectRepository->clearQueryParams();
+}
+
+public function getKeepQueryParams()
+{
+    return $this->MainDataObjectRepository->getKeepQueryParams();
+}
+
+public function setKeepQueryParams($KeepQueryParams)
+{
+    $this->MainDataObjectRepository->setKeepQueryParams($KeepQueryParams);
+}
 
 } // TRMRepositoiesContainer

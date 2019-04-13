@@ -89,8 +89,8 @@ public function __construct( \mysqli $MySQLiObject ) //$MainTableName, array $Ma
  * устанавливает с какой записи начинать выборку - StartPosition
  * и какое количество записей выбирать - Count
  *
- * @param int - с какой записи начинать выборку
- * @param int - какое количество записей выбирать
+ * @param int $Count - какое количество записей выбирать
+ * @param int $StartPosition - с какой записи начинать выборку
  */
 public function setLimit( $Count , $StartPosition = null )
 {
@@ -111,20 +111,28 @@ public function setOrder( array $orderfields )
 }
 
 /**
- * Устанавливает поле для сортировки
+ * Устанавливает тип сортировки для поле при запросе
  *
- * @param string $orderfieldname - имя поля , по которому устанавливается сортировка
- * @param int $asc - 1 - сортируется по этому полю как ASC, в противном случае, как DESC
+ * @param string $OrderFieldName - имя поля , по которому устанавливается сортировка
+ * @param boolean $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
+ * @param int $FieldQuoteFlag - если установлен в значение TRMSqlDataSource::NEED_QUOTE,
+ * то имя поля будет браться в апострофы `FieldName` ASC
  */
-public function setOrderField( $orderfieldname, $asc = 1 )
+public function setOrderField( $OrderFieldName, $AscFlag = true, $FieldQuoteFlag = TRMSqlDataSource::NEED_QUOTE )
 {
-    $this->OrderFields[$orderfieldname] = ( ($asc == 1) ? "ASC" : "DESC");
+    if( $FieldQuoteFlag === TRMSqlDataSource::NEED_QUOTE )
+    {
+        $OrderFieldName = $this->prepareKey($OrderFieldName);
+    }
+    $this->OrderFields[$OrderFieldName] = ( ($AscFlag == 1) ? "ASC" : "DESC");
 }
 
 /**
- * добавляем поля в массив сортировки, если уже есть, то старые значения перезаписываются
+ * добавляет поля в массив сортировки, 
+ * если уже есть, то старые значения перезаписываются
  *
- * @param array - массив полей, по которым сортируется - array( fieldname1 => "ASC | DESC", ... )
+ * @param array $orderfields - массив полей, по которым сортируется 
+ * array( fieldname1 => "ASC | DESC", fieldname2 => "ASC | DESC", ... )
  */
 public function addOrder( array $orderfields )
 {
@@ -141,6 +149,13 @@ public function addOrder( array $orderfields )
             $this->OrderFields[$field] = "ASC";
         }
     }
+}
+/**
+ * очищает порядок сортировки
+ */
+public function clearOrder()
+{
+    $this->OrderFields = array();
 }
 
 /**
@@ -196,7 +211,8 @@ public static function makeValidJoinOperator($join, $default = TRMSqlDataSource:
 }
 
 /**
- * очистка параметров WHERE запроса и строк запросов SELECT, UPDATE/INSERT, DELETE
+ * очистка параметров WHERE запроса, порядок сортировки
+ * и строк запросов SELECT, UPDATE/INSERT, DELETE
  */
 public function clear()
 {
@@ -204,6 +220,17 @@ public function clear()
     $this->UpdateQueryString = "";
     $this->DeleteQueryString = "";
     $this->clearParams();
+    $this->clearOrder();
+    $this->clearLimit();
+}
+
+/**
+ * очищает ограничение выборки (на количество получаемых записей)
+ */
+public function clearLimit()
+{
+    $this->Count = null;
+    $this->StartPosition = null;
 }
 
 /**
@@ -477,7 +504,8 @@ public function makeSelectQuery( TRMSafetyFields $SafetyFields )
         $this->QueryString .= " ORDER BY ";
         foreach( $this->OrderFields as $field => $order )
         {
-                $this->QueryString .= " {$field} {$order},";
+            // в апострофы имя поля не береься, это делается в setOrderField
+            $this->QueryString .= " {$field} {$order},";
         }
         $this->QueryString = rtrim($this->QueryString, ",");
     }
@@ -492,8 +520,8 @@ public function makeSelectQuery( TRMSafetyFields $SafetyFields )
 /**
  * оборачивает ключ в апострофы, убирая лишние и проверяя на наличе точки, т.е. указание на таблицу
  *
- * @param string $key - клюя для подготовки к использованию в запросах,
- * обрамляется апострофами `key`, если указана принадлежность к таблице через точку,
+ * @param string $key - ключ-индекс для подготовки к использованию в запросах,
+ * обрамляется апострофами типа `key`, если указана принадлежность к таблице через точку,
  * то сформируется строка вида `table`.`key`
  * 
  * @return string - подготовленный для вставки в запрос ключ таблицы
@@ -713,7 +741,7 @@ public function getDataFrom( TRMSafetyFields $SafetyFields )
     {
         throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
     }
-
+\TRMEngine\Helpers\TRMLib::sp($this->QueryString);
     $this->QueryString = "";
     return $result;
 }

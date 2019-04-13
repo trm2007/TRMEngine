@@ -16,8 +16,8 @@ interface TRMDataSourceInterface
  * устанавливает с какой записи начинать выборку - StartPosition
  * и какое количество записей выбирать - Count
  *
- * @param int $Count - с какой записи начинать выборку
- * @param int $StartPosition - какое количество записей выбирать
+ * @param int $Count - какое количество записей выбирать
+ * @param int $StartPosition - с какой записи начинать выборку
  */
 public function setLimit( $Count , $StartPosition = null );
 /**
@@ -27,10 +27,35 @@ public function setLimit( $Count , $StartPosition = null );
  */
 public function setOrder( array $orderfields );
 /**
- * очистка параметров WHERE запроса и строки текущего запроса
+ * Устанавливает тип сортировки для поле при запросе
+ *
+ * @param string $OrderFieldName - имя поля , по которому устанавливается сортировка
+ * @param boolean $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
+ * @param int $FieldQuoteFlag - если установлен в значение TRMSqlDataSource::NEED_QUOTE,
+ * то имя поля будет браться в апострофы `FieldName` ASC
+ */
+public function setOrderField( $OrderFieldName, $AscFlag = true, $FieldQuoteFlag = TRMSqlDataSource::NEED_QUOTE );
+/**
+ * добавляет поля в массив сортировки, 
+ * если уже есть, то старые значения перезаписываются
+ *
+ * @param array $orderfields - массив полей, по которым сортируется 
+ * array( fieldname1 => "ASC | DESC", fieldname2 => "ASC | DESC", ... )
+ */
+public function addOrder( array $orderfields );
+/**
+ * очищает порядок сортировки
+ */
+public function clearOrder();
+/**
+ * очистка параметров WHERE запроса, порядок сортировки
+ * и строк запросов SELECT, UPDATE/INSERT, DELETE
  */
 public function clear();
-
+/**
+ * очищает ограничение выборки (на количество получаемых записей)
+ */
+public function clearLimit();
 /**
  * очистка параметров для WHERE-условий в SQL-запросе
  */

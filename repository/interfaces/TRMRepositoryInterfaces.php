@@ -12,6 +12,16 @@ use TRMEngine\DataSource\TRMSqlDataSource;
 interface TRMRepositoryInterface
 {
 /**
+ * @return boolean - значение условия сохранения параметров запроса после его выполнения
+ */
+public function getKeepQueryParams();
+/**
+ * @param boolean $KeepQueryParams - после каждого запроса на получение коллекции (getAll, getBy) все параметры запроса обнуляются,
+ * очищаются поля сортировки, количество выбираемых значений, условия,
+ * НО устанавливая KeepQueryParams в TRUE очистка переметров производится не будет
+ */
+public function setKeepQueryParams($KeepQueryParams);
+/**
  * устанавливает условие для WHERE секции SQL-запроса при выборке из БД,
  * 
  * @param string $objectname - имя объекта, содержащее поле для сравнения
@@ -40,6 +50,19 @@ public function addCondition(
  * очищает условия для выборки (в SQL-запросах секция WHERE)
  */
 public function clearCondition();
+/**
+ * очищает все параметры для запроса (выборки),
+ * условия выборки, количество выбираемых значений, поля сортировки...
+ */
+public function clearQueryParams();
+/**
+ * устанавливает с какой записи начинать выборку - StartPosition
+ * и какое количество записей выбирать - Count
+ *
+ * @param int $Count - какое количество записей выбирать
+ * @param int $StartPosition - с какой записи начинать выборку
+ */
+public function setLimit( $Count , $StartPosition = null );
 
 /**
  * Производит выборку одной записи, 

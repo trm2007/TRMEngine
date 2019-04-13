@@ -43,11 +43,16 @@ protected $CollectionToInsert;
  * которые подготовлены к удалению из постоянного хранилища DataSource
  */
 protected $CollectionToDelete;
-
 /**
  * @var TRMDataMapper 
  */
 protected $DataMapper;
+/**
+ * @var boolean - после каждого запроса на получение коллекции (getAll, getBy) все параметры запроса обнуляются,
+ * очищаются поля сортировки, количество выбираемых значений, условия,
+ * НО устанавливая KeepQueryParams в TRUE очистка переметров производится не будет
+ */
+protected $KeepQueryParams = false;
 
 /**
  * @param string $objectclassname - имя класса для объектов, за которые отвечает этот Repository
@@ -63,6 +68,23 @@ public function __construct($objectclassname)
     $this->CollectionToInsert = new TRMDataObjectsCollection();
     $this->CollectionToUpdate = new TRMDataObjectsCollection();
     $this->CollectionToDelete = new TRMDataObjectsCollection();
+}
+
+/**
+ * @return boolean - значение условия сохранения параметров запроса после его выполнения
+ */
+public function getKeepQueryParams()
+{
+    return $this->KeepQueryParams;
+}
+/**
+ * @param boolean $KeepQueryParams - после каждого запроса на получение коллекции (getAll, getBy) все параметры запроса обнуляются,
+ * очищаются поля сортировки, количество выбираемых значений, условия,
+ * НО устанавливая KeepQueryParams в TRUE очистка переметров производится не будет
+ */
+public function setKeepQueryParams($KeepQueryParams)
+{
+    $this->KeepQueryParams = $KeepQueryParams;
 }
 
 /**
@@ -125,6 +147,28 @@ public function clearCondition()
 {
     $this->DataSource->clearParams();
 }
+/**
+ * очищает все параметры для запроса (выборки),
+ * условия выборки, количество выбираемых значений, поля сортировки...
+ */
+public function clearQueryParams()
+{
+    $this->DataSource->clearParams();
+    $this->DataSource->clearLimit();
+    $this->DataSource->clearOrder();
+}
+
+/**
+ * устанавливает с какой записи начинать выборку - StartPosition
+ * и какое количество записей выбирать - Count
+ *
+ * @param int $Count - какое количество записей выбирать
+ * @param int $StartPosition - с какой записи начинать выборку
+ */
+public function setLimit( $Count , $StartPosition = null )
+{
+    $this->DataSource->setLimit($Count, $StartPosition);
+}
 
 /**
  * Производит выборку одной записи, 
@@ -142,10 +186,17 @@ public function getOne( TRMDataObjectInterface $DataObject = null )
 
     // в случае ошибочного запроса DataSource->getDataFrom() выбрасывает исключение
     $result = $this->DataSource->getDataFrom( $this->DataMapper );
+
+    // после каждого запроса проверка на необходимость сохранения параметров
+    // и очистка всех параметров, если сохранять не нужно
+    if(!$this->KeepQueryParams)
+    {
+        $this->clearQueryParams();
+    }
+
     // если в апросе нет данных, возвращается путсая коллекция
     if( !$result->num_rows ) { return null; }
 
-    $this->clearCondition();
     // должна вернуться только одна строка,
     // из нее создается объект данных
     return $this->getDataObjectFromDataArray($result->fetch_row(), $DataObject);
@@ -219,6 +270,14 @@ public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
 
     // в случае ошибочного запроса DataSource->getDataFrom() выбрасывает исключение
     $result = $this->DataSource->getDataFrom($this->DataMapper);
+
+    // после каждого запроса проверка на необходимость сохранения параметров
+    // и очистка всех параметров, если сохранять не нужно
+    if(!$this->KeepQueryParams)
+    {
+        $this->clearQueryParams();
+    }
+
     // если в апросе нет данных, возвращается путсая коллекция
     if( !$result->num_rows ) { return null; }
 
@@ -228,7 +287,6 @@ public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
         // в коллекцию всегда добавляется новый объект
         $NewGetCollection->addDataObject( $this->getDataObjectFromDataArray($Row) );
     }
-    $this->clearCondition();
 
     return $NewGetCollection;
 }

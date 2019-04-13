@@ -18,11 +18,6 @@ use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
 abstract class TRMIdDataObjectRepository extends TRMRepository implements TRMIdDataObjectRepositoryInterface
 {
 /**
- * @var array - array(имя суб-объекта, имя поля), содержащего ID записи
- */
-protected $IdFieldName;
-
-/**
  * @var array(TRMIdDataObjectInterface) - массив объектов, получаемых и создаваемых через данный репозиторий, 
  * ссылки на все объекты хранятся в этом массиве, 
  * и при запросе уже считанного из БД (или другого хранилища) объекта он вернется из массива
@@ -31,25 +26,13 @@ protected static $IdDataObjectContainer = array();
 
 
 /**
- * @return array - array(имя суб-объекта, имя поля) для ID у обрабатываемых данным репозиторием объектов
+ * {@inheritDoc}
  */
 public function getIdFieldName()
 {
     $type = $this->ObjectTypeName;
-    
     return $type::getIdFieldName();
 }
-
-/**
- * @param array $IdFieldName - array(имя суб-объекта, имя поля) 
- * для ID у обрабатываемых данным репозиторием объектов
- */
-//public function setIdFieldName( array $IdFieldName )
-//{
-//    $this->IdFieldName[0] = reset($IdFieldName);
-//    $this->IdFieldName[1] = next($IdFieldName);
-//    reset($IdFieldName);
-//}
 
 /**
  * добавляет объект, который обрабатывает этот Repository, в локальный контейнер, 
@@ -81,8 +64,9 @@ private function addIdDataObjectToContainer(TRMIdDataObjectInterface $DataObject
  */
 public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface $DataObject = null)
 {
+    $IdArr = $this->getIdFieldName();
     // если запрос объекта по Id-полю
-    if( $objectname === $this->IdFieldName[0] && $fieldname === $this->IdFieldName[1] )
+    if( $objectname === $IdArr[0] && $fieldname === $IdArr[1] )
     {
         // проверяем, если объект с таки Id уже есть в локальном массиве, то 
         if( isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
