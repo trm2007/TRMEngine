@@ -822,6 +822,7 @@ private function generateIndexesAndUpdatableFieldsNames( TRMSafetyFields $Safety
  * то добавляет ее, если при вставке встретится дубликат ключа или уникального поля,
  * то возникнет ошибка!!!
  *
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectInterface $DataObject - объект с данными
  * @param array $IndexesNames - массив с именами индексных полей, 
  * которые должны проверяться при поиске в БД для сравнения с текущим удаляемым объетом 
@@ -832,6 +833,7 @@ private function generateIndexesAndUpdatableFieldsNames( TRMSafetyFields $Safety
  * @return void
  */
 protected function generateSQLUpdateQueryString(
+        TRMSafetyFields $SafetyFields,
         TRMDataObjectInterface $DataObject,
         array $IndexesNames,
         array $UpdatableFieldsNames,
@@ -846,7 +848,7 @@ protected function generateSQLUpdateQueryString(
         // если проверяемые данные для очередной таблицы должны быть в первичном ключе,
         // но они там отсутсвуют, значит это новая запись,
         // добавляем ее и переходим к следующей
-        if( $CurrentKeyFlag[$TableName] == "PRI" && !$DataObject->presentDataIn($RowNum, $TableName, $IndexesNames[$TableName] ) )
+        if( $CurrentKeyFlag[$TableName] == "PRI" && !$DataObject->presentDataIn($TableName, $IndexesNames[$TableName] ) )
         {
             // в функцию добавления
             // передаем сами данные, номер строки в объекте данных из которой вставляются данные,
@@ -855,7 +857,7 @@ protected function generateSQLUpdateQueryString(
             // а так же передаем массив с полями доступными для обновления ,
             // что бы не получать его заново рпсходуя ресурсы...
             // в этой реализации массив передается по ссылке!!!
-            $CurrentInsertId = $this->insertRowToOneTable($TableName, $DataObject[$TableName], $FieldsNames);
+            $CurrentInsertId = $this->insertRowToOneTable($TableName, $DataObject, $FieldsNames);
 
 // можно менять метод вставки и вызывать ON DUPLICATE KEY ... UPDATE
 //            $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row[$TableName], $FieldsNames);
@@ -868,9 +870,8 @@ protected function generateSQLUpdateQueryString(
              * нужно обновить данные по Relation у объектов, 
              * которые ссылались на поле AUTO_INCREMENT только-что добавленной записи
              */
-            $this->checkAndUpdateAutoIncrementFieldsAfterInsert( $DataObject, $TableName, $CurrentInsertId);
+            $this->checkAndUpdateAutoIncrementFieldsAfterInsert( $SafetyFields, $DataObject, $TableName, $CurrentInsertId);
 
-            //$this->addNewRowToAndSetLastId( $Row, $RowNum, $UpdatableFieldsNames );
             // после добавления, переходим к следующей записи в объекте данных
             continue;
         }
@@ -878,7 +879,7 @@ protected function generateSQLUpdateQueryString(
         {
             // если данные есть в первичном или уникальном ключе
             // значит запись для этой таблицы нужно обновить
-            $this->UpdateQueryString .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $DataObject[$TableName], $FieldsNames, $IndexesNames[$TableName] );
+            $this->UpdateQueryString .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $DataObject, $FieldsNames, $IndexesNames[$TableName] );
         }
     }
 }
@@ -917,7 +918,7 @@ public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
             // функция добавляет строки UPDATE к $this->UpdateQueryString
             // в тоже время вставки INSERT выполняются мгновенно, 
             // как только встретится запись без ключевых полей, что бы отследить LastID
-            $this->generateSQLUpdateQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
+            $this->generateSQLUpdateQueryString($SafetyFields, $DataObject, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
         }
         catch(TRMDataSourceSQLInsertException $e)
         {
@@ -946,13 +947,14 @@ public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
  * формирует SQL-запрос для обновления данных только в одной таблице
  * 
  * @param string $TableName
- * @param array $Row
+ * @param TRMDataObjectInterface $DataObject
  * @param array $FieldsNames
  * @param array $WhereFieldsNamesForTable
  * @return string
  */
-private function makeUpdateRowQueryStrForOneTable( $TableName, array &$Row, array &$FieldsNames, array &$WhereFieldsNamesForTable )
+private function makeUpdateRowQueryStrForOneTable( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames, array &$WhereFieldsNamesForTable )
 {
+    $Row = $DataObject[$TableName];
     $UpdateQuery = "UPDATE `{$TableName}` SET ";
     foreach( $FieldsNames as $FieldName )
     {
@@ -980,13 +982,15 @@ private function makeUpdateRowQueryStrForOneTable( $TableName, array &$Row, arra
  * добавляет данные в одну таблицу обычным INSERT INTO ...
  * 
  * @param string $TableName - имя таблицы, в которую вставлются данные
- * @param array $Row - одномерный ассоциативный массив-строка с данными = array( FieldName1 => data1, FieldName2 => data2, ... )
+ * @param TRMDataObjectInterface $DataObject - объект с данными, 
+ * в котором есть подмассив с индексом $TableName = array( FieldName1 => data1, FieldName2 => data2, ... )
  * @param array $FieldsNames - одномерный массив с именами полей таблицы, в которые будут добавлены данные
  * @return int - insert_id (auto_increment)
  * @throws TRMDataSourceSQLInsertException
  */
-private function insertRowToOneTable( $TableName, array &$Row, array &$FieldsNames )
+private function insertRowToOneTable( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames )
 {
+    $Row = $DataObject[$TableName];
     // собираем массив с именами полей в строчку,
     // обрамляя имя каждого поля апострофами `
     $FieldsNamesStr = "`" . implode("`,`", $FieldsNames) . "`";
@@ -1010,13 +1014,15 @@ private function insertRowToOneTable( $TableName, array &$Row, array &$FieldsNam
  * используя метод вставки INSERT INTO ... ON DUPLICATE KEY UPDATE
  * 
  * @param string $TableName - имя таблицы, в которую вставлются данные
- * @param array $Row - одномерный ассоциативный массив-строка с данными = array( FieldName1 => data1, FieldName2 => data2, ... )
+ * @param TRMDataObjectInterface $DataObject - объект с данными, 
+ * в котором есть подмассив с индексом $TableName = array( FieldName1 => data1, FieldName2 => data2, ... )
  * @param array $FieldsNames - одномерный массив с именами полей таблицы, в которые будут добавлены данные
  * @return int - insert_id (auto_increment)
  * @throws TRMDataSourceSQLInsertException
  */
-private function insertODKURowToOneTable( $TableName, array &$Row, array &$FieldsNames )
+private function insertODKURowToOneTable( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames )
 {
+    $Row = $DataObject[$TableName];
     // собираем массив с именами полей в строчку,
     // обрамляя имя каждого поля апострофами `
     $FieldsNamesStr = "`" . implode("`,`", $FieldsNames) . "`";
