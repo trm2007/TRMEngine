@@ -141,16 +141,17 @@ public static function sp( $str, $color = self::DefaultStringTextColor )
  * 
  * @param string $s - строка с русскими буквами, которые будут заменены на английский аналог
  * @param boolean $specialforurl - если этот флаг установлен в true, тогда комбинация 100х100 с русским хэ, поменяется на 100x100 с английским икс!
- * @param string $charset - набор символов. поумолчанию устанавливается в "windows-1251"
+ * @param string $charset - набор символов. поумолчанию устанавливается в "utf-8"
  * @return string - строка в траслитерации без кирилических символов
  */
-public static function translit($s, $specialforurl=false, $charset = "windows-1251")
+public static function translit($s, $specialforurl=false, $charset = "utf-8")
 {
     $s = (string) $s; // преобразуем в строковое значение
     $s = strip_tags($s); // убираем HTML-теги
     $s = str_replace(array("\n", "\r"), "-", $s); // убираем перевод каретки
 
-    // меняет русский х на английский X если включен флаг specialforurl для комбинация с цифрами, например для размеров 100х100
+    // меняет русский х на английский X если включен флаг specialforurl для комбинация с цифрами, 
+    // например для размеров 100х100
     if($specialforurl) 
     {
       $s = preg_replace("/([0-9]+)х([0-9]+)/U", '$1x$2', $s);

@@ -13,7 +13,7 @@ class TRMEMail
 /**
  * все письма посылаются в кодировке "UTF-8"
  */
-const SendCoding = "UTF-8";
+const SendCoding = "utf-8";
 /**
  * @var string - E-mail отправителя
  */
@@ -60,8 +60,9 @@ protected $textplain = "";
  */
 protected $texthtml = "";
 /**
- * @var string - кодировка, в которой формируется письмо, как правило на рускоязычных ресурсах - Windows-1251
- * оно потом преобразовывается в SendCoding = UTF-8 (если не менять)
+ * @var string - кодировка, в которой поступают входные данные для формирования письма от клиента,
+ * как правило это utf-8, но на рускоязычных ресурсах может быть - windows-1251,
+ * само письмо всегда отпралвяектся в utf-8
  */
 protected $coding;
 /**
@@ -92,15 +93,12 @@ protected $config = array();
 
 
 /**
- * в конструкторе по умолчанию устанавливается кодировка входных данных в "Windows-1251"
- * так как мой сайт изначально работал в "Windows-1251"
- * затем эти данные (сообщение и заголовок) преобразуются в "UTF-8" для отправки
- * 
+ * в конструкторе по умолчанию устанавливается кодировка входных данных в "utf-8",
  * так же генерируется уникальная строка для разделения разделов
  */
 public function __construct()
 {
-    $this->setCoding(); //"Windows-1251");
+    $this->setCoding();
     $this->un = $this->getUniq();
 }
 
@@ -113,7 +111,7 @@ public function __construct()
  */
 public function setCoding($coding = self::SendCoding)
 {
-    $this->coding = $coding;
+    $this->coding = strtolower($coding);
 }
 
 /**
@@ -181,7 +179,7 @@ protected function setStrToCoding($str)
 }
 
 /**
- * преобразует содировку строки из заданной по умолчанию для работы с этим объектом письма,
+ * преобразует кодировку строки из заданной по умолчанию для работы с этим объектом письма,
  * в обязательную для отправки UTF-8,
  * если в настройках кодировки совпадают, то строка не изменится,
  * Внимание! начальная кодировка строки не проверяется.
@@ -346,21 +344,11 @@ protected function generateTextPlain()
         return "";
     }
     
-    //$text = strip_tags($text); //убираем в обычном тексте все HTML-теги
-//    $text = $this->setStrToCoding($text);
-/*
-    if($this->coding != TRMEMail::SendCoding)
-        $text = iconv($this->coding, TRMEMail::SendCoding, $text); // преобразуем из Windows-1251 в UTF-8
- * 
- */
     $text = chunk_split( base64_encode( $this->replaceCRLF( $this->textplain ) ) );
-//    $text = wordwrap($text,70,"\r\n"); // каждая строка в собщении должна быть не длиннее 70 символов
-//    $text = self::quotedPrintableEncode($text);
     
     if( $this->ContentType != "text/plain" )
     {
         $content = "Content-Type: text/plain; charset=".TRMEMail::SendCoding." \r\n";
-    //    $content .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit потому что уже преобразован в UTF-8 и там только латиница
         $content .= "Content-Transfer-Encoding: base64\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit потому что уже преобразован в UTF-8 и там только латиница
         $content .= $text."\r\n";
         return $content;

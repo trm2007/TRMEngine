@@ -21,15 +21,6 @@ abstract class TRMParentedDataObjectRepository extends TRMRepository
 static protected $ParentRelationIdFieldName = array();
 
 
-public function __construct($objectclassname)
-{
-    if( empty(static::$ParentRelationIdFieldName) )
-    {
-        throw new TRMObjectCreateException("В дочернем объекте не указано имя поля, содержащее значение родительского ID для объектов ". get_class($this), 500);
-    }
-    parent::__construct($objectclassname);
-}
-
 /**
  * @return array -  array( имя родительского объекта, имя поля для связи )
  */
@@ -38,15 +29,6 @@ public function getParentRelationIdFieldName()
     $type = $this->ObjectTypeName;
     return $type::getParentIdFieldName();
 }
-/**
- * @param array $ParentRelationIdFieldName - array( имя родительского объекта, имя поля для связи )
- */
-//static public function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
-//{
-//    static::$ParentRelationIdFieldName[0] = reset($ParentRelationIdFieldName);
-//    static::$ParentRelationIdFieldName[1] = next($ParentRelationIdFieldName);
-//    reset($ParentRelationIdFieldName);
-//}
 
 /**
  * возвращает коллекцию объектов, которые зависят от заданного родителя
