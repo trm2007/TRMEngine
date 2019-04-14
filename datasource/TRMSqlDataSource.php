@@ -741,7 +741,7 @@ public function getDataFrom( TRMSafetyFields $SafetyFields )
     {
         throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
     }
-\TRMEngine\Helpers\TRMLib::sp($this->QueryString);
+
     $this->QueryString = "";
     return $result;
 }

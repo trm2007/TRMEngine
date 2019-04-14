@@ -2,8 +2,9 @@
 
 namespace TRMEngine;
 
+use TRMEngine\Exceptions\TRMConfigArrayException;
+use TRMEngine\Exceptions\TRMConfigFileException;
 use TRMEngine\Exceptions\TRMSqlQueryException;
-use TRMEngine\Helpers\TRMLib;
 
 /**
  * базовый класс для работы с БД, создает подключение используя библиотеку MySQLi
@@ -25,12 +26,57 @@ const TRM_DB_TRY_TO_CONNECT_TIMES = 3;
  * 500000 - 0.5 sec
  */
 const TRM_DB_TRY_TO_CONNECT_SLEEPTIME = 500000;
+/**
+ * индекс для имени базы данных
+ */
+const DB_NAME_INDEX = "dbname";
+/**
+ * индекс для имени сервера
+ */
+const DB_SERVER_INDEX = "dbserver";
+/**
+ * индекс для номера порта
+ */
+const DB_PORT_INDEX = "dbport";
+/**
+ * индекс для имени пользователя
+ */
+const DB_USER_INDEX = "dbuser";
+/**
+ * индекс для пароля
+ */
+const DB_PASSWORD_INDEX = "dbpassword";
+/**
+ * индекс для обозначения кодировки БД на сервере
+ */
+const SERVER_DB_CHARSET_INDEX = "dbcharset";
+/**
+ * индекс для обозначения кодировки в которой будут поступать данные клиенту и от него,
+ * на стороне сервера будет происходить перекодировка из и в SERVER_DB_CHARSET
+ */
+const CLIENT_CHARSET_INDEX = "clientcharset";
+/**
+ * индекс для обозначения кодировки для сравнения данных в таблицах БД на сервере
+ */
+const COLLATION_CHARSET_INDEX = "collationcharst";
+
+/**
+ * @var string - кодировка БД на сервере
+ */
+protected static $DBCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
+/**
+ * @var string - кодировка клиента
+ */
+protected static $ClientCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
+/**
+ * @var string - кодировка для сравнения данных в таблицах БД на сервере
+ */
+protected static $CollationCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
 
 /*
 	use TRMSingleton;
 	use TRMConfigSingleton;
 */
-
 
 /**
  * @var TRMDBObject - экземпляр данного объекта Singleton
@@ -63,12 +109,11 @@ protected static $ConfigArray = array();
  */
 public static function setConfig( $filename )
 {
-	if( !is_file($filename) )
-	{
-		TRMLib::dp( __METHOD__ . " Файл с настройками получить на удалось [{$filename}]!" );
-		return false;
-	}
-	return self::setConfigArray( require_once($filename) );
+    if( !is_file($filename) )
+    {
+        throw new TRMConfigFileException("Файл с настройками получить на удалось [{$filename}]!");
+    }
+    return self::setConfigArray( require_once($filename) );
 }
 
 /**
@@ -78,15 +123,80 @@ public static function setConfig( $filename )
  */
 public static function setConfigArray( array $arr )
 {
-	if( empty($arr) )
-	{
-		TRMLib::dp( __METHOD__ . " Массив конфигурации данных пустой!" );
-		return false;
-	}
+    if( empty($arr) )
+    {
+        throw new TRMConfigArrayException("Массив конфигурации данных пустой!");
+    }
 
-	static::$ConfigArray = $arr;
+    static::$ConfigArray = $arr;
+    
+    static::setCharSetsFromConfigArray();
 
-	return true;
+    return true;
+}
+/**
+ * устанавливает кодировки, если данные под соответсвующими индексами есть в массиве настроек (конфигурации)
+ */
+private static function setCharSetsFromConfigArray()
+{
+    if( empty(static::$ConfigArray) ) { return; }
+    
+    if(array_key_exists(static::SERVER_DB_CHARSET_INDEX, static::$ConfigArray) )
+    {
+        static::setDBCharset( static::$ConfigArray[static::SERVER_DB_CHARSET_INDEX] );
+    }
+    if(array_key_exists(static::CLIENT_CHARSET_INDEX, static::$ConfigArray) )
+    {
+        static::setClientCharset( static::$ConfigArray[static::CLIENT_CHARSET_INDEX] );
+    }
+    if(array_key_exists(static::COLLATION_CHARSET_INDEX, static::$ConfigArray) )
+    {
+        static::setCollationCharset( static::$ConfigArray[static::COLLATION_CHARSET_INDEX] );
+    }
+}
+/**
+ * @param string $charset - указывает, в какую кодировку следует преобразовать данные 
+ * полученые от клиента перед выполнением запроса,
+ */
+public static function setDBCharset( $charset )
+{
+    static::$DBCharset = static::correctCharset($charset);
+}
+/**
+ * @param string $charset - указывает, в какой кодировке будут поступать данные от клиента,
+ * а так же указывает серверу не необходимость перекодировать результаты запроса 
+ * в эту кодировку перед выдачей их клиенту
+ */
+public static function setClientCharset( $charset )
+{
+    static::$ClientCharset = static::correctCharset($charset);
+}
+/**
+ * @param string $charset - указывает, каким образом сравнивать между собой строки в запроса
+ */
+public static function setCollationCharset( $charset )
+{
+    static::$CollationCharset = static::correctCharset($charset);
+}
+/**
+ * убирает знаки тире из кодировки, так как в MySQL они не используются,
+ * правильная запись utf8 , но не utf-8,
+ * так же переводит строку в нижний регистр
+ * 
+ * @param string $charset - кодировка для корректировки
+ * 
+ * @return string - возвращает исправленную строку с названием кодировки
+ */
+private static function correctCharset( $charset )
+{
+    $charset = strtolower($charset);
+    switch ($charset)
+    {
+        case "windows-1251": return "cp1251";
+        case "utf-8": return "utf8";
+    }
+
+    return str_replace("-", "", $charset );
 }
 
 /**
@@ -158,8 +268,25 @@ public static function connect()
         usleep(TRMDBObject::TRM_DB_TRY_TO_CONNECT_SLEEPTIME);
         $trycounts++;
     }
-    static::$newlink->set_charset( isset(static::$ConfigArray["dbcharset"]) ? static::$ConfigArray["dbcharset"] : static::TRM_DB_DEFAULT_CHARSET );
+    if( static::$ClientCharset == static::$DBCharset )
+    {
+        static::$newlink->set_charset( static::$DBCharset );
+    }
+    else
+    {
+        static::$newlink->set_charset( static::$ClientCharset );
 
+        // указывает, в какой кодировке будут поступать данные от клиента
+        static::$newlink->query( "SET character_set_client='" . static::$ClientCharset . "'" );
+        // указывает, в какую кодировку следует преобразовать данные 
+        // полученые от клиента перед выполнением запроса,
+        static::$newlink->query( "SET character_set_connection='" . static::$DBCharset . "'" ); 
+        //  указывает серверу не необходимость перекодировать результаты запроса 
+        //  в определенную кодировку перед выдачей их клиенту
+        static::$newlink->query( "SET character_set_results='" . static::$ClientCharset . "'" ); 
+        // указывает, каким образом сравнивать между собой строки в запросах
+        static::$newlink->query( "SET collation_connection='" . static::$CollationCharset . "'" );
+    }
     return true;
 }
 
@@ -238,67 +365,6 @@ WHERE TABLE_NAME LIKE '{$TableName}'");
                 . " (#" . self::$newlink->errno . "): " . self::$newlink->error);
     }
     return self::fetchAll($Result);
-}
-
-/**
- * соибирает номера всех записей, у которых поле для родительского элемента имеет имя $ParentFieldName,
- * далее, рекурсивно вызывается для каждого найденного, тем самым собирая дочерние элементы дочерних элементов
- * результирующие (возвращенные) массиывы соединяются в один
- * проходит все дерево вниз от заданной StartId
- * 
- * @param int $StartId - первый ID, от которого начинается выборка по дереву
- * @param string $TableName - таблица, из которой производится выборка
- * @param string $IdFieldName - имя поля с ID записей
- * @param string $ParentFieldName - имя поля, которое соержти дочернее ID
- * @param string $OrderFieldName - имя поля, по которому производится сортировка (ВНИМАНИЕ! сортировка в рамках выборки одного ID)
- * @param string $PresentFieldName - если не null, тогда слжержит имя поля-флага, которое проверятся на наличие данных,
- * для добавления к результирующему массиву этой записи ее поле $PresentFieldName должно быть обязательно не пустым, оличным от 0, и не NULL
- * @param boolean $first - при пользовательском вызове этот флаг по умолчанию = true, т.е. первый рекурсивный вызов,
- * он позволяет добавить передаваемый $StartId в первый элемент результирующего массива
- * 
- * @return array - одномерный массив всех дочерних ID из поля $IdFieldName
- */
-public static function getAllChildsArray($StartId, $TableName, $IdFieldName, $ParentFieldName, $OrderFieldName = null, $PresentFieldName = null, $first=true)
-{
-    $query  = "SELECT {$IdFieldName} FROM `{$TableName}` WHERE `{$ParentFieldName}`=".$StartId;
-    if( isset($PresentFieldName) )
-    {
-        $query .=" AND `{$TableName}`.`{$PresentFieldName}`<>''  "
-                . "AND `{$TableName}`.`{$PresentFieldName}`<>'0' "
-                . "AND `{$TableName}`.`{$PresentFieldName}`<>'NULL'";
-    }
-    if( isset($OrderFieldName) )
-    {
-        $query .=" ORDER BY `{$TableName}`.`{$OrderFieldName}` ";
-    }
-    
-    $allgroups = array();
-    if($first === true) { $allgroups[] = $StartId; }
-    $result1 = static::$newlink->query($query);
-    if( !$result1 )
-    {
-        //TRMLib::dp( __METHOD__ . "Запрос неудачный [{$query}]" );
-        return null;
-    }
-    if( $result1->num_rows == 0 )
-    {
-        return $allgroups;
-    }
-
-    // добавляем каждый дочерний элемент в массив (если его там нет) и рекурсивно вызываем для него эту функцию
-    while ($row1 = $result1->fetch_array(MYSQLI_ASSOC)) 
-    {
-        // если очередной ID уже есть в массиве, значит в структуре зацикливание, пропускаем его
-        if( in_array( $row1[$IdFieldName], $allgroups ) ) { continue; }
-        $allgroups[]=$row1[$IdFieldName];
-        $currentgroups = static::getAllChildsArray($row1[$IdFieldName], $TableName, $IdFieldName, $ParentFieldName, $OrderFieldName, $PresentFieldName, false);
-        if( !empty($currentgroups) )
-        {
-            $allgroups = array_merge($allgroups, $currentgroups);
-        }
-    }
-    $result1->free();
-    return $allgroups;
 }
 
 /**
