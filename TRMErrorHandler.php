@@ -5,7 +5,7 @@ namespace TRMEngine;
 use TRMEngine\Helpers\TRMLib;
 
 /**
- * класс обработки ошибок и записи лог-файла
+ * РєР»Р°СЃСЃ РѕР±СЂР°Р±РѕС‚РєРё РѕС€РёР±РѕРє Рё Р·Р°РїРёСЃРё Р»РѕРі-С„Р°Р№Р»Р°
  * 
  * @author TRM 2018
  */
@@ -13,7 +13,7 @@ class TRMErrorHandler
 {
 const DefaultErrorFileName = "error_log.txt";
 /**
- * @var array - массив с кодами ошибок
+ * @var array - РјР°СЃСЃРёРІ СЃ РєРѕРґР°РјРё РѕС€РёР±РѕРє
  */
 protected $ErrorCodeArray = array(
     404 => "Not Found",
@@ -21,13 +21,13 @@ protected $ErrorCodeArray = array(
     503 => "Service Unavailable",
 );
 /**
- * @var array - массив с путями к файлам: с логами, общим обработчиком, каждой ошибки по ее коду - 404, 503 и т.д.
+ * @var array - РјР°СЃСЃРёРІ СЃ РїСѓС‚СЏРјРё Рє С„Р°Р№Р»Р°Рј: СЃ Р»РѕРіР°РјРё, РѕР±С‰РёРј РѕР±СЂР°Р±РѕС‚С‡РёРєРѕРј, РєР°Р¶РґРѕР№ РѕС€РёР±РєРё РїРѕ РµРµ РєРѕРґСѓ - 404, 503 Рё С‚.Рґ.
  */
 protected $Config = array();
 
 
 /**
- * @param string $filename - путь к файлу настроек (массив с путями к файлам: с логами, общим обработчиком, каждой ошибки по ее коду - 404, 503 и т.д.)
+ * @param string $filename - РїСѓС‚СЊ Рє С„Р°Р№Р»Сѓ РЅР°СЃС‚СЂРѕРµРє (РјР°СЃСЃРёРІ СЃ РїСѓС‚СЏРјРё Рє С„Р°Р№Р»Р°Рј: СЃ Р»РѕРіР°РјРё, РѕР±С‰РёРј РѕР±СЂР°Р±РѕС‚С‡РёРєРѕРј, РєР°Р¶РґРѕР№ РѕС€РёР±РєРё РїРѕ РµРµ РєРѕРґСѓ - 404, 503 Рё С‚.Рґ.)
  */
 public function __construct( $filename = null )
 {
@@ -50,18 +50,18 @@ public function __construct( $filename = null )
         ini_set('display_errors','0');
         ini_set('display_startup_errors','0');
     }
-    // устанавливаем обработчик не фатальных ошибок
+    // СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј РѕР±СЂР°Р±РѕС‚С‡РёРє РЅРµ С„Р°С‚Р°Р»СЊРЅС‹С… РѕС€РёР±РѕРє
     set_error_handler(array($this, "ErrorHandler"));
-    // включаем буферизацию вывода, что бы не отображались стандартные сообщения PHP
+    // РІРєР»СЋС‡Р°РµРј Р±СѓС„РµСЂРёР·Р°С†РёСЋ РІС‹РІРѕРґР°, С‡С‚Рѕ Р±С‹ РЅРµ РѕС‚РѕР±СЂР°Р¶Р°Р»РёСЃСЊ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ PHP
     ob_start();
-    // подключаем функцию, которая вызывается при завершении работы скрипта (в данном случае после возниконовения фатальной ошибки)
+    // РїРѕРґРєР»СЋС‡Р°РµРј С„СѓРЅРєС†РёСЋ, РєРѕС‚РѕСЂР°СЏ РІС‹Р·С‹РІР°РµС‚СЃСЏ РїСЂРё Р·Р°РІРµСЂС€РµРЅРёРё СЂР°Р±РѕС‚С‹ СЃРєСЂРёРїС‚Р° (РІ РґР°РЅРЅРѕРј СЃР»СѓС‡Р°Рµ РїРѕСЃР»Рµ РІРѕР·РЅРёРєРѕРЅРѕРІРµРЅРёСЏ С„Р°С‚Р°Р»СЊРЅРѕР№ РѕС€РёР±РєРё)
     register_shutdown_function(array($this, "FatalErrorHandler"));
-    // подключаем обработчик исключений, которые не были перехвачены в в скриптах с помощью catch(...)
+    // РїРѕРґРєР»СЋС‡Р°РµРј РѕР±СЂР°Р±РѕС‚С‡РёРє РёСЃРєР»СЋС‡РµРЅРёР№, РєРѕС‚РѕСЂС‹Рµ РЅРµ Р±С‹Р»Рё РїРµСЂРµС…РІР°С‡РµРЅС‹ РІ РІ СЃРєСЂРёРїС‚Р°С… СЃ РїРѕРјРѕС‰СЊСЋ catch(...)
     set_exception_handler(array($this, "ExceptionHandler"));
 }
 
 /*
- * функция перехвата и обработки необработанных исключений
+ * С„СѓРЅРєС†РёСЏ РїРµСЂРµС…РІР°С‚Р° Рё РѕР±СЂР°Р±РѕС‚РєРё РЅРµРѕР±СЂР°Р±РѕС‚Р°РЅРЅС‹С… РёСЃРєР»СЋС‡РµРЅРёР№
  * 
  * @param \Exception $e
  */
@@ -71,22 +71,22 @@ public function ExceptionHandler($e) //\Exception $e)
 }
 
 /**
- * функция перехвата и обработки ошибок уровня E_NOTICE и E_WARNING...
+ * С„СѓРЅРєС†РёСЏ РїРµСЂРµС…РІР°С‚Р° Рё РѕР±СЂР°Р±РѕС‚РєРё РѕС€РёР±РѕРє СѓСЂРѕРІРЅСЏ E_NOTICE Рё E_WARNING...
  * 
- * @param int $errno - номер ошибки PHP
- * @param string $errstr - сообщение об ошибке PHP
- * @param string $errfile - имя файла, в котором произошла ошибка
- * @param int $errline - строка в файле, на которой произошла ошибка
+ * @param int $errno - РЅРѕРјРµСЂ РѕС€РёР±РєРё PHP
+ * @param string $errstr - СЃРѕРѕР±С‰РµРЅРёРµ РѕР± РѕС€РёР±РєРµ PHP
+ * @param string $errfile - РёРјСЏ С„Р°Р№Р»Р°, РІ РєРѕС‚РѕСЂРѕРј РїСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР°
+ * @param int $errline - СЃС‚СЂРѕРєР° РІ С„Р°Р№Р»Рµ, РЅР° РєРѕС‚РѕСЂРѕР№ РїСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР°
  * 
- * @return boolean - если данный обработчик вызывается после ошибки вызванной в функции с @, 
- * то возвращается false , и ошибка обарабтывается стандартными средствами PHP, код продложает выполнятся дальше, 
- * иначе возвращается true, но перед этим вызывается displayError, а он в данной версии завершает работу скрипта путем die
+ * @return boolean - РµСЃР»Рё РґР°РЅРЅС‹Р№ РѕР±СЂР°Р±РѕС‚С‡РёРє РІС‹Р·С‹РІР°РµС‚СЃСЏ РїРѕСЃР»Рµ РѕС€РёР±РєРё РІС‹Р·РІР°РЅРЅРѕР№ РІ С„СѓРЅРєС†РёРё СЃ @, 
+ * С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ false , Рё РѕС€РёР±РєР° РѕР±Р°СЂР°Р±С‚С‹РІР°РµС‚СЃСЏ СЃС‚Р°РЅРґР°СЂС‚РЅС‹РјРё СЃСЂРµРґСЃС‚РІР°РјРё PHP, РєРѕРґ РїСЂРѕРґР»РѕР¶Р°РµС‚ РІС‹РїРѕР»РЅСЏС‚СЃСЏ РґР°Р»СЊС€Рµ, 
+ * РёРЅР°С‡Рµ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ true, РЅРѕ РїРµСЂРµРґ СЌС‚РёРј РІС‹Р·С‹РІР°РµС‚СЃСЏ displayError, Р° РѕРЅ РІ РґР°РЅРЅРѕР№ РІРµСЂСЃРёРё Р·Р°РІРµСЂС€Р°РµС‚ СЂР°Р±РѕС‚Сѓ СЃРєСЂРёРїС‚Р° РїСѓС‚РµРј die
  */
 public function ErrorHandler($errno,$errstr,$errfile,$errline)
 {
     if(error_reporting() === 0)
     {
-        error_log("[".date("Y-m-d H:i:s")."] Ошибка - (".$errno.") : ".$errstr."   в файле: ".$errfile."  в строке: ".$errline."\n******************************************\n",
+        error_log("[".date("Y-m-d H:i:s")."] РћС€РёР±РєР° - (".$errno.") : ".$errstr."   РІ С„Р°Р№Р»Рµ: ".$errfile."  РІ СЃС‚СЂРѕРєРµ: ".$errline."\n******************************************\n",
                 3,
                 isset( $this->Config["errorreporfilename"] ) ? $this->Config["errorreporfilename"] : str_replace( "//", "/", __DIR__ . "/" . self::DefaultErrorFileName ) );
         return false;
@@ -97,37 +97,37 @@ public function ErrorHandler($errno,$errstr,$errfile,$errline)
 }
 
 /**
- * функция перехвата и обработки фатальных ошибок уровня E_ERROR и др...
+ * С„СѓРЅРєС†РёСЏ РїРµСЂРµС…РІР°С‚Р° Рё РѕР±СЂР°Р±РѕС‚РєРё С„Р°С‚Р°Р»СЊРЅС‹С… РѕС€РёР±РѕРє СѓСЂРѕРІРЅСЏ E_ERROR Рё РґСЂ...
  */
 public function FatalErrorHandler()
 {
     $error = error_get_last();
-    //если ошибки есть, то сбрасываем буфер вывода, что бы не показывать стандартные сообщения, и выводим свое описание ошибки
+    //РµСЃР»Рё РѕС€РёР±РєРё РµСЃС‚СЊ, С‚Рѕ СЃР±СЂР°СЃС‹РІР°РµРј Р±СѓС„РµСЂ РІС‹РІРѕРґР°, С‡С‚Рѕ Р±С‹ РЅРµ РїРѕРєР°Р·С‹РІР°С‚СЊ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Рµ СЃРѕРѕР±С‰РµРЅРёСЏ, Рё РІС‹РІРѕРґРёРј СЃРІРѕРµ РѕРїРёСЃР°РЅРёРµ РѕС€РёР±РєРё
     if(!empty($error) && $error["type"] & (E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR) )
     {
         if(ob_get_length()>0) { ob_end_clean(); }
         $this->displayError($error["type"],$error["message"],$error["file"],$error["line"]);
     }
-    else // если ошибок нет, то выводим содержимое буфера
+    else // РµСЃР»Рё РѕС€РёР±РѕРє РЅРµС‚, С‚Рѕ РІС‹РІРѕРґРёРј СЃРѕРґРµСЂР¶РёРјРѕРµ Р±СѓС„РµСЂР°
     {
         if(ob_get_length()>0) { ob_end_flush(); }
     }
 }
 
 /**
- * отображает ошибки на экране и перенаправляет на страницу с ошибкой
+ * РѕС‚РѕР±СЂР°Р¶Р°РµС‚ РѕС€РёР±РєРё РЅР° СЌРєСЂР°РЅРµ Рё РїРµСЂРµРЅР°РїСЂР°РІР»СЏРµС‚ РЅР° СЃС‚СЂР°РЅРёС†Сѓ СЃ РѕС€РёР±РєРѕР№
  * 
- * @param integer $errno - номер ошибки
- * @param string $errstr - описание ошибки
- * @param string $errfile - файл, в котором произолша ошибка
- * @param string $errline - строка, на которой произошла ошибка
- * @param integer $rescode - код ответа сервера
+ * @param integer $errno - РЅРѕРјРµСЂ РѕС€РёР±РєРё
+ * @param string $errstr - РѕРїРёСЃР°РЅРёРµ РѕС€РёР±РєРё
+ * @param string $errfile - С„Р°Р№Р», РІ РєРѕС‚РѕСЂРѕРј РїСЂРѕРёР·РѕР»С€Р° РѕС€РёР±РєР°
+ * @param string $errline - СЃС‚СЂРѕРєР°, РЅР° РєРѕС‚РѕСЂРѕР№ РїСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР°
+ * @param integer $rescode - РєРѕРґ РѕС‚РІРµС‚Р° СЃРµСЂРІРµСЂР°
  */
 protected function displayError($errno,$errstr,$errfile,$errline,$rescode=503)
 {
     if( isset($this->Config["errorreporfilename"]) )
     {
-        error_log("[".date("Y-m-d H:i:s")."] Ошибка - (".$errno.") : ".$errstr."   в файле: ".$errfile."  в строке: ".$errline."\n******************************************\n",3, $this->Config["errorreporfilename"]);
+        error_log("[".date("Y-m-d H:i:s")."] РћС€РёР±РєР° - (".$errno.") : ".$errstr."   РІ С„Р°Р№Р»Рµ: ".$errfile."  РІ СЃС‚СЂРѕРєРµ: ".$errline."\n******************************************\n",3, $this->Config["errorreporfilename"]);
     }
 
     $this->makeHeader( intval($rescode) );
@@ -149,16 +149,16 @@ protected function displayError($errno,$errstr,$errfile,$errline,$rescode=503)
 static public function printErrorDebug($errno,$errstr,$errfile,$errline,$rescode)
 {
     echo "<div class='trm_debug_info'>";
-    echo "<h1>Режим отладки включен</h1>" . PHP_EOL;
+    echo "<h1>Р РµР¶РёРј РѕС‚Р»Р°РґРєРё РІРєР»СЋС‡РµРЅ</h1>" . PHP_EOL;
 
     echo "error_reporting: ".ini_get("error_reporting")."<br>" . PHP_EOL;
     echo "display_errors: ".ini_get('display_errors')."<br>" . PHP_EOL;
 
     echo "<pre>" . PHP_EOL;
-    echo "Номер (тип) ошибки: <b>{$errno}</b><br>" . PHP_EOL;
-    echo "Файл в котором произошла ошибка: <b>{$errfile}</b><br>" . PHP_EOL;
-    echo "Строка на которой произошла ошибка: <b>{$errline}</b><br>" . PHP_EOL;
-    echo "Код: <b>{$rescode}</b><br>" . PHP_EOL;
+    echo "РќРѕРјРµСЂ (С‚РёРї) РѕС€РёР±РєРё: <b>{$errno}</b><br>" . PHP_EOL;
+    echo "Р¤Р°Р№Р» РІ РєРѕС‚РѕСЂРѕРј РїСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР°: <b>{$errfile}</b><br>" . PHP_EOL;
+    echo "РЎС‚СЂРѕРєР° РЅР° РєРѕС‚РѕСЂРѕР№ РїСЂРѕРёР·РѕС€Р»Р° РѕС€РёР±РєР°: <b>{$errline}</b><br>" . PHP_EOL;
+    echo "РљРѕРґ: <b>{$rescode}</b><br>" . PHP_EOL;
     echo "</pre>" . PHP_EOL;
     echo "</div>";
 
@@ -166,16 +166,16 @@ static public function printErrorDebug($errno,$errstr,$errfile,$errline,$rescode
 }
 
 /**
- * формирует заголовок ответа с заданным кодом $rescode
+ * С„РѕСЂРјРёСЂСѓРµС‚ Р·Р°РіРѕР»РѕРІРѕРє РѕС‚РІРµС‚Р° СЃ Р·Р°РґР°РЅРЅС‹Рј РєРѕРґРѕРј $rescode
  * 
- * @param integer $rescode - код ответа сервера
+ * @param integer $rescode - РєРѕРґ РѕС‚РІРµС‚Р° СЃРµСЂРІРµСЂР°
  */
 protected function makeHeader($rescode)
 {
     if( !empty($argc) || 
         ( "cli" == php_sapi_name() ) ||
         ( !isset($_SERVER['DOCUMENT_ROOT']) && !isset($_SERVER['REQUEST_URI']) ) )
-    { echo "Ошибка при запуске из командной строки<br>\n"; return; }
+    { echo "РћС€РёР±РєР° РїСЂРё Р·Р°РїСѓСЃРєРµ РёР· РєРѕРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё<br>\n"; return; }
 
     if( !headers_sent($filename, $linenum) )
     {
@@ -190,7 +190,7 @@ protected function makeHeader($rescode)
     else
     {
         echo "<pre>";
-        echo "Уже был вывод и заголовки установить не удается!<br>";
+        echo "РЈР¶Рµ Р±С‹Р» РІС‹РІРѕРґ Рё Р·Р°РіРѕР»РѕРІРєРё СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РЅРµ СѓРґР°РµС‚СЃСЏ!<br>";
         echo $filename;
         echo "<br>";
         echo $linenum;

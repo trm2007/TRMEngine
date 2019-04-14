@@ -13,26 +13,26 @@ use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 
 /**
- * класс для выбора контроллера и Action для данного пути
+ * РєР»Р°СЃСЃ РґР»СЏ РІС‹Р±РѕСЂР° РєРѕРЅС‚СЂРѕР»Р»РµСЂР° Рё Action РґР»СЏ РґР°РЅРЅРѕРіРѕ РїСѓС‚Рё
  * 
  * @author TRM 2018
  */
 class TRMPathFinder implements MiddlewareInterface
 {
 /**
- * @var string - имя контроллера по умлочанию
+ * @var string - РёРјСЏ РєРѕРЅС‚СЂРѕР»Р»РµСЂР° РїРѕ СѓРјР»РѕС‡Р°РЅРёСЋ
  */
 const DefaultControllerName = "Main";
 /**
- * @var string - имя action-функции по умолчанию
+ * @var string - РёРјСЏ action-С„СѓРЅРєС†РёРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
  */
 const DefaultActionName = "Index";
 /**
- * @var array - текущий путь разобранный на $CurrentPath["controller"] = string, $CurrentPath["action"] = string, возможно $CurrentPath["param"] = array
+ * @var array - С‚РµРєСѓС‰РёР№ РїСѓС‚СЊ СЂР°Р·РѕР±СЂР°РЅРЅС‹Р№ РЅР° $CurrentPath["controller"] = string, $CurrentPath["action"] = string, РІРѕР·РјРѕР¶РЅРѕ $CurrentPath["param"] = array
  */
 public static $CurrentPath = array();
 /**
- * @var Request - массивы _GET, _POST, _SERVER и т.д.
+ * @var Request - РјР°СЃСЃРёРІС‹ _GET, _POST, _SERVER Рё С‚.Рґ.
  */
 public $Request;
 
@@ -48,7 +48,7 @@ public function __construct( RouteCollection $Routes )
 }
 
 /**
- * вощвращает текущий (подобранный) маршрут для данного URL
+ * РІРѕС‰РІСЂР°С‰Р°РµС‚ С‚РµРєСѓС‰РёР№ (РїРѕРґРѕР±СЂР°РЅРЅС‹Р№) РјР°СЂС€СЂСѓС‚ РґР»СЏ РґР°РЅРЅРѕРіРѕ URL
  * 
  * @return array
  */
@@ -58,10 +58,10 @@ static public function getCurrentPath()
 }
 
 /**
- * Преобразует часть URL в CamelCase, заменяя дефисы
+ * РџСЂРµРѕР±СЂР°Р·СѓРµС‚ С‡Р°СЃС‚СЊ URL РІ CamelCase, Р·Р°РјРµРЅСЏСЏ РґРµС„РёСЃС‹
  * 
- * @param string $Name - имя для преобразования
- * @return string - преобразованная и очищенная от нежелательных символов строка
+ * @param string $Name - РёРјСЏ РґР»СЏ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ
+ * @return string - РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРЅР°СЏ Рё РѕС‡РёС‰РµРЅРЅР°СЏ РѕС‚ РЅРµР¶РµР»Р°С‚РµР»СЊРЅС‹С… СЃРёРјРІРѕР»РѕРІ СЃС‚СЂРѕРєР°
  */
 static protected function sanitizeName($Name)
 {
@@ -69,8 +69,8 @@ static protected function sanitizeName($Name)
 }
 
 /**
- * поиск нужных контроллера и его метода (Action) для данного пути из URI,
- * заполняет атрибуты "controller", "action" и "param" в объекте Request
+ * РїРѕРёСЃРє РЅСѓР¶РЅС‹С… РєРѕРЅС‚СЂРѕР»Р»РµСЂР° Рё РµРіРѕ РјРµС‚РѕРґР° (Action) РґР»СЏ РґР°РЅРЅРѕРіРѕ РїСѓС‚Рё РёР· URI,
+ * Р·Р°РїРѕР»РЅСЏРµС‚ Р°С‚СЂРёР±СѓС‚С‹ "controller", "action" Рё "param" РІ РѕР±СЉРµРєС‚Рµ Request
  * 
  * @param Request $Request
  * @param RequestHandlerInterface $Handler
@@ -116,7 +116,7 @@ protected function generateCurrentPathFromParameters( array $parameters )
     self::$CurrentPath['param'] = "";
     if( isset($parameters["param"]) )
     {
-        self::$CurrentPath['param'] = $parameters["param"]; // для совместимости со старой версией
+        self::$CurrentPath['param'] = $parameters["param"]; // РґР»СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё СЃРѕ СЃС‚Р°СЂРѕР№ РІРµСЂСЃРёРµР№
     }
 }
 

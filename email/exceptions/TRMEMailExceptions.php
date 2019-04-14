@@ -4,61 +4,61 @@ namespace TRMEngine\EMail\Exceptions;
 
 
 /**
- * общий класс исключений выбрасываемых объетами TRMEmail
+ * РѕР±С‰РёР№ РєР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёР№ РІС‹Р±СЂР°СЃС‹РІР°РµРјС‹С… РѕР±СЉРµС‚Р°РјРё TRMEmail
  */
 class TRMEMailExceptions extends \TRMEngine\Exceptions\TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка при работе с объектом почты! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РїСЂРё СЂР°Р±РѕС‚Рµ СЃ РѕР±СЉРµРєС‚РѕРј РїРѕС‡С‚С‹! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 /**
- * должно выбрасываться при ошбке отправки
+ * РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РїСЂРё РѕС€Р±РєРµ РѕС‚РїСЂР°РІРєРё
  */
 class TRMEMailSendingExceptions extends \TRMEngine\EMail\Exceptions\TRMEMailExceptions
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка отправки почты! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РѕС‚РїСЂР°РІРєРё РїРѕС‡С‚С‹! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 /**
- * должно выбрасываться если неверно указан получатель письма, или вовсе отсутсвует
+ * РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РµСЃР»Рё РЅРµРІРµСЂРЅРѕ СѓРєР°Р·Р°РЅ РїРѕР»СѓС‡Р°С‚РµР»СЊ РїРёСЃСЊРјР°, РёР»Рё РІРѕРІСЃРµ РѕС‚СЃСѓС‚СЃРІСѓРµС‚
  */
 class TRMEMailWrongRecepientExceptions extends \TRMEngine\EMail\Exceptions\TRMEMailExceptions
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Неверно указан или отсутсвует получатель! " . PHP_EOL;
+        $message .= PHP_EOL . " РќРµРІРµСЂРЅРѕ СѓРєР°Р·Р°РЅ РёР»Рё РѕС‚СЃСѓС‚СЃРІСѓРµС‚ РїРѕР»СѓС‡Р°С‚РµР»СЊ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 /**
- * должно выбрасываться если неверно указана тема письма, или вовсе отсутсвует
+ * РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РµСЃР»Рё РЅРµРІРµСЂРЅРѕ СѓРєР°Р·Р°РЅР° С‚РµРјР° РїРёСЃСЊРјР°, РёР»Рё РІРѕРІСЃРµ РѕС‚СЃСѓС‚СЃРІСѓРµС‚
  */
 class TRMEMailWrongThemeExceptions extends \TRMEngine\EMail\Exceptions\TRMEMailExceptions
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Неверно указана или отсутсвует тема письма! " . PHP_EOL;
+        $message .= PHP_EOL . " РќРµРІРµСЂРЅРѕ СѓРєР°Р·Р°РЅР° РёР»Рё РѕС‚СЃСѓС‚СЃРІСѓРµС‚ С‚РµРјР° РїРёСЃСЊРјР°! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 /**
- * должно выбрасываться если не заполнено или недопустимое само содержимое письма
+ * РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РµСЃР»Рё РЅРµ Р·Р°РїРѕР»РЅРµРЅРѕ РёР»Рё РЅРµРґРѕРїСѓСЃС‚РёРјРѕРµ СЃР°РјРѕ СЃРѕРґРµСЂР¶РёРјРѕРµ РїРёСЃСЊРјР°
  */
 class TRMEMailWrongBodyExceptions extends \TRMEngine\EMail\Exceptions\TRMEMailExceptions
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Не заполнено или недопустимое содержимое письма! " . PHP_EOL;
+        $message .= PHP_EOL . " РќРµ Р·Р°РїРѕР»РЅРµРЅРѕ РёР»Рё РЅРµРґРѕРїСѓСЃС‚РёРјРѕРµ СЃРѕРґРµСЂР¶РёРјРѕРµ РїРёСЃСЊРјР°! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }

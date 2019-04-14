@@ -9,7 +9,7 @@ use TRMEngine\PipeLine\TRMPathMiddlewareDecorator;
 use TRMEngine\PipeLine\TRMPipeLine;
 
 /**
- * основной класс для приложения, позволяет задавать цепочки для последовательного выполнения MiddlewareInterface->process()
+ * РѕСЃРЅРѕРІРЅРѕР№ РєР»Р°СЃСЃ РґР»СЏ РїСЂРёР»РѕР¶РµРЅРёСЏ, РїРѕР·РІРѕР»СЏРµС‚ Р·Р°РґР°РІР°С‚СЊ С†РµРїРѕС‡РєРё РґР»СЏ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ MiddlewareInterface->process()
  *
  * @author TRM
  */
@@ -17,7 +17,7 @@ class TRMApplication implements RequestHandlerInterface
 {
 /**
  *
- * @var TRMPipeLine - Цепочка посредников (Middleware)
+ * @var TRMPipeLine - Р¦РµРїРѕС‡РєР° РїРѕСЃСЂРµРґРЅРёРєРѕРІ (Middleware)
  */
 private $PipeLine;
 

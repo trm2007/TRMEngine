@@ -6,33 +6,33 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMParentedDataObjectInterface;
 
 /**
- * класс для работы с коллекцией объектов данных, у которых есть ID-родителя
- * фактически данные представлены таблицей в виде двумерного массива
+ * РєР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РєРѕР»Р»РµРєС†РёРµР№ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…, Сѓ РєРѕС‚РѕСЂС‹С… РµСЃС‚СЊ ID-СЂРѕРґРёС‚РµР»СЏ
+ * С„Р°РєС‚РёС‡РµСЃРєРё РґР°РЅРЅС‹Рµ РїСЂРµРґСЃС‚Р°РІР»РµРЅС‹ С‚Р°Р±Р»РёС†РµР№ РІ РІРёРґРµ РґРІСѓРјРµСЂРЅРѕРіРѕ РјР°СЃСЃРёРІР°
  *
  * @author TRM
  */
 abstract class TRMParentedDataObject extends TRMDataObject implements TRMParentedDataObjectInterface
 {
 /**
- * @var array - массив = (имя объекта, имя свойства) содержащего Id родителя в коллекции,
- * должен определяться в каждом дочернем классе со своими именами
+ * @var array - РјР°СЃСЃРёРІ = (РёРјСЏ РѕР±СЉРµРєС‚Р°, РёРјСЏ СЃРІРѕР№СЃС‚РІР°) СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ Id СЂРѕРґРёС‚РµР»СЏ РІ РєРѕР»Р»РµРєС†РёРё,
+ * РґРѕР»Р¶РµРЅ РѕРїСЂРµРґРµР»СЏС‚СЊСЃСЏ РІ РєР°Р¶РґРѕРј РґРѕС‡РµСЂРЅРµРј РєР»Р°СЃСЃРµ СЃРѕ СЃРІРѕРёРјРё РёРјРµРЅР°РјРё
  */
 // static protected $ParentIdFieldName;
 /**
- * @var TRMIdDataObjectInterface - ссылка на объект родителя для набора из текущей коллекции...
+ * @var TRMIdDataObjectInterface - СЃСЃС‹Р»РєР° РЅР° РѕР±СЉРµРєС‚ СЂРѕРґРёС‚РµР»СЏ РґР»СЏ РЅР°Р±РѕСЂР° РёР· С‚РµРєСѓС‰РµР№ РєРѕР»Р»РµРєС†РёРё...
  */
 protected $ParentDataObject = null;
 
 
 /**
- * @return array - имя свойства содержащего Id родителя в коллекции
+ * @return array - РёРјСЏ СЃРІРѕР№СЃС‚РІР° СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ Id СЂРѕРґРёС‚РµР»СЏ РІ РєРѕР»Р»РµРєС†РёРё
  */
 static public function getParentIdFieldName()
 {
     return static::$ParentIdFieldName;
 }
 /**
- * @param array $ParentIdFieldName - имя свойства содержащего Id родителя в коллекции
+ * @param array $ParentIdFieldName - РёРјСЏ СЃРІРѕР№СЃС‚РІР° СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ Id СЂРѕРґРёС‚РµР»СЏ РІ РєРѕР»Р»РµРєС†РёРё
  */
 static public function setParentIdFieldName(array $ParentIdFieldName)
 {
@@ -42,7 +42,7 @@ static public function setParentIdFieldName(array $ParentIdFieldName)
 }
 
 /**
- * @return TRMIdDataObjectInterface - возвращает объект родителя
+ * @return TRMIdDataObjectInterface - РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚ СЂРѕРґРёС‚РµР»СЏ
  */
 function getParentDataObject()
 {
@@ -50,8 +50,8 @@ function getParentDataObject()
 }
 
 /**
- * @param TRMIdDataObjectInterface $ParentDataObject - устанавливает объект родителя, 
- * при этом меняются все родительские Id в коллекции
+ * @param TRMIdDataObjectInterface $ParentDataObject - СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РѕР±СЉРµРєС‚ СЂРѕРґРёС‚РµР»СЏ, 
+ * РїСЂРё СЌС‚РѕРј РјРµРЅСЏСЋС‚СЃСЏ РІСЃРµ СЂРѕРґРёС‚РµР»СЊСЃРєРёРµ Id РІ РєРѕР»Р»РµРєС†РёРё
  */
 function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject)
 {
@@ -60,10 +60,10 @@ function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject)
 }
 
 /**
- * вспомогательная функция, меняет все значения поля родительского ID для коллекции 
- * на значение ID из родительского объекта, 
- * используется только в функциях копирования, установки всей коллекции из другого объекта, и смены родителя.
- * если родительский объект еще не установлен, то все значения родительскиго Id будут установлены в null
+ * РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ С„СѓРЅРєС†РёСЏ, РјРµРЅСЏРµС‚ РІСЃРµ Р·РЅР°С‡РµРЅРёСЏ РїРѕР»СЏ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ ID РґР»СЏ РєРѕР»Р»РµРєС†РёРё 
+ * РЅР° Р·РЅР°С‡РµРЅРёРµ ID РёР· СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ РѕР±СЉРµРєС‚Р°, 
+ * РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ С‚РѕР»СЊРєРѕ РІ С„СѓРЅРєС†РёСЏС… РєРѕРїРёСЂРѕРІР°РЅРёСЏ, СѓСЃС‚Р°РЅРѕРІРєРё РІСЃРµР№ РєРѕР»Р»РµРєС†РёРё РёР· РґСЂСѓРіРѕРіРѕ РѕР±СЉРµРєС‚Р°, Рё СЃРјРµРЅС‹ СЂРѕРґРёС‚РµР»СЏ.
+ * РµСЃР»Рё СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ РѕР±СЉРµРєС‚ РµС‰Рµ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ, С‚Рѕ РІСЃРµ Р·РЅР°С‡РµРЅРёСЏ СЂРѕРґРёС‚РµР»СЊСЃРєРёРіРѕ Id Р±СѓРґСѓС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅС‹ РІ null
  */
 private function changeParentIdForCurrentParent()
 {

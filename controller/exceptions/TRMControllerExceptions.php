@@ -5,38 +5,38 @@ namespace TRMEngine\Controller\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * выбрасывается если не указан Controller
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РµСЃР»Рё РЅРµ СѓРєР°Р·Р°РЅ Controller
  */
 class TRMNoControllerException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Имя контроллера не указано! " . PHP_EOL;
+        $message .= PHP_EOL . " РРјСЏ РєРѕРЅС‚СЂРѕР»Р»РµСЂР° РЅРµ СѓРєР°Р·Р°РЅРѕ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMNoControllerException
 
 
 /**
- * выбрасывается, если не указан Action
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё РЅРµ СѓРєР°Р·Р°РЅ Action
  */
 class TRMNoActionException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Не указано имя Action! " . PHP_EOL;
+        $message .= PHP_EOL . " РќРµ СѓРєР°Р·Р°РЅРѕ РёРјСЏ Action! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMNoActionException
 
 
 /**
- * исключение выбрасывается, как правило кнтроллером, если должен быть запущен другой Action
+ * РёСЃРєР»СЋС‡РµРЅРёРµ РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РєР°Рє РїСЂР°РІРёР»Рѕ РєРЅС‚СЂРѕР»Р»РµСЂРѕРј, РµСЃР»Рё РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ Р·Р°РїСѓС‰РµРЅ РґСЂСѓРіРѕР№ Action
  */
 class TRMMustStartOtherActionException extends TRMException
 {
     /**
-     * @var string - имя функции-Action, которая должна быть запушена
+     * @var string - РёРјСЏ С„СѓРЅРєС†РёРё-Action, РєРѕС‚РѕСЂР°СЏ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ Р·Р°РїСѓС€РµРЅР°
      */
     protected $ActionName = "";
 

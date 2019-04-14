@@ -10,14 +10,14 @@ use TRMEngine\PathFinder\Exceptions\TRMControllerNotFoundedException;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
- * запускает выплонение найденного в TRMPathFinder контроллера с нужным методом!
+ * Р·Р°РїСѓСЃРєР°РµС‚ РІС‹РїР»РѕРЅРµРЅРёРµ РЅР°Р№РґРµРЅРЅРѕРіРѕ РІ TRMPathFinder РєРѕРЅС‚СЂРѕР»Р»РµСЂР° СЃ РЅСѓР¶РЅС‹Рј РјРµС‚РѕРґРѕРј!
  */
 class TRMPathDispatcher implements RequestHandlerInterface
 {
 
 /**
  * {@inheritDoc}
- * для найденного маршрута создает экземпляр контроллера и вызывает его функцию-action
+ * РґР»СЏ РЅР°Р№РґРµРЅРЅРѕРіРѕ РјР°СЂС€СЂСѓС‚Р° СЃРѕР·РґР°РµС‚ СЌРєР·РµРјРїР»СЏСЂ РєРѕРЅС‚СЂРѕР»Р»РµСЂР° Рё РІС‹Р·С‹РІР°РµС‚ РµРіРѕ С„СѓРЅРєС†РёСЋ-action
  * 
  * @throws TRMControllerNotFoundedException
  * @throws TRMActionNotFoundedException
@@ -33,8 +33,8 @@ public function handle( Request $Request )
 
     try
     {
-        // если для выбранного Action требуется выполнить функцию отличную от имени actionAction,
-        // то выбрасывается исключение, где контроллер сообщает какая функция должна быть вызвана...
+        // РµСЃР»Рё РґР»СЏ РІС‹Р±СЂР°РЅРЅРѕРіРѕ Action С‚СЂРµР±СѓРµС‚СЃСЏ РІС‹РїРѕР»РЅРёС‚СЊ С„СѓРЅРєС†РёСЋ РѕС‚Р»РёС‡РЅСѓСЋ РѕС‚ РёРјРµРЅРё actionAction,
+        // С‚Рѕ РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ, РіРґРµ РєРѕРЅС‚СЂРѕР»Р»РµСЂ СЃРѕРѕР±С‰Р°РµС‚ РєР°РєР°СЏ С„СѓРЅРєС†РёСЏ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РІС‹Р·РІР°РЅР°...
         $TRMObject = new $Controller( $Request );
     }
     catch (TRMMustStartOtherActionException $e)

@@ -5,39 +5,39 @@ namespace TRMEngine\Repository\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * выбрасывается, если репозиторий не смог получить объект
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё СЂРµРїРѕР·РёС‚РѕСЂРёР№ РЅРµ СЃРјРѕРі РїРѕР»СѓС‡РёС‚СЊ РѕР±СЉРµРєС‚
  */
 class TRMRepositoryGetObjectException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошика при работе с репозиториями! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёРєР° РїСЂРё СЂР°Р±РѕС‚Рµ СЃ СЂРµРїРѕР·РёС‚РѕСЂРёСЏРјРё! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * выбрасывается, если в репозитории не установлена ссылка на объект данных
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё РІ СЂРµРїРѕР·РёС‚РѕСЂРёРё РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅР° СЃСЃС‹Р»РєР° РЅР° РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С…
  */
 class TRMRepositoryNoDataObjectException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Не установлен объект с данными в репозитории! " . PHP_EOL;
+        $message .= PHP_EOL . " РќРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё РІ СЂРµРїРѕР·РёС‚РѕСЂРёРё! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * выбрасывается, если репозиторий не знает объект данных такого типа
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё СЂРµРїРѕР·РёС‚РѕСЂРёР№ РЅРµ Р·РЅР°РµС‚ РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С… С‚Р°РєРѕРіРѕ С‚РёРїР°
  */
 class TRMRepositoryUnknowDataObjectClassException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Объект неизвестного класса передан в репозиторий! " . PHP_EOL;
+        $message .= PHP_EOL . " РћР±СЉРµРєС‚ РЅРµРёР·РІРµСЃС‚РЅРѕРіРѕ РєР»Р°СЃСЃР° РїРµСЂРµРґР°РЅ РІ СЂРµРїРѕР·РёС‚РѕСЂРёР№! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }

@@ -5,72 +5,72 @@ namespace TRMEngine\DataSource\Exceptions;
 use TRMEngine\Exceptions\TRMSqlQueryException;
 
 /**
- * Класс исключения, которое должно выбрасываться, 
- * если неудачно отработал метод INSERT в SQL-запросе
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ, 
+ * РµСЃР»Рё РЅРµСѓРґР°С‡РЅРѕ РѕС‚СЂР°Р±РѕС‚Р°Р» РјРµС‚РѕРґ INSERT РІ SQL-Р·Р°РїСЂРѕСЃРµ
  */
 class TRMDataSourceSQLInsertException extends TRMSqlQueryException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . "  Не удалось добавить запись! " . PHP_EOL;
+        $message .= PHP_EOL . "  РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ Р·Р°РїРёСЃСЊ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 /**
- * Класс исключения, которое должно выбрасываться, 
- * если в SQL-запросе нет таблиц, из которых нужно длеть выборку,
- * это может быть просто путой объект DataMapper
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ, 
+ * РµСЃР»Рё РІ SQL-Р·Р°РїСЂРѕСЃРµ РЅРµС‚ С‚Р°Р±Р»РёС†, РёР· РєРѕС‚РѕСЂС‹С… РЅСѓР¶РЅРѕ РґР»РµС‚СЊ РІС‹Р±РѕСЂРєСѓ,
+ * СЌС‚Рѕ РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСЂРѕСЃС‚Рѕ РїСѓС‚РѕР№ РѕР±СЉРµРєС‚ DataMapper
  */
 class TRMDataSourceSQLEmptyTablesListException extends TRMSqlQueryException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . "  Пустой список таблиц для запроса SELECT! " . PHP_EOL;
+        $message .= PHP_EOL . "  РџСѓСЃС‚РѕР№ СЃРїРёСЃРѕРє С‚Р°Р±Р»РёС† РґР»СЏ Р·Р°РїСЂРѕСЃР° SELECT! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * Класс исключения, которое должно выбрасываться, 
- * если в объект SQLDataSource не передан DataMapper = SafetyFields
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ, 
+ * РµСЃР»Рё РІ РѕР±СЉРµРєС‚ SQLDataSource РЅРµ РїРµСЂРµРґР°РЅ DataMapper = SafetyFields
  */
 class TRMDataSourceSQLNoSafetyFieldsException extends TRMSqlQueryException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . "  Не установлен объект SafetyFields! " . PHP_EOL;
+        $message .= PHP_EOL . "  РќРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РѕР±СЉРµРєС‚ SafetyFields! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * Класс исключения, которое должно выбрасываться, 
- * если не удалось отсортировать объекты в DataMapper, в соответсвии с зависимостями,
- * скорее всего он был не правильно сформирован
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ, 
+ * РµСЃР»Рё РЅРµ СѓРґР°Р»РѕСЃСЊ РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РѕР±СЉРµРєС‚С‹ РІ DataMapper, РІ СЃРѕРѕС‚РІРµС‚СЃРІРёРё СЃ Р·Р°РІРёСЃРёРјРѕСЃС‚СЏРјРё,
+ * СЃРєРѕСЂРµРµ РІСЃРµРіРѕ РѕРЅ Р±С‹Р» РЅРµ РїСЂР°РІРёР»СЊРЅРѕ СЃС„РѕСЂРјРёСЂРѕРІР°РЅ
  */
 class TRMDataSourceWrongTableSortException extends TRMSqlQueryException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . "  Отсортировать массив с таблицами не удалось! " . PHP_EOL;
+        $message .= PHP_EOL . "  РћС‚СЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РјР°СЃСЃРёРІ СЃ С‚Р°Р±Р»РёС†Р°РјРё РЅРµ СѓРґР°Р»РѕСЃСЊ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * Класс исключения, которое должно выбрасываться, 
- * если в методах вставки и обновления 
- * не удалось получить доступные для обновления поля из DataMapper
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ, 
+ * РµСЃР»Рё РІ РјРµС‚РѕРґР°С… РІСЃС‚Р°РІРєРё Рё РѕР±РЅРѕРІР»РµРЅРёСЏ 
+ * РЅРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ РїРѕР»СЏ РёР· DataMapper
  */
 class TRMDataSourceNoUpdatebleFieldsException extends TRMSqlQueryException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . "  Нет полей для обновления! " . PHP_EOL;
+        $message .= PHP_EOL . "  РќРµС‚ РїРѕР»РµР№ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }

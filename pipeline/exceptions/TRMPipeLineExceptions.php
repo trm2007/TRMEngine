@@ -5,8 +5,8 @@ namespace TRMEngine\PipeLine\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * это исключение должно выбрасываться в случае,
- * если посредник вернет объект отличный от Response
+ * СЌС‚Рѕ РёСЃРєР»СЋС‡РµРЅРёРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РІ СЃР»СѓС‡Р°Рµ,
+ * РµСЃР»Рё РїРѕСЃСЂРµРґРЅРёРє РІРµСЂРЅРµС‚ РѕР±СЉРµРєС‚ РѕС‚Р»РёС‡РЅС‹Р№ РѕС‚ Response
  */
 class TRMMiddlewareBadResponseException extends TRMException
 {
@@ -15,7 +15,7 @@ class TRMMiddlewareBadResponseException extends TRMException
      */
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Посредник возвращает объект отличный от Response " . PHP_EOL;
+        $message .= PHP_EOL . " РџРѕСЃСЂРµРґРЅРёРє РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚ РѕС‚Р»РёС‡РЅС‹Р№ РѕС‚ Response " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMMiddlewareBadResponseException

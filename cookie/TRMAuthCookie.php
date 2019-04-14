@@ -8,42 +8,42 @@ use TRMEngine\Cookies\Exceptions\TRMAuthCookieException;
 class TRMAuthCookie extends TRMCookie
 { 
 /**
- * @var time время создания
+ * @var time РІСЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ
  */
 private $created;
 /**
- * @var string имя пользователя
+ * @var string РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
  */
 private $username;
 /**
- * @var int версия созданного cookie-фала авторизации
+ * @var int РІРµСЂСЃРёСЏ СЃРѕР·РґР°РЅРЅРѕРіРѕ cookie-С„Р°Р»Р° Р°РІС‚РѕСЂРёР·Р°С†РёРё
  */
 private $version;
 /**
- * @var string имя cookie 
+ * @var string РёРјСЏ cookie 
  */
 protected $cookiename = "";
 /**
- * @var int версия cookie
+ * @var int РІРµСЂСЃРёСЏ cookie
  */
 protected static $myversion = "3";
 /**
- * @var time  срок действия cookie (0 - на 1 год )
+ * @var time  СЃСЂРѕРє РґРµР№СЃС‚РІРёСЏ cookie (0 - РЅР° 1 РіРѕРґ )
  */
 protected static $expiration = 0;
 /**
- * @var int период повторного выпуска cookie в сек.
+ * @var int РїРµСЂРёРѕРґ РїРѕРІС‚РѕСЂРЅРѕРіРѕ РІС‹РїСѓСЃРєР° cookie РІ СЃРµРє.
  */
 protected static $warning   = 30;
 /**
- * @var char разделитель значений в текущем cookie
+ * @var char СЂР°Р·РґРµР»РёС‚РµР»СЊ Р·РЅР°С‡РµРЅРёР№ РІ С‚РµРєСѓС‰РµРј cookie
  */
 protected static $glue = '|';
 
 /**
- * @param string $cookiename - имя cookie для авторизации, желательно создавать один для всего проекта
- * @param string $username - имя пользователя, если не задано, 
- * то пытается получить уже записанный Cookie или оставляет пустым
+ * @param string $cookiename - РёРјСЏ cookie РґР»СЏ Р°РІС‚РѕСЂРёР·Р°С†РёРё, Р¶РµР»Р°С‚РµР»СЊРЅРѕ СЃРѕР·РґР°РІР°С‚СЊ РѕРґРёРЅ РґР»СЏ РІСЃРµРіРѕ РїСЂРѕРµРєС‚Р°
+ * @param string $username - РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ, РµСЃР»Рё РЅРµ Р·Р°РґР°РЅРѕ, 
+ * С‚Рѕ РїС‹С‚Р°РµС‚СЃСЏ РїРѕР»СѓС‡РёС‚СЊ СѓР¶Рµ Р·Р°РїРёСЃР°РЅРЅС‹Р№ Cookie РёР»Рё РѕСЃС‚Р°РІР»СЏРµС‚ РїСѓСЃС‚С‹Рј
  */
 public function __construct( $cookiename, $username = "" ) 
 {
@@ -60,17 +60,17 @@ public function __construct( $cookiename, $username = "" )
             $this->_unpackage($tmpcookie);
         }
     }
-    else // если передано имя пользователя, проверяем на валидность
+    else // РµСЃР»Рё РїРµСЂРµРґР°РЅРѕ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ, РїСЂРѕРІРµСЂСЏРµРј РЅР° РІР°Р»РёРґРЅРѕСЃС‚СЊ
     {
         $this->validate();
     }
 }
 
 /**
- * устанавливаем cookie для аторизации,
- * можно передать новое имя пользователя для записив Cookie
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј cookie РґР»СЏ Р°С‚РѕСЂРёР·Р°С†РёРё,
+ * РјРѕР¶РЅРѕ РїРµСЂРµРґР°С‚СЊ РЅРѕРІРѕРµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РґР»СЏ Р·Р°РїРёСЃРёРІ Cookie
  * 
- * @param string $username - можно установить нового пользователя
+ * @param string $username - РјРѕР¶РЅРѕ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
  * @throws TRMAuthCookieException
  */
 public function setauth( $username = "" )
@@ -84,12 +84,12 @@ public function setauth( $username = "" )
 
     if( !parent::set($this->cookiename, $cookie, (self::$expiration>0) ? ($this->created+self::$expiration) : (365*24*60*60) ) )
     {
-        throw new TRMAuthCookieException( "Не могу создать COOKIE " . $this->cookiename );
+        throw new TRMAuthCookieException( "РќРµ РјРѕРіСѓ СЃРѕР·РґР°С‚СЊ COOKIE " . $this->cookiename );
     }
 }
 
 /**
- * получаем имя текущего пользователя 
+ * РїРѕР»СѓС‡Р°РµРј РёРјСЏ С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ 
  * 
  * @return string
  */
@@ -99,9 +99,9 @@ public function getUser()
 }
 
 /**
- * устанавливает новое имя текущего пользователя,
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РЅРѕРІРѕРµ РёРјСЏ С‚РµРєСѓС‰РµРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ,
  * 
- * @param string $username - можно установить нового пользователя
+ * @param string $username - РјРѕР¶РЅРѕ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РЅРѕРІРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
  */
 public function setUser($username)
 {
@@ -109,7 +109,7 @@ public function setUser($username)
 }
 
 /**
- * проверяет правильность cookie для авторизации,
+ * РїСЂРѕРІРµСЂСЏРµС‚ РїСЂР°РІРёР»СЊРЅРѕСЃС‚СЊ cookie РґР»СЏ Р°РІС‚РѕСЂРёР·Р°С†РёРё,
  * 
  * @throws TRMAuthCookieException
  */
@@ -117,22 +117,22 @@ public function validate()
 {
     if( !is_string( $this->username ) )
     {
-        throw new TRMAuthCookieException("Cookie авторизации содержит недопустимое имя пользователя!");
+        throw new TRMAuthCookieException("Cookie Р°РІС‚РѕСЂРёР·Р°С†РёРё СЃРѕРґРµСЂР¶РёС‚ РЅРµРґРѕРїСѓСЃС‚РёРјРѕРµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ!");
     }
 
     if( $this->version != self::$myversion )
     {
-        throw new TRMAuthCookieException("Несоответствие версии Сookie авторизации!");
+        throw new TRMAuthCookieException("РќРµСЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ РІРµСЂСЃРёРё РЎookie Р°РІС‚РѕСЂРёР·Р°С†РёРё!");
     }
 
     if( self::$expiration>0 && (time() - $this->created) > self::$expiration )
     {
-        throw new TRMAuthCookieException("Истек срок действия Сookie авторизации!");
+        throw new TRMAuthCookieException("РСЃС‚РµРє СЃСЂРѕРє РґРµР№СЃС‚РІРёСЏ РЎookie Р°РІС‚РѕСЂРёР·Р°С†РёРё!");
     }
 }
 
 /**
- * выход - просто удаляем cookie
+ * РІС‹С…РѕРґ - РїСЂРѕСЃС‚Рѕ СѓРґР°Р»СЏРµРј cookie
  */
 public function logout()
 {
@@ -141,10 +141,10 @@ public function logout()
 }
 
 /**
- * упаковывает cookie в строку для передачи клиенту,
- * перед упаковкой проверяет
+ * СѓРїР°РєРѕРІС‹РІР°РµС‚ cookie РІ СЃС‚СЂРѕРєСѓ РґР»СЏ РїРµСЂРµРґР°С‡Рё РєР»РёРµРЅС‚Сѓ,
+ * РїРµСЂРµРґ СѓРїР°РєРѕРІРєРѕР№ РїСЂРѕРІРµСЂСЏРµС‚
  * 
- * @return string сериализованную строку с cookie
+ * @return string СЃРµСЂРёР°Р»РёР·РѕРІР°РЅРЅСѓСЋ СЃС‚СЂРѕРєСѓ СЃ cookie
  */
 private function _package()
 {
@@ -156,8 +156,8 @@ private function _package()
 }
 
 /**
- * распаковывает строку с cookie полученную от клиента,
- * проверяет на валидность 
+ * СЂР°СЃРїР°РєРѕРІС‹РІР°РµС‚ СЃС‚СЂРѕРєСѓ СЃ cookie РїРѕР»СѓС‡РµРЅРЅСѓСЋ РѕС‚ РєР»РёРµРЅС‚Р°,
+ * РїСЂРѕРІРµСЂСЏРµС‚ РЅР° РІР°Р»РёРґРЅРѕСЃС‚СЊ 
  * 
  * @param string $cookie
  */
@@ -170,7 +170,7 @@ private function _unpackage($cookie)
 }
 
 /**
- * обновляет время Cookie
+ * РѕР±РЅРѕРІР»СЏРµС‚ РІСЂРµРјСЏ Cookie
  */
 private function _reissue()
 {

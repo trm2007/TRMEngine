@@ -7,24 +7,24 @@ use TRMEngine\DataMapper\TRMDataMapper;
 use TRMEngine\TRMDBObject;
 
 /**
- * TRMSafetyFields - DataMappaer с возможностью получать свойств полей для таблиц из БД,
- * основная логика работы вынесена в TRMDataMapper
+ * TRMSafetyFields - DataMappaer СЃ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊСЋ РїРѕР»СѓС‡Р°С‚СЊ СЃРІРѕР№СЃС‚РІ РїРѕР»РµР№ РґР»СЏ С‚Р°Р±Р»РёС† РёР· Р‘Р”,
+ * РѕСЃРЅРѕРІРЅР°СЏ Р»РѕРіРёРєР° СЂР°Р±РѕС‚С‹ РІС‹РЅРµСЃРµРЅР° РІ TRMDataMapper
  *
  * @author TRM - 2018-08-26
  */
 class TRMSafetyFields extends TRMDataMapper
 {
 /**
- * индекс в массиве для псевдонима таблицы
+ * РёРЅРґРµРєСЃ РІ РјР°СЃСЃРёРІРµ РґР»СЏ РїСЃРµРІРґРѕРЅРёРјР° С‚Р°Р±Р»РёС†С‹
  */
 const TABLEALIAS_INDEX  = "TableAlias";
 
 
 /**
- * устанавливает псевдоним для таблицы $TableName, если он установлен
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РїСЃРµРІРґРѕРЅРёРј РґР»СЏ С‚Р°Р±Р»РёС†С‹ $TableName, РµСЃР»Рё РѕРЅ СѓСЃС‚Р°РЅРѕРІР»РµРЅ
  * 
- * @param string $TableName - имя таблицы
- * @param string $TableAlias - псевдоним для таблицы, используемый в запросах
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹
+ * @param string $TableAlias - РїСЃРµРІРґРѕРЅРёРј РґР»СЏ С‚Р°Р±Р»РёС†С‹, РёСЃРїРѕР»СЊР·СѓРµРјС‹Р№ РІ Р·Р°РїСЂРѕСЃР°С…
  */
 public function setAliasForTableName($TableName, $TableAlias)
 {
@@ -33,10 +33,10 @@ public function setAliasForTableName($TableName, $TableAlias)
 }
 
 /**
- * @param string $TableName - имя таблицы
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹
  * 
- * @return возвращает псевдоним для таблицы $TableName, если он установлен,
- * если не задан, то вернет null
+ * @return РІРѕР·РІСЂР°С‰Р°РµС‚ РїСЃРµРІРґРѕРЅРёРј РґР»СЏ С‚Р°Р±Р»РёС†С‹ $TableName, РµСЃР»Рё РѕРЅ СѓСЃС‚Р°РЅРѕРІР»РµРЅ,
+ * РµСЃР»Рё РЅРµ Р·Р°РґР°РЅ, С‚Рѕ РІРµСЂРЅРµС‚ null
  */
 public function getAliasForTableName( $TableName )
 {
@@ -46,16 +46,16 @@ public function getAliasForTableName( $TableName )
 }
 
 /**
- * генерирует массив допустимых для записи и чтения полей на основании запроса данных о таблице из БД,
- * обрамляет имена полей в апострофы и добавляет имя таблицы или имяа, если установлено,
- * новые значения будут добавлены к уже существующему массиву с полями,
- * можно добавлять несколько таблиц с различными значениями для статусов их полей,
- * перед началом работы с новым набором данных необходимо вызвать clear, 
- * чтобы очистить текущий набор состояний полей
+ * РіРµРЅРµСЂРёСЂСѓРµС‚ РјР°СЃСЃРёРІ РґРѕРїСѓСЃС‚РёРјС‹С… РґР»СЏ Р·Р°РїРёСЃРё Рё С‡С‚РµРЅРёСЏ РїРѕР»РµР№ РЅР° РѕСЃРЅРѕРІР°РЅРёРё Р·Р°РїСЂРѕСЃР° РґР°РЅРЅС‹С… Рѕ С‚Р°Р±Р»РёС†Рµ РёР· Р‘Р”,
+ * РѕР±СЂР°РјР»СЏРµС‚ РёРјРµРЅР° РїРѕР»РµР№ РІ Р°РїРѕСЃС‚СЂРѕС„С‹ Рё РґРѕР±Р°РІР»СЏРµС‚ РёРјСЏ С‚Р°Р±Р»РёС†С‹ РёР»Рё РёРјСЏР°, РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ,
+ * РЅРѕРІС‹Рµ Р·РЅР°С‡РµРЅРёСЏ Р±СѓРґСѓС‚ РґРѕР±Р°РІР»РµРЅС‹ Рє СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµРјСѓ РјР°СЃСЃРёРІСѓ СЃ РїРѕР»СЏРјРё,
+ * РјРѕР¶РЅРѕ РґРѕР±Р°РІР»СЏС‚СЊ РЅРµСЃРєРѕР»СЊРєРѕ С‚Р°Р±Р»РёС† СЃ СЂР°Р·Р»РёС‡РЅС‹РјРё Р·РЅР°С‡РµРЅРёСЏРјРё РґР»СЏ СЃС‚Р°С‚СѓСЃРѕРІ РёС… РїРѕР»РµР№,
+ * РїРµСЂРµРґ РЅР°С‡Р°Р»РѕРј СЂР°Р±РѕС‚С‹ СЃ РЅРѕРІС‹Рј РЅР°Р±РѕСЂРѕРј РґР°РЅРЅС‹С… РЅРµРѕР±С…РѕРґРёРјРѕ РІС‹Р·РІР°С‚СЊ clear, 
+ * С‡С‚РѕР±С‹ РѕС‡РёСЃС‚РёС‚СЊ С‚РµРєСѓС‰РёР№ РЅР°Р±РѕСЂ СЃРѕСЃС‚РѕСЏРЅРёР№ РїРѕР»РµР№
  *
- * @param string $TableName - имя таблицы, для которой устанавливается набор полей
- * @param int $State - состояние, по умолчанию = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂРѕР№ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РЅР°Р±РѕСЂ РїРѕР»РµР№
+ * @param int $State - СЃРѕСЃС‚РѕСЏРЅРёРµ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ = TRM_AR_READ_ONLY_FIELD
+ * @param boolean $Extends - true - РґР°РЅРЅС‹Рµ РёР· СЃС…РµРјС‹ Р‘Р”, false - РґР°РЅРЅС‹Рµ РёР· show columns
  */
 public function generateSafetyFromDB($TableName, $State = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
 {
@@ -63,20 +63,20 @@ public function generateSafetyFromDB($TableName, $State = TRMDataMapper::READ_ON
 }
 
 /**
- * дополняет уже заполненный мссив $this->SafetyFieldsArray данными из БД,
- * если массив не заданы хотя бы ассоциативные ключи, соответвующие именам таблиц в БД, 
- * то будет выброщено исключение
+ * РґРѕРїРѕР»РЅСЏРµС‚ СѓР¶Рµ Р·Р°РїРѕР»РЅРµРЅРЅС‹Р№ РјСЃСЃРёРІ $this->SafetyFieldsArray РґР°РЅРЅС‹РјРё РёР· Р‘Р”,
+ * РµСЃР»Рё РјР°СЃСЃРёРІ РЅРµ Р·Р°РґР°РЅС‹ С…РѕС‚СЏ Р±С‹ Р°СЃСЃРѕС†РёР°С‚РёРІРЅС‹Рµ РєР»СЋС‡Рё, СЃРѕРѕС‚РІРµС‚РІСѓСЋС‰РёРµ РёРјРµРЅР°Рј С‚Р°Р±Р»РёС† РІ Р‘Р”, 
+ * С‚Рѕ Р±СѓРґРµС‚ РІС‹Р±СЂРѕС‰РµРЅРѕ РёСЃРєР»СЋС‡РµРЅРёРµ
  * 
- * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+ * @param boolean $Extends - true - РґР°РЅРЅС‹Рµ РёР· СЃС…РµРјС‹ Р‘Р”, false - РґР°РЅРЅС‹Рµ РёР· show columns
  * 
- * @throws TRMDataMapperEmptySafetyFieldsArrayException - если данные о полях таблицы получить не удалось, то выбрасывается исключение
+ * @throws TRMDataMapperEmptySafetyFieldsArrayException - РµСЃР»Рё РґР°РЅРЅС‹Рµ Рѕ РїРѕР»СЏС… С‚Р°Р±Р»РёС†С‹ РїРѕР»СѓС‡РёС‚СЊ РЅРµ СѓРґР°Р»РѕСЃСЊ, С‚Рѕ РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ
  */
 public function completeSafetyFieldsFromDB($Extends = false)
 {
     if( empty($this->SafetyFieldsArray) )
     {
-        throw new TRMDataMapperEmptySafetyFieldsArrayException( __METHOD__ . " Массив SafetyFieldsArray - пустой, "
-                . "необходимо указать хотябы имена таблиц как ключи массива array( TableName => array(...), ... )" );
+        throw new TRMDataMapperEmptySafetyFieldsArrayException( __METHOD__ . " РњР°СЃСЃРёРІ SafetyFieldsArray - РїСѓСЃС‚РѕР№, "
+                . "РЅРµРѕР±С…РѕРґРёРјРѕ СѓРєР°Р·Р°С‚СЊ С…РѕС‚СЏР±С‹ РёРјРµРЅР° С‚Р°Р±Р»РёС† РєР°Рє РєР»СЋС‡Рё РјР°СЃСЃРёРІР° array( TableName => array(...), ... )" );
     }
     foreach( array_keys($this->SafetyFieldsArray) as $TableName )
     {
@@ -86,13 +86,13 @@ public function completeSafetyFieldsFromDB($Extends = false)
 }
 
 /**
- * вспомогательная функция, устанавливает параметры полей в массив $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
- * все старые значения для этого поля стираются
+ * РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ С„СѓРЅРєС†РёСЏ, СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РїР°СЂР°РјРµС‚СЂС‹ РїРѕР»РµР№ РІ РјР°СЃСЃРёРІ $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
+ * РІСЃРµ СЃС‚Р°СЂС‹Рµ Р·РЅР°С‡РµРЅРёСЏ РґР»СЏ СЌС‚РѕРіРѕ РїРѕР»СЏ СЃС‚РёСЂР°СЋС‚СЃСЏ
  * 
- * @param string $TableName - имя таблицы, для которой устанавливается набор полей
- * @param array $Cols - параметры колонок в таблице БД, получается запросом SHOW COLUMNS FROM...
- * @param int $Status - состояние, по умолчанию = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂРѕР№ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РЅР°Р±РѕСЂ РїРѕР»РµР№
+ * @param array $Cols - РїР°СЂР°РјРµС‚СЂС‹ РєРѕР»РѕРЅРѕРє РІ С‚Р°Р±Р»РёС†Рµ Р‘Р”, РїРѕР»СѓС‡Р°РµС‚СЃСЏ Р·Р°РїСЂРѕСЃРѕРј SHOW COLUMNS FROM...
+ * @param int $Status - СЃРѕСЃС‚РѕСЏРЅРёРµ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ = TRM_AR_READ_ONLY_FIELD
+ * @param boolean $Extends - true - РґР°РЅРЅС‹Рµ РёР· СЃС…РµРјС‹ Р‘Р”, false - РґР°РЅРЅС‹Рµ РёР· show columns
  */
 private function setSafetyFromDB( $TableName, array $Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
 {
@@ -101,14 +101,14 @@ private function setSafetyFromDB( $TableName, array $Cols, $Status = TRMDataMapp
 }
 
 /**
- * вспомогательная функция, добавляет параметры полей в массив $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
- * старые значения перезаписываются, только если ключи совпадают,
- * несовпадающие ключи массива остаются нетронутыми
+ * РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ С„СѓРЅРєС†РёСЏ, РґРѕР±Р°РІР»СЏРµС‚ РїР°СЂР°РјРµС‚СЂС‹ РїРѕР»РµР№ РІ РјР°СЃСЃРёРІ $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
+ * СЃС‚Р°СЂС‹Рµ Р·РЅР°С‡РµРЅРёСЏ РїРµСЂРµР·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ, С‚РѕР»СЊРєРѕ РµСЃР»Рё РєР»СЋС‡Рё СЃРѕРІРїР°РґР°СЋС‚,
+ * РЅРµСЃРѕРІРїР°РґР°СЋС‰РёРµ РєР»СЋС‡Рё РјР°СЃСЃРёРІР° РѕСЃС‚Р°СЋС‚СЃСЏ РЅРµС‚СЂРѕРЅСѓС‚С‹РјРё
  * 
- * @param string $TableName - имя таблицы, для которой устанавливается набор полей
- * @param array $Cols - параметры колонок в таблице БД, получается запросом SHOW COLUMNS FROM...
- * @param int $Status - состояние, по умолчанию = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂРѕР№ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РЅР°Р±РѕСЂ РїРѕР»РµР№
+ * @param array $Cols - РїР°СЂР°РјРµС‚СЂС‹ РєРѕР»РѕРЅРѕРє РІ С‚Р°Р±Р»РёС†Рµ Р‘Р”, РїРѕР»СѓС‡Р°РµС‚СЃСЏ Р·Р°РїСЂРѕСЃРѕРј SHOW COLUMNS FROM...
+ * @param int $Status - СЃРѕСЃС‚РѕСЏРЅРёРµ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ = TRM_AR_READ_ONLY_FIELD
+ * @param boolean $Extends - true - РґР°РЅРЅС‹Рµ РёР· СЃС…РµРјС‹ Р‘Р”, false - РґР°РЅРЅС‹Рµ РёР· show columns
  */
 private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
 {
@@ -133,10 +133,10 @@ private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status
 }
 
 /**
- * @param string $TableName - имя таблицы, для которй проверяется поле на auto_increment
- * @param string $FieldName - имя поля, проверяемого на auto_increment
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂР№ РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ РїРѕР»Рµ РЅР° auto_increment
+ * @param string $FieldName - РёРјСЏ РїРѕР»СЏ, РїСЂРѕРІРµСЂСЏРµРјРѕРіРѕ РЅР° auto_increment
  * 
- * @return boolean - в случае, если поле является автоинкрементным вернется true, иначе - false
+ * @return boolean - РІ СЃР»СѓС‡Р°Рµ, РµСЃР»Рё РїРѕР»Рµ СЏРІР»СЏРµС‚СЃСЏ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅС‹Рј РІРµСЂРЅРµС‚СЃСЏ true, РёРЅР°С‡Рµ - false
  */
 public function isFieldAutoIncrement($TableName, $FieldName)
 {
@@ -149,10 +149,10 @@ public function isFieldAutoIncrement($TableName, $FieldName)
 }
 
 /**
- * @param string $TableName - имя таблицы, для которй собирается массив имен полей
- * @param string $KeyStatus - "PRI" или "UNI" или "*" - собрать массив имен полей первичного или уникального индекса или вернуть все поля таблицы, соответственно
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂР№ СЃРѕР±РёСЂР°РµС‚СЃСЏ РјР°СЃСЃРёРІ РёРјРµРЅ РїРѕР»РµР№
+ * @param string $KeyStatus - "PRI" РёР»Рё "UNI" РёР»Рё "*" - СЃРѕР±СЂР°С‚СЊ РјР°СЃСЃРёРІ РёРјРµРЅ РїРѕР»РµР№ РїРµСЂРІРёС‡РЅРѕРіРѕ РёР»Рё СѓРЅРёРєР°Р»СЊРЅРѕРіРѕ РёРЅРґРµРєСЃР° РёР»Рё РІРµСЂРЅСѓС‚СЊ РІСЃРµ РїРѕР»СЏ С‚Р°Р±Р»РёС†С‹, СЃРѕРѕС‚РІРµС‚СЃС‚РІРµРЅРЅРѕ
  * 
- * @return array - возвращает массив с именами первичных или уникальных ключей-индексов таблицы $TableName или все поля
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРµСЂРІРёС‡РЅС‹С… РёР»Рё СѓРЅРёРєР°Р»СЊРЅС‹С… РєР»СЋС‡РµР№-РёРЅРґРµРєСЃРѕРІ С‚Р°Р±Р»РёС†С‹ $TableName РёР»Рё РІСЃРµ РїРѕР»СЏ
  */
 public function getIndexFieldsNames( $TableName, $KeyStatus = "PRI" )
 {
@@ -164,11 +164,11 @@ public function getIndexFieldsNames( $TableName, $KeyStatus = "PRI" )
 }
 
 /**
- * @param string $TableName - имя таблицы, для которй собирается массив имен полей
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂР№ СЃРѕР±РёСЂР°РµС‚СЃСЏ РјР°СЃСЃРёРІ РёРјРµРЅ РїРѕР»РµР№
  * 
- * @return array - возвращает массив с именами полей таблицы $TableName доступных для записи, 
- * т.е. State которых равен 
- * TRMDataMapper::UPDATABLE_FIELD или TRMDataMapper::FULL_ACCESS_FIELD
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹ $TableName РґРѕСЃС‚СѓРїРЅС‹С… РґР»СЏ Р·Р°РїРёСЃРё, 
+ * С‚.Рµ. State РєРѕС‚РѕСЂС‹С… СЂР°РІРµРЅ 
+ * TRMDataMapper::UPDATABLE_FIELD РёР»Рё TRMDataMapper::FULL_ACCESS_FIELD
  */
 public function getUpdatableFieldsNamesFor( $TableName )
 {
@@ -179,11 +179,11 @@ public function getUpdatableFieldsNamesFor( $TableName )
 }
 
 /**
- * @param string $TableName - имя таблицы, для которй собирается массив имен полей
- * @param string $State - собирать поля доступные только для чтения/записи или все, в этом случае $State = null,
- * другие возможные варианты - TRMDataMapper::READ_ONLY_FIELD, TRMDataMapper::UPDATABLE_FIELD, TRMDataMapper::FULL_ACCESS_FIELD
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂР№ СЃРѕР±РёСЂР°РµС‚СЃСЏ РјР°СЃСЃРёРІ РёРјРµРЅ РїРѕР»РµР№
+ * @param string $State - СЃРѕР±РёСЂР°С‚СЊ РїРѕР»СЏ РґРѕСЃС‚СѓРїРЅС‹Рµ С‚РѕР»СЊРєРѕ РґР»СЏ С‡С‚РµРЅРёСЏ/Р·Р°РїРёСЃРё РёР»Рё РІСЃРµ, РІ СЌС‚РѕРј СЃР»СѓС‡Р°Рµ $State = null,
+ * РґСЂСѓРіРёРµ РІРѕР·РјРѕР¶РЅС‹Рµ РІР°СЂРёР°РЅС‚С‹ - TRMDataMapper::READ_ONLY_FIELD, TRMDataMapper::UPDATABLE_FIELD, TRMDataMapper::FULL_ACCESS_FIELD
  * 
- * @return array - возвращает массив с именами полей таблицы $TableName соответсвуюших условию $State
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹ $TableName СЃРѕРѕС‚РІРµС‚СЃРІСѓСЋС€РёС… СѓСЃР»РѕРІРёСЋ $State
  */
 public function getFieldsNamesForState( $TableName, $State = null )
 {
@@ -191,9 +191,9 @@ public function getFieldsNamesForState( $TableName, $State = null )
 }
 
 /**
- * @param string $TableName - имя таблицы, для которй собирается массив имен полей
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂР№ СЃРѕР±РёСЂР°РµС‚СЃСЏ РјР°СЃСЃРёРІ РёРјРµРЅ РїРѕР»РµР№
  * 
- * @return array - возвращает массив с именами AUTO_INCREMENT полей таблицы $TableName
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё AUTO_INCREMENT РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹ $TableName
  */
 public function getAutoIncrementFieldsNamesFor( $TableName )
 {
@@ -201,11 +201,11 @@ public function getAutoIncrementFieldsNamesFor( $TableName )
 }
 
 /**
- * @param string $TableName - имя таблицы, для которй собирается массив имен полей
- * @param string $StateName - имя проверяемого статуса поля
- * @param string $Value - искомое значение статуса поля
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂР№ СЃРѕР±РёСЂР°РµС‚СЃСЏ РјР°СЃСЃРёРІ РёРјРµРЅ РїРѕР»РµР№
+ * @param string $StateName - РёРјСЏ РїСЂРѕРІРµСЂСЏРµРјРѕРіРѕ СЃС‚Р°С‚СѓСЃР° РїРѕР»СЏ
+ * @param string $Value - РёСЃРєРѕРјРѕРµ Р·РЅР°С‡РµРЅРёРµ СЃС‚Р°С‚СѓСЃР° РїРѕР»СЏ
  * 
- * @return array - возвращает массив с именами полей таблицы $TableName соответсвуюших условию FieldsState[$StateName] == $Value
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹ $TableName СЃРѕРѕС‚РІРµС‚СЃРІСѓСЋС€РёС… СѓСЃР»РѕРІРёСЋ FieldsState[$StateName] == $Value
  */
 private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $Value = null )
 {
@@ -214,10 +214,10 @@ private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $
         return array_keys($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
     }
     /*
-     * убираем проверку, на время пока метод приватен, и вызывают его только внутренние функции с верными аргументами...
+     * СѓР±РёСЂР°РµРј РїСЂРѕРІРµСЂРєСѓ, РЅР° РІСЂРµРјСЏ РїРѕРєР° РјРµС‚РѕРґ РїСЂРёРІР°С‚РµРЅ, Рё РІС‹Р·С‹РІР°СЋС‚ РµРіРѕ С‚РѕР»СЊРєРѕ РІРЅСѓС‚СЂРµРЅРЅРёРµ С„СѓРЅРєС†РёРё СЃ РІРµСЂРЅС‹РјРё Р°СЂРіСѓРјРµРЅС‚Р°РјРё...
     if( !key_exists($StateName, self::$IndexArray) )
     {
-        throw new Exception( __METHOD__ . " неверно указан индекс для статуса поля [{$StateName}]");
+        throw new Exception( __METHOD__ . " РЅРµРІРµСЂРЅРѕ СѓРєР°Р·Р°РЅ РёРЅРґРµРєСЃ РґР»СЏ СЃС‚Р°С‚СѓСЃР° РїРѕР»СЏ [{$StateName}]");
     }
      * 
      */

@@ -9,21 +9,21 @@ use TRMEngine\Repository\Exceptions\TRMRepositoryGetObjectException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
 /**
- * управляет объектами Repository
+ * СѓРїСЂР°РІР»СЏРµС‚ РѕР±СЉРµРєС‚Р°РјРё Repository
  */
 class TRMRepositoryManager
 {
 /**
- * @var array - массив соответствий типов объектов (сущностей) их классам репозиториев (Repository)
+ * @var array - РјР°СЃСЃРёРІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёР№ С‚РёРїРѕРІ РѕР±СЉРµРєС‚РѕРІ (СЃСѓС‰РЅРѕСЃС‚РµР№) РёС… РєР»Р°СЃСЃР°Рј СЂРµРїРѕР·РёС‚РѕСЂРёРµРІ (Repository)
  */
 protected $RepositoryNameArray = array();
 
 
 /**
- * устанавливает массив соответсвий типов объектов (сущностей) их калассам хранлищ (Repository) -
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РјР°СЃСЃРёРІ СЃРѕРѕС‚РІРµС‚СЃРІРёР№ С‚РёРїРѕРІ РѕР±СЉРµРєС‚РѕРІ (СЃСѓС‰РЅРѕСЃС‚РµР№) РёС… РєР°Р»Р°СЃСЃР°Рј С…СЂР°РЅР»РёС‰ (Repository) -
  * array( $objectclassname => $repositoryclassname, ... )
  * 
- * @param array $arr - массив соответсвий типов объектов (сущностей) их калассам хранлищ (Repository)
+ * @param array $arr - РјР°СЃСЃРёРІ СЃРѕРѕС‚РІРµС‚СЃРІРёР№ С‚РёРїРѕРІ РѕР±СЉРµРєС‚РѕРІ (СЃСѓС‰РЅРѕСЃС‚РµР№) РёС… РєР°Р»Р°СЃСЃР°Рј С…СЂР°РЅР»РёС‰ (Repository)
  */
 public function setRepositoryNameArray(array $arr)
 {
@@ -34,32 +34,32 @@ public function setRepositoryNameArray(array $arr)
 }
 
 /**
- * добавляет соответсвующий объект репозитория для объектов класса $objectclassname,
- * если для $objectclassname ранее был установлен рпозиторий, он будет удален и установлен новый!
+ * РґРѕР±Р°РІР»СЏРµС‚ СЃРѕРѕС‚РІРµС‚СЃРІСѓСЋС‰РёР№ РѕР±СЉРµРєС‚ СЂРµРїРѕР·РёС‚РѕСЂРёСЏ РґР»СЏ РѕР±СЉРµРєС‚РѕРІ РєР»Р°СЃСЃР° $objectclassname,
+ * РµСЃР»Рё РґР»СЏ $objectclassname СЂР°РЅРµРµ Р±С‹Р» СѓСЃС‚Р°РЅРѕРІР»РµРЅ СЂРїРѕР·РёС‚РѕСЂРёР№, РѕРЅ Р±СѓРґРµС‚ СѓРґР°Р»РµРЅ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РЅРѕРІС‹Р№!
  * 
- * @param string $objectclassname - имя класса объектов, для которыйх устанавливает репозиторий
- * @param string $repositoryclassname - имя класса объекта Repository
+ * @param string $objectclassname - РёРјСЏ РєР»Р°СЃСЃР° РѕР±СЉРµРєС‚РѕРІ, РґР»СЏ РєРѕС‚РѕСЂС‹Р№С… СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЂРµРїРѕР·РёС‚РѕСЂРёР№
+ * @param string $repositoryclassname - РёРјСЏ РєР»Р°СЃСЃР° РѕР±СЉРµРєС‚Р° Repository
  */
 public function addRepositoryName($objectclassname, $repositoryclassname)
 {
     if( !class_exists($repositoryclassname) )
     {
-        throw new TRMRepositoryGetObjectException( "Не найден класс репозитория {$repositoryclassname} для объектов тип {$objectclassname}!");
+        throw new TRMRepositoryGetObjectException( "РќРµ РЅР°Р№РґРµРЅ РєР»Р°СЃСЃ СЂРµРїРѕР·РёС‚РѕСЂРёСЏ {$repositoryclassname} РґР»СЏ РѕР±СЉРµРєС‚РѕРІ С‚РёРї {$objectclassname}!");
     }
     $this->RepositoryNameArray[$objectclassname] = $repositoryclassname;
 }
 
 /**
- * Возвращает объект Repository для объектов тип $objectclassname
+ * Р’РѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚ Repository РґР»СЏ РѕР±СЉРµРєС‚РѕРІ С‚РёРї $objectclassname
  * 
- * @param string $objectclassname - имя типа объектов, для которых нужно получить объект хранилища
+ * @param string $objectclassname - РёРјСЏ С‚РёРїР° РѕР±СЉРµРєС‚РѕРІ, РґР»СЏ РєРѕС‚РѕСЂС‹С… РЅСѓР¶РЅРѕ РїРѕР»СѓС‡РёС‚СЊ РѕР±СЉРµРєС‚ С…СЂР°РЅРёР»РёС‰Р°
  * @return TRMRepositoryInterface
  */
 public function getRepository($objectclassname)
 {
     if( !$objectclassname )
     {
-        throw new TRMRepositoryGetObjectException("Неправильно указан тип объектов {$objectclassname}!");
+        throw new TRMRepositoryGetObjectException("РќРµРїСЂР°РІРёР»СЊРЅРѕ СѓРєР°Р·Р°РЅ С‚РёРї РѕР±СЉРµРєС‚РѕРІ {$objectclassname}!");
     }
     if( !isset($this->RepositoryNameArray[$objectclassname]) )
     {
@@ -68,7 +68,7 @@ public function getRepository($objectclassname)
             ob_start();
             TRMLib::ap($this->RepositoryNameArray);
             $debinf = ob_get_clean();
-            throw new TRMRepositoryGetObjectException( $debinf . "Не найден класс репозитория для объектов тип {$objectclassname}!");
+            throw new TRMRepositoryGetObjectException( $debinf . "РќРµ РЅР°Р№РґРµРЅ РєР»Р°СЃСЃ СЂРµРїРѕР·РёС‚РѕСЂРёСЏ РґР»СЏ РѕР±СЉРµРєС‚РѕРІ С‚РёРї {$objectclassname}!");
         }
         $this->RepositoryNameArray[$objectclassname] = $objectclassname."Repository";
     }
@@ -76,9 +76,9 @@ public function getRepository($objectclassname)
 }
 
 /**
- * Возвращает объект Repository для объекта данных $object,
+ * Р’РѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚ Repository РґР»СЏ РѕР±СЉРµРєС‚Р° РґР°РЅРЅС‹С… $object,
  * 
- * @param TRMDataObjectInterface $object - объект, для которого нужно получить объект хранилища
+ * @param TRMDataObjectInterface $object - РѕР±СЉРµРєС‚, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РЅСѓР¶РЅРѕ РїРѕР»СѓС‡РёС‚СЊ РѕР±СЉРµРєС‚ С…СЂР°РЅРёР»РёС‰Р°
  * @return TRMRepositoryInterface
  */
 public function getRepositoryFor(TRMDataObjectInterface $object)

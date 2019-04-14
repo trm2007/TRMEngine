@@ -6,42 +6,42 @@ use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 
 /**
- * класс для работы с коллекциями однотипных объектов DataObject
+ * РєР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РєРѕР»Р»РµРєС†РёСЏРјРё РѕРґРЅРѕС‚РёРїРЅС‹С… РѕР±СЉРµРєС‚РѕРІ DataObject
  * 
  * @version 2019-03-29
  */
 interface TRMDataObjectsCollectionInterface extends \ArrayAccess, \Iterator, \Countable
 {
 /**
- * @param int $Index - индекс запрашиваемого объекта в массиве-коллекции
+ * @param int $Index - РёРЅРґРµРєСЃ Р·Р°РїСЂР°С€РёРІР°РµРјРѕРіРѕ РѕР±СЉРµРєС‚Р° РІ РјР°СЃСЃРёРІРµ-РєРѕР»Р»РµРєС†РёРё
  * 
- * @return TRMDataObjectInterface - объект данных
+ * @return TRMDataObjectInterface - РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С…
  * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function getDataObject($Index);
 
 /**
- * @param int $Index - целочисленный индекс объекта в коллекции объектов
- * @param TRMDataObjectInterface $DataObject - объект для установки в коллекции
+ * @param int $Index - С†РµР»РѕС‡РёСЃР»РµРЅРЅС‹Р№ РёРЅРґРµРєСЃ РѕР±СЉРµРєС‚Р° РІ РєРѕР»Р»РµРєС†РёРё РѕР±СЉРµРєС‚РѕРІ
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РІ РєРѕР»Р»РµРєС†РёРё
  * 
  * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject);
 
 /**
- * @param TRMDataObjectInterface $DataObject - добавит это объект в коллекцию
- * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добавятся дубликаты объектов,
- * если утсановить в TRUE, то объект добавится как новый,
- * даже если он дублирует уже присутсвующий,
- * по умолчанию - false (дубли не добавляются)
+ * @param TRMDataObjectInterface $DataObject - РґРѕР±Р°РІРёС‚ СЌС‚Рѕ РѕР±СЉРµРєС‚ РІ РєРѕР»Р»РµРєС†РёСЋ
+ * @param bool $AddDuplicateFlag - РµСЃР»Рё СЌС‚РѕС‚ С„Р»Р°Рі СѓСЃС‚Р°РЅРѕРІРґРµРЅ РІ false, С‚Рѕ РІ РєРѕР»Р»РµРєС†РёСЋ РЅРµ РґРѕР±Р°РІСЏС‚СЃСЏ РґСѓР±Р»РёРєР°С‚С‹ РѕР±СЉРµРєС‚РѕРІ,
+ * РµСЃР»Рё СѓС‚СЃР°РЅРѕРІРёС‚СЊ РІ TRUE, С‚Рѕ РѕР±СЉРµРєС‚ РґРѕР±Р°РІРёС‚СЃСЏ РєР°Рє РЅРѕРІС‹Р№,
+ * РґР°Р¶Рµ РµСЃР»Рё РѕРЅ РґСѓР±Р»РёСЂСѓРµС‚ СѓР¶Рµ РїСЂРёСЃСѓС‚СЃРІСѓСЋС‰РёР№,
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ - false (РґСѓР±Р»Рё РЅРµ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ)
  * 
- * @return boolean - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
+ * @return boolean - РµСЃР»Рё РѕР±СЉРµРєС‚ РґРѕР±Р°РІР»РµРЅ РІ РєРѕР»Р»РµРєС†РёСЋ, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ TRUE, РёРЅР°С‡Рµ FALSE
  */
 public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false );
 
 /**
- * проверяет, есть ли в коллекции объект,
- * точнее ссылка на этот объект
+ * РїСЂРѕРІРµСЂСЏРµС‚, РµСЃС‚СЊ Р»Рё РІ РєРѕР»Р»РµРєС†РёРё РѕР±СЉРµРєС‚,
+ * С‚РѕС‡РЅРµРµ СЃСЃС‹Р»РєР° РЅР° СЌС‚РѕС‚ РѕР±СЉРµРєС‚
  * 
  * @param TRMDataObjectInterface $Object
  * @return boolean
@@ -49,21 +49,21 @@ public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicate
 public function hasDataObject( TRMDataObjectInterface $Object );
 
 /**
- * добавляет в коллекцию содержимое другой коллекции,
- * если только такого объект еще нет в своем массиве,
- * точнее не самого объекта, а ссылки на этот же самы йобъект
+ * РґРѕР±Р°РІР»СЏРµС‚ РІ РєРѕР»Р»РµРєС†РёСЋ СЃРѕРґРµСЂР¶РёРјРѕРµ РґСЂСѓРіРѕР№ РєРѕР»Р»РµРєС†РёРё,
+ * РµСЃР»Рё С‚РѕР»СЊРєРѕ С‚Р°РєРѕРіРѕ РѕР±СЉРµРєС‚ РµС‰Рµ РЅРµС‚ РІ СЃРІРѕРµРј РјР°СЃСЃРёРІРµ,
+ * С‚РѕС‡РЅРµРµ РЅРµ СЃР°РјРѕРіРѕ РѕР±СЉРµРєС‚Р°, Р° СЃСЃС‹Р»РєРё РЅР° СЌС‚РѕС‚ Р¶Рµ СЃР°РјС‹ Р№РѕР±СЉРµРєС‚
  * 
  * @param TRMDataObjectsCollection $Collection
- * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добавятся дубликаты объектов,
- * если утсановить в TRUE, то новая коллекция добавистя как есть к существующей, со всеми элементами,
- * даже если они дублируют уже присутсвующие, по умолчанию - false (дубли не добавляются)
+ * @param bool $AddDuplicateFlag - РµСЃР»Рё СЌС‚РѕС‚ С„Р»Р°Рі СѓСЃС‚Р°РЅРѕРІРґРµРЅ РІ false, С‚Рѕ РІ РєРѕР»Р»РµРєС†РёСЋ РЅРµ РґРѕР±Р°РІСЏС‚СЃСЏ РґСѓР±Р»РёРєР°С‚С‹ РѕР±СЉРµРєС‚РѕРІ,
+ * РµСЃР»Рё СѓС‚СЃР°РЅРѕРІРёС‚СЊ РІ TRUE, С‚Рѕ РЅРѕРІР°СЏ РєРѕР»Р»РµРєС†РёСЏ РґРѕР±Р°РІРёСЃС‚СЏ РєР°Рє РµСЃС‚СЊ Рє СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµР№, СЃРѕ РІСЃРµРјРё СЌР»РµРјРµРЅС‚Р°РјРё,
+ * РґР°Р¶Рµ РµСЃР»Рё РѕРЅРё РґСѓР±Р»РёСЂСѓСЋС‚ СѓР¶Рµ РїСЂРёСЃСѓС‚СЃРІСѓСЋС‰РёРµ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ - false (РґСѓР±Р»Рё РЅРµ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ)
  */
 public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $AddDuplicateFlag = false );
 
 /**
- * очищает массив-коллекцию с объектами данных,
- * так как в массиве хранятся только ссылки, 
- * то сами объекты остаются в памяти, если их кто-то использует
+ * РѕС‡РёС‰Р°РµС‚ РјР°СЃСЃРёРІ-РєРѕР»Р»РµРєС†РёСЋ СЃ РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…,
+ * С‚Р°Рє РєР°Рє РІ РјР°СЃСЃРёРІРµ С…СЂР°РЅСЏС‚СЃСЏ С‚РѕР»СЊРєРѕ СЃСЃС‹Р»РєРё, 
+ * С‚Рѕ СЃР°РјРё РѕР±СЉРµРєС‚С‹ РѕСЃС‚Р°СЋС‚СЃСЏ РІ РїР°РјСЏС‚Рё, РµСЃР»Рё РёС… РєС‚Рѕ-С‚Рѕ РёСЃРїРѕР»СЊР·СѓРµС‚
  */
 public function clearCollection();
 
@@ -73,25 +73,25 @@ public function clearCollection();
 interface TRMTypedCollection extends TRMDataObjectsCollectionInterface
 {
 /**
- * @return string - тип сохраняемых объектов в коллекциях данного типа
+ * @return string - С‚РёРї СЃРѕС…СЂР°РЅСЏРµРјС‹С… РѕР±СЉРµРєС‚РѕРІ РІ РєРѕР»Р»РµРєС†РёСЏС… РґР°РЅРЅРѕРіРѕ С‚РёРїР°
  */
 public function getObjectsType();
 
 /**
- * проверяет соответствие типа объекта установленному для коллекции
+ * РїСЂРѕРІРµСЂСЏРµС‚ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ С‚РёРїР° РѕР±СЉРµРєС‚Р° СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРјСѓ РґР»СЏ РєРѕР»Р»РµРєС†РёРё
  * 
- * @param TRMDataObjectInterface $DataObject - проверяемый объект
+ * @param TRMDataObjectInterface $DataObject - РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚
  * 
  * @throws TRMDataObjectSCollectionWrongTypeException
  */
 public function validateObject(TRMDataObjectInterface $DataObject);
 
 /**
- * меняет во всех записях значение поля $FieldName на новое значение $FieldValue, если разрешена запись
+ * РјРµРЅСЏРµС‚ РІРѕ РІСЃРµС… Р·Р°РїРёСЃСЏС… Р·РЅР°С‡РµРЅРёРµ РїРѕР»СЏ $FieldName РЅР° РЅРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ $FieldValue, РµСЃР»Рё СЂР°Р·СЂРµС€РµРЅР° Р·Р°РїРёСЃСЊ
  *
- * @param string $ObjectName - имя объекта, в котором меняется значение 
- * @param string $FieldName - имя поля в объектах данных
- * @param mixed $FieldValue - новое значение
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РІ РєРѕС‚РѕСЂРѕРј РјРµРЅСЏРµС‚СЃСЏ Р·РЅР°С‡РµРЅРёРµ 
+ * @param string $FieldName - РёРјСЏ РїРѕР»СЏ РІ РѕР±СЉРµРєС‚Р°С… РґР°РЅРЅС‹С…
+ * @param mixed $FieldValue - РЅРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ
  */
 public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue);
 

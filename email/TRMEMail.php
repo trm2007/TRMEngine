@@ -11,92 +11,92 @@ use TRMEngine\EMail\Exceptions\TRMEMailWrongThemeExceptions;
 class TRMEMail
 {
 /**
- * все письма посылаются в кодировке "UTF-8"
+ * РІСЃРµ РїРёСЃСЊРјР° РїРѕСЃС‹Р»Р°СЋС‚СЃСЏ РІ РєРѕРґРёСЂРѕРІРєРµ "UTF-8"
  */
 const SendCoding = "UTF-8";
 /**
- * @var string - E-mail отправителя
+ * @var string - E-mail РѕС‚РїСЂР°РІРёС‚РµР»СЏ
  */
 protected $emailfrom = "";
 /**
- * @var string - имя отправителя
+ * @var string - РёРјСЏ РѕС‚РїСЂР°РІРёС‚РµР»СЏ
  */
 protected $namefrom = "";
 /**
- * @var string - E-mail получателя
+ * @var string - E-mail РїРѕР»СѓС‡Р°С‚РµР»СЏ
  */
 protected $emailto = "";
 /**
- * @var string - имя получателя
+ * @var string - РёРјСЏ РїРѕР»СѓС‡Р°С‚РµР»СЏ
  */
 protected $nameto = "";
 /**
- * @var string - E-mail получателя 2, копия письма
+ * @var string - E-mail РїРѕР»СѓС‡Р°С‚РµР»СЏ 2, РєРѕРїРёСЏ РїРёСЃСЊРјР°
  */
 protected $emailCc = "";
 /**
- * @var string - имя получателя 2, копия письма
+ * @var string - РёРјСЏ РїРѕР»СѓС‡Р°С‚РµР»СЏ 2, РєРѕРїРёСЏ РїРёСЃСЊРјР°
  */
 protected $nameCc = "";
 /**
- * @var string - Reply-To адрес, на который отправлять ответ
+ * @var string - Reply-To Р°РґСЂРµСЃ, РЅР° РєРѕС‚РѕСЂС‹Р№ РѕС‚РїСЂР°РІР»СЏС‚СЊ РѕС‚РІРµС‚
  */
 protected $emailreplyto = "";
 /**
- * @var string - Reply-To имя
+ * @var string - Reply-To РёРјСЏ
  */
 protected $namereplyto = "";
 /**
- * @var string - тема сообщения
+ * @var string - С‚РµРјР° СЃРѕРѕР±С‰РµРЅРёСЏ
  */
 protected $subject = "";
 
 /**
- * @var string - текст письма без форматирования, будет отображаться как есть
+ * @var string - С‚РµРєСЃС‚ РїРёСЃСЊРјР° Р±РµР· С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёСЏ, Р±СѓРґРµС‚ РѕС‚РѕР±СЂР°Р¶Р°С‚СЊСЃСЏ РєР°Рє РµСЃС‚СЊ
  */
 protected $textplain = "";
 /**
- * @var string - текст письма в HTML - теги будут преобразованы в разметку
+ * @var string - С‚РµРєСЃС‚ РїРёСЃСЊРјР° РІ HTML - С‚РµРіРё Р±СѓРґСѓС‚ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅС‹ РІ СЂР°Р·РјРµС‚РєСѓ
  */
 protected $texthtml = "";
 /**
- * @var string - кодировка, в которой формируется письмо, как правило на рускоязычных ресурсах - Windows-1251
- * оно потом преобразовывается в SendCoding = UTF-8 (если не менять)
+ * @var string - РєРѕРґРёСЂРѕРІРєР°, РІ РєРѕС‚РѕСЂРѕР№ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РїРёСЃСЊРјРѕ, РєР°Рє РїСЂР°РІРёР»Рѕ РЅР° СЂСѓСЃРєРѕСЏР·С‹С‡РЅС‹С… СЂРµСЃСѓСЂСЃР°С… - Windows-1251
+ * РѕРЅРѕ РїРѕС‚РѕРј РїСЂРµРѕР±СЂР°Р·РѕРІС‹РІР°РµС‚СЃСЏ РІ SendCoding = UTF-8 (РµСЃР»Рё РЅРµ РјРµРЅСЏС‚СЊ)
  */
 protected $coding;
 /**
- * @var string - тип содержимого письма, вычисляется автоматически на основании отрправляемых блоков
+ * @var string - С‚РёРї СЃРѕРґРµСЂР¶РёРјРѕРіРѕ РїРёСЃСЊРјР°, РІС‹С‡РёСЃР»СЏРµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РЅР° РѕСЃРЅРѕРІР°РЅРёРё РѕС‚СЂРїСЂР°РІР»СЏРµРјС‹С… Р±Р»РѕРєРѕРІ
  */
 protected $ContentType;
 
 /**
- * @var array массив полных имен файлов (с путем на сервере) для прикрепления к письму
+ * @var array РјР°СЃСЃРёРІ РїРѕР»РЅС‹С… РёРјРµРЅ С„Р°Р№Р»РѕРІ (СЃ РїСѓС‚РµРј РЅР° СЃРµСЂРІРµСЂРµ) РґР»СЏ РїСЂРёРєСЂРµРїР»РµРЅРёСЏ Рє РїРёСЃСЊРјСѓ
  */
 protected $filestosend = array();
 
 /**
- * @var array картинки, которые будут показаны в теле письма
+ * @var array РєР°СЂС‚РёРЅРєРё, РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РїРѕРєР°Р·Р°РЅС‹ РІ С‚РµР»Рµ РїРёСЃСЊРјР°
  */
 protected $inlineimages = array();
 
 /**
- * @var string  уникальная строка для разделения разделов письма
+ * @var string  СѓРЅРёРєР°Р»СЊРЅР°СЏ СЃС‚СЂРѕРєР° РґР»СЏ СЂР°Р·РґРµР»РµРЅРёСЏ СЂР°Р·РґРµР»РѕРІ РїРёСЃСЊРјР°
  */
 protected $un;
 
 /**
  *
- * @var array - массив с настройками почтового сервера
+ * @var array - РјР°СЃСЃРёРІ СЃ РЅР°СЃС‚СЂРѕР№РєР°РјРё РїРѕС‡С‚РѕРІРѕРіРѕ СЃРµСЂРІРµСЂР°
  */
 protected $config = array();
 
 
 /**
- * в конструкторе по умолчанию устанавливается кодировка входных данных в "Windows-1251"
- * так как мой сайт изначально работал в "Windows-1251"
- * затем эти данные (сообщение и заголовок) преобразуются в "UTF-8" для отправки
+ * РІ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРµ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РєРѕРґРёСЂРѕРІРєР° РІС…РѕРґРЅС‹С… РґР°РЅРЅС‹С… РІ "Windows-1251"
+ * С‚Р°Рє РєР°Рє РјРѕР№ СЃР°Р№С‚ РёР·РЅР°С‡Р°Р»СЊРЅРѕ СЂР°Р±РѕС‚Р°Р» РІ "Windows-1251"
+ * Р·Р°С‚РµРј СЌС‚Рё РґР°РЅРЅС‹Рµ (СЃРѕРѕР±С‰РµРЅРёРµ Рё Р·Р°РіРѕР»РѕРІРѕРє) РїСЂРµРѕР±СЂР°Р·СѓСЋС‚СЃСЏ РІ "UTF-8" РґР»СЏ РѕС‚РїСЂР°РІРєРё
  * 
- * так же генерируется уникальная строка для разделения разделов
+ * С‚Р°Рє Р¶Рµ РіРµРЅРµСЂРёСЂСѓРµС‚СЃСЏ СѓРЅРёРєР°Р»СЊРЅР°СЏ СЃС‚СЂРѕРєР° РґР»СЏ СЂР°Р·РґРµР»РµРЅРёСЏ СЂР°Р·РґРµР»РѕРІ
  */
 public function __construct()
 {
@@ -105,11 +105,11 @@ public function __construct()
 }
 
 /**
- * устанавливает кодировКу, 
- * в которой задаются сообщение и тема, 
- * само письмо всегда отправляется в UTF-8
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РєРѕРґРёСЂРѕРІРљСѓ, 
+ * РІ РєРѕС‚РѕСЂРѕР№ Р·Р°РґР°СЋС‚СЃСЏ СЃРѕРѕР±С‰РµРЅРёРµ Рё С‚РµРјР°, 
+ * СЃР°РјРѕ РїРёСЃСЊРјРѕ РІСЃРµРіРґР° РѕС‚РїСЂР°РІР»СЏРµС‚СЃСЏ РІ UTF-8
  * 
- * @param string $coding кодировака, поумолчанию = SendCoding = UTF-8
+ * @param string $coding РєРѕРґРёСЂРѕРІР°РєР°, РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ = SendCoding = UTF-8
  */
 public function setCoding($coding = self::SendCoding)
 {
@@ -117,7 +117,7 @@ public function setCoding($coding = self::SendCoding)
 }
 
 /**
- * генерирует уникальную строку для добавления в начало раздела
+ * РіРµРЅРµСЂРёСЂСѓРµС‚ СѓРЅРёРєР°Р»СЊРЅСѓСЋ СЃС‚СЂРѕРєСѓ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РІ РЅР°С‡Р°Р»Рѕ СЂР°Р·РґРµР»Р°
  * @return string
  */
 protected function getUniq()
@@ -126,7 +126,7 @@ protected function getUniq()
 }
 
 /**
- * отправляет сообщение в HTML-формате с вложениями
+ * РѕС‚РїСЂР°РІР»СЏРµС‚ СЃРѕРѕР±С‰РµРЅРёРµ РІ HTML-С„РѕСЂРјР°С‚Рµ СЃ РІР»РѕР¶РµРЅРёСЏРјРё
  * 
  * @return boolean
  */
@@ -134,7 +134,7 @@ public function sendEmail()
 {
     $this->validate();
     
-    //определяем какой тип в зависимости от установленных частей письма (наличие прикрепленных файлов, картинок, HTML или просто текст)
+    //РѕРїСЂРµРґРµР»СЏРµРј РєР°РєРѕР№ С‚РёРї РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹С… С‡Р°СЃС‚РµР№ РїРёСЃСЊРјР° (РЅР°Р»РёС‡РёРµ РїСЂРёРєСЂРµРїР»РµРЅРЅС‹С… С„Р°Р№Р»РѕРІ, РєР°СЂС‚РёРЅРѕРє, HTML РёР»Рё РїСЂРѕСЃС‚Рѕ С‚РµРєСЃС‚)
     $this->ContentType = $this->calculateContentType();
     
     $subj = $this->generateSubject();
@@ -165,8 +165,8 @@ public function sendEmail()
 
 /**
  * 
- * @param string $str - строка , которую нужно оформить в теме письма или в имени файда
- * оформляется в правильном формате base64 для кирилицы
+ * @param string $str - СЃС‚СЂРѕРєР° , РєРѕС‚РѕСЂСѓСЋ РЅСѓР¶РЅРѕ РѕС„РѕСЂРјРёС‚СЊ РІ С‚РµРјРµ РїРёСЃСЊРјР° РёР»Рё РІ РёРјРµРЅРё С„Р°Р№РґР°
+ * РѕС„РѕСЂРјР»СЏРµС‚СЃСЏ РІ РїСЂР°РІРёР»СЊРЅРѕРј С„РѕСЂРјР°С‚Рµ base64 РґР»СЏ РєРёСЂРёР»РёС†С‹
  * 
  * @return string
  */
@@ -174,22 +174,22 @@ protected function setStrToCoding($str)
 {
     if( !empty($str) )
     {
-        // только UTF-8
+        // С‚РѕР»СЊРєРѕ UTF-8
         return ('=?'.strtolower(TRMEMail::SendCoding).'?B?'.base64_encode($str).'?=');
     }
     return '';
 }
 
 /**
- * преобразует содировку строки из заданной по умолчанию для работы с этим объектом письма,
- * в обязательную для отправки UTF-8,
- * если в настройках кодировки совпадают, то строка не изменится,
- * Внимание! начальная кодировка строки не проверяется.
+ * РїСЂРµРѕР±СЂР°Р·СѓРµС‚ СЃРѕРґРёСЂРѕРІРєСѓ СЃС‚СЂРѕРєРё РёР· Р·Р°РґР°РЅРЅРѕР№ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ СЌС‚РёРј РѕР±СЉРµРєС‚РѕРј РїРёСЃСЊРјР°,
+ * РІ РѕР±СЏР·Р°С‚РµР»СЊРЅСѓСЋ РґР»СЏ РѕС‚РїСЂР°РІРєРё UTF-8,
+ * РµСЃР»Рё РІ РЅР°СЃС‚СЂРѕР№РєР°С… РєРѕРґРёСЂРѕРІРєРё СЃРѕРІРїР°РґР°СЋС‚, С‚Рѕ СЃС‚СЂРѕРєР° РЅРµ РёР·РјРµРЅРёС‚СЃСЏ,
+ * Р’РЅРёРјР°РЅРёРµ! РЅР°С‡Р°Р»СЊРЅР°СЏ РєРѕРґРёСЂРѕРІРєР° СЃС‚СЂРѕРєРё РЅРµ РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ.
  */
 public function setStrCharset($str)
 {
     $newstr = $str;
-    // если кодировки не совпадают, то преобразуем 
+    // РµСЃР»Рё РєРѕРґРёСЂРѕРІРєРё РЅРµ СЃРѕРІРїР°РґР°СЋС‚, С‚Рѕ РїСЂРµРѕР±СЂР°Р·СѓРµРј 
     if($this->coding != TRMEMail::SendCoding )
     {
         $newstr = iconv($this->coding, TRMEMail::SendCoding, $str); // TRMLib::conv($str, $currentdatacharset, GlobalConfig::$ConfigArray["Charset"]);
@@ -198,7 +198,7 @@ public function setStrCharset($str)
 }
 
 /**
- * формирует тему письма
+ * С„РѕСЂРјРёСЂСѓРµС‚ С‚РµРјСѓ РїРёСЃСЊРјР°
  * 
  * @return string
  */
@@ -208,7 +208,7 @@ protected function generateSubject()
 }
 
 /**
- * формирует заголовок письма и возвращаем в виде строки!
+ * С„РѕСЂРјРёСЂСѓРµС‚ Р·Р°РіРѕР»РѕРІРѕРє РїРёСЃСЊРјР° Рё РІРѕР·РІСЂР°С‰Р°РµРј РІ РІРёРґРµ СЃС‚СЂРѕРєРё!
  * 
  * @return string
  */
@@ -236,29 +236,29 @@ protected function generateHeader()
     
     if( $this->ContentType == "multipart/mixed" )
     {
-        $head .= "Content-Type: multipart/mixed; boundary=\"".$this->un."\"\r\n"; //multipart/mixed;\r\n"  // письмо состоит из нескольких разных частей - multipart/mixed;
+        $head .= "Content-Type: multipart/mixed; boundary=\"".$this->un."\"\r\n"; //multipart/mixed;\r\n"  // РїРёСЃСЊРјРѕ СЃРѕСЃС‚РѕРёС‚ РёР· РЅРµСЃРєРѕР»СЊРєРёС… СЂР°Р·РЅС‹С… С‡Р°СЃС‚РµР№ - multipart/mixed;
     }
     elseif( $this->ContentType == "multipart/alternative" )
     {
-        $head .= "Content-Type: multipart/alternative; boundary=\"ALT_".$this->un."\"\r\n"; //multipart/mixed;\r\n"  // письмо состоит из нескольких разных частей - multipart/mixed;
+        $head .= "Content-Type: multipart/alternative; boundary=\"ALT_".$this->un."\"\r\n"; //multipart/mixed;\r\n"  // РїРёСЃСЊРјРѕ СЃРѕСЃС‚РѕРёС‚ РёР· РЅРµСЃРєРѕР»СЊРєРёС… СЂР°Р·РЅС‹С… С‡Р°СЃС‚РµР№ - multipart/mixed;
     }
     elseif( $this->ContentType == "multipart/related" )
     {
-        $head .= "Content-Type: multipart/related; boundary=\"REL_".$this->un."\"\r\n"; //multipart/mixed;\r\n"  // письмо состоит из нескольких разных частей - multipart/mixed;
+        $head .= "Content-Type: multipart/related; boundary=\"REL_".$this->un."\"\r\n"; //multipart/mixed;\r\n"  // РїРёСЃСЊРјРѕ СЃРѕСЃС‚РѕРёС‚ РёР· РЅРµСЃРєРѕР»СЊРєРёС… СЂР°Р·РЅС‹С… С‡Р°СЃС‚РµР№ - multipart/mixed;
     }
     elseif( $this->ContentType == "text/html" || $this->ContentType == "text/plain" )
     {
-        $head .= "Content-Type: {$this->ContentType}; charset=".TRMEMail::SendCoding." \r\n"."Content-Transfer-Encoding: base64 \r\n"; //multipart/mixed;\r\n"  // письмо состоит из нескольких разных частей - multipart/mixed;
+        $head .= "Content-Type: {$this->ContentType}; charset=".TRMEMail::SendCoding." \r\n"."Content-Transfer-Encoding: base64 \r\n"; //multipart/mixed;\r\n"  // РїРёСЃСЊРјРѕ СЃРѕСЃС‚РѕРёС‚ РёР· РЅРµСЃРєРѕР»СЊРєРёС… СЂР°Р·РЅС‹С… С‡Р°СЃС‚РµР№ - multipart/mixed;
     }
 
     return $head;
 }
 
 /**
- * определяет тип контента письма по содержанию в нем прикрепленных файлов, Html или простого текста...
+ * РѕРїСЂРµРґРµР»СЏРµС‚ С‚РёРї РєРѕРЅС‚РµРЅС‚Р° РїРёСЃСЊРјР° РїРѕ СЃРѕРґРµСЂР¶Р°РЅРёСЋ РІ РЅРµРј РїСЂРёРєСЂРµРїР»РµРЅРЅС‹С… С„Р°Р№Р»РѕРІ, Html РёР»Рё РїСЂРѕСЃС‚РѕРіРѕ С‚РµРєСЃС‚Р°...
  * 
- * @return string|boolean - если удалось определить тип содержимого письма, 
- * то вернется строка в формате типа - text/html, иначе false
+ * @return string|boolean - РµСЃР»Рё СѓРґР°Р»РѕСЃСЊ РѕРїСЂРµРґРµР»РёС‚СЊ С‚РёРї СЃРѕРґРµСЂР¶РёРјРѕРіРѕ РїРёСЃСЊРјР°, 
+ * С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ СЃС‚СЂРѕРєР° РІ С„РѕСЂРјР°С‚Рµ С‚РёРїР° - text/html, РёРЅР°С‡Рµ false
  */
 protected function calculateContentType()
 {
@@ -271,7 +271,7 @@ protected function calculateContentType()
 }
 
 /**
- * формирует тело сообщения из двух часте - text/plain и text/html для отображения, соответственно как обычного текста и в виде HTML
+ * С„РѕСЂРјРёСЂСѓРµС‚ С‚РµР»Рѕ СЃРѕРѕР±С‰РµРЅРёСЏ РёР· РґРІСѓС… С‡Р°СЃС‚Рµ - text/plain Рё text/html РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ, СЃРѕРѕС‚РІРµС‚СЃС‚РІРµРЅРЅРѕ РєР°Рє РѕР±С‹С‡РЅРѕРіРѕ С‚РµРєСЃС‚Р° Рё РІ РІРёРґРµ HTML
  * 
  * @return string
  */
@@ -287,7 +287,7 @@ protected function generateMessageBody()
     {
         if( $this->ContentType != "multipart/alternative" )
         {
-            $content .= "Content-Type: multipart/alternative; boundary=\"ALT_".$this->un."\"\r\n\r\n"; // текст в формате HTML и альтернативном просто plain/text - multipart/mixed;
+            $content .= "Content-Type: multipart/alternative; boundary=\"ALT_".$this->un."\"\r\n\r\n"; // С‚РµРєСЃС‚ РІ С„РѕСЂРјР°С‚Рµ HTML Рё Р°Р»СЊС‚РµСЂРЅР°С‚РёРІРЅРѕРј РїСЂРѕСЃС‚Рѕ plain/text - multipart/mixed;
         }
         $content .= "--ALT_".$this->un."\r\n";
         $content .= $this->generateTextPlain();
@@ -301,12 +301,12 @@ protected function generateMessageBody()
     }
 
 
-    return $content; // разбиваем сообщение на строки по 76 символов , в конце каждой добавляется \r\n
+    return $content; // СЂР°Р·Р±РёРІР°РµРј СЃРѕРѕР±С‰РµРЅРёРµ РЅР° СЃС‚СЂРѕРєРё РїРѕ 76 СЃРёРјРІРѕР»РѕРІ , РІ РєРѕРЅС†Рµ РєР°Р¶РґРѕР№ РґРѕР±Р°РІР»СЏРµС‚СЃСЏ \r\n
 }
 
 /**
- * генерирует часть письма multipart/related,
- * оно появляется, если тело представляет HTML и внутри есть ссылки на локальные (прикрепленные) картинки
+ * РіРµРЅРµСЂРёСЂСѓРµС‚ С‡Р°СЃС‚СЊ РїРёСЃСЊРјР° multipart/related,
+ * РѕРЅРѕ РїРѕСЏРІР»СЏРµС‚СЃСЏ, РµСЃР»Рё С‚РµР»Рѕ РїСЂРµРґСЃС‚Р°РІР»СЏРµС‚ HTML Рё РІРЅСѓС‚СЂРё РµСЃС‚СЊ СЃСЃС‹Р»РєРё РЅР° Р»РѕРєР°Р»СЊРЅС‹Рµ (РїСЂРёРєСЂРµРїР»РµРЅРЅС‹Рµ) РєР°СЂС‚РёРЅРєРё
  * 
  * @return string
  */
@@ -316,15 +316,15 @@ protected function generateRelated()
     {
         return $this->generateHtml();
     }
-    // этот код выполнится, если массив картинок не пустой
-    // но картинки в теле письма могут появится только если HTML тело не пустое, иначе на них просто никто не ссылается
+    // СЌС‚РѕС‚ РєРѕРґ РІС‹РїРѕР»РЅРёС‚СЃСЏ, РµСЃР»Рё РјР°СЃСЃРёРІ РєР°СЂС‚РёРЅРѕРє РЅРµ РїСѓСЃС‚РѕР№
+    // РЅРѕ РєР°СЂС‚РёРЅРєРё РІ С‚РµР»Рµ РїРёСЃСЊРјР° РјРѕРіСѓС‚ РїРѕСЏРІРёС‚СЃСЏ С‚РѕР»СЊРєРѕ РµСЃР»Рё HTML С‚РµР»Рѕ РЅРµ РїСѓСЃС‚РѕРµ, РёРЅР°С‡Рµ РЅР° РЅРёС… РїСЂРѕСЃС‚Рѕ РЅРёРєС‚Рѕ РЅРµ СЃСЃС‹Р»Р°РµС‚СЃСЏ
     
     if( isset($this->texthtml) && strlen($this->texthtml)>0 )
     {
         $content = "";
         if( $this->ContentType != "multipart/related" )
         {
-            $content = "Content-Type: multipart/related; boundary=\"REL_".$this->un."\"\r\n\r\n"; // текст в формате HTML и альтернативном просто plain/text - multipart/mixed;
+            $content = "Content-Type: multipart/related; boundary=\"REL_".$this->un."\"\r\n\r\n"; // С‚РµРєСЃС‚ РІ С„РѕСЂРјР°С‚Рµ HTML Рё Р°Р»СЊС‚РµСЂРЅР°С‚РёРІРЅРѕРј РїСЂРѕСЃС‚Рѕ plain/text - multipart/mixed;
         }
         $content .= "--REL_".$this->un."\r\n";
         $content .= $this->generateHtml();
@@ -336,7 +336,7 @@ protected function generateRelated()
 
 /**
  * 
- * @param string $boundary - разделитель разделов в multipart/alternative
+ * @param string $boundary - СЂР°Р·РґРµР»РёС‚РµР»СЊ СЂР°Р·РґРµР»РѕРІ РІ multipart/alternative
  * @return string
  */
 protected function generateTextPlain()
@@ -346,22 +346,22 @@ protected function generateTextPlain()
         return "";
     }
     
-    //$text = strip_tags($text); //убираем в обычном тексте все HTML-теги
+    //$text = strip_tags($text); //СѓР±РёСЂР°РµРј РІ РѕР±С‹С‡РЅРѕРј С‚РµРєСЃС‚Рµ РІСЃРµ HTML-С‚РµРіРё
 //    $text = $this->setStrToCoding($text);
 /*
     if($this->coding != TRMEMail::SendCoding)
-        $text = iconv($this->coding, TRMEMail::SendCoding, $text); // преобразуем из Windows-1251 в UTF-8
+        $text = iconv($this->coding, TRMEMail::SendCoding, $text); // РїСЂРµРѕР±СЂР°Р·СѓРµРј РёР· Windows-1251 РІ UTF-8
  * 
  */
     $text = chunk_split( base64_encode( $this->replaceCRLF( $this->textplain ) ) );
-//    $text = wordwrap($text,70,"\r\n"); // каждая строка в собщении должна быть не длиннее 70 символов
+//    $text = wordwrap($text,70,"\r\n"); // РєР°Р¶РґР°СЏ СЃС‚СЂРѕРєР° РІ СЃРѕР±С‰РµРЅРёРё РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РЅРµ РґР»РёРЅРЅРµРµ 70 СЃРёРјРІРѕР»РѕРІ
 //    $text = self::quotedPrintableEncode($text);
     
     if( $this->ContentType != "text/plain" )
     {
         $content = "Content-Type: text/plain; charset=".TRMEMail::SendCoding." \r\n";
-    //    $content .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit потому что уже преобразован в UTF-8 и там только латиница
-        $content .= "Content-Transfer-Encoding: base64\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit потому что уже преобразован в UTF-8 и там только латиница
+    //    $content .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit РїРѕС‚РѕРјСѓ С‡С‚Рѕ СѓР¶Рµ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅ РІ UTF-8 Рё С‚Р°Рј С‚РѕР»СЊРєРѕ Р»Р°С‚РёРЅРёС†Р°
+        $content .= "Content-Transfer-Encoding: base64\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit РїРѕС‚РѕРјСѓ С‡С‚Рѕ СѓР¶Рµ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅ РІ UTF-8 Рё С‚Р°Рј С‚РѕР»СЊРєРѕ Р»Р°С‚РёРЅРёС†Р°
         $content .= $text."\r\n";
         return $content;
     }
@@ -370,7 +370,7 @@ protected function generateTextPlain()
 
 /**
  * 
- * @param string $boundary - разделитель разделов в multipart/alternative
+ * @param string $boundary - СЂР°Р·РґРµР»РёС‚РµР»СЊ СЂР°Р·РґРµР»РѕРІ РІ multipart/alternative
  * @return string
  */
 protected function generateHtml()
@@ -382,10 +382,10 @@ protected function generateHtml()
 
     $texthtml = $this->replaceCRLF( $this->texthtml, "<br />");
     
-    // Ищем все ссылки на картинки в теле письма <img src="cid:XXXXX"> и меняем идентификаторы XXXXX на sha1(XXXXX)
+    // РС‰РµРј РІСЃРµ СЃСЃС‹Р»РєРё РЅР° РєР°СЂС‚РёРЅРєРё РІ С‚РµР»Рµ РїРёСЃСЊРјР° <img src="cid:XXXXX"> Рё РјРµРЅСЏРµРј РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂС‹ XXXXX РЅР° sha1(XXXXX)
     $matches = "";
-    // ищем в кавычках одиарных или двойных строку cid:любые символы , 
-    // перебор любых символов закончится после первого нахождения " или ' жадность отключена - модификатор U
+    // РёС‰РµРј РІ РєР°РІС‹С‡РєР°С… РѕРґРёР°СЂРЅС‹С… РёР»Рё РґРІРѕР№РЅС‹С… СЃС‚СЂРѕРєСѓ cid:Р»СЋР±С‹Рµ СЃРёРјРІРѕР»С‹ , 
+    // РїРµСЂРµР±РѕСЂ Р»СЋР±С‹С… СЃРёРјРІРѕР»РѕРІ Р·Р°РєРѕРЅС‡РёС‚СЃСЏ РїРѕСЃР»Рµ РїРµСЂРІРѕРіРѕ РЅР°С…РѕР¶РґРµРЅРёСЏ " РёР»Рё ' Р¶Р°РґРЅРѕСЃС‚СЊ РѕС‚РєР»СЋС‡РµРЅР° - РјРѕРґРёС„РёРєР°С‚РѕСЂ U
     preg_match_all("#['\"]cid:(.+)['\"]#U", $texthtml, $matches) ;
     foreach ($matches[1] as $findstr)
     {
@@ -398,8 +398,8 @@ protected function generateHtml()
     if( $this->ContentType != "text/html" )
     {
         $content = "Content-Type: text/html; charset=".TRMEMail::SendCoding." \r\n";
-    //    $content .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit потому что уже преобразован в UTF-8 и там только латиница
-        $content .= "Content-Transfer-Encoding: base64\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit потому что уже преобразован в UTF-8 и там только латиница
+    //    $content .= "Content-Transfer-Encoding: quoted-printable\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit РїРѕС‚РѕРјСѓ С‡С‚Рѕ СѓР¶Рµ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅ РІ UTF-8 Рё С‚Р°Рј С‚РѕР»СЊРєРѕ Р»Р°С‚РёРЅРёС†Р°
+        $content .= "Content-Transfer-Encoding: base64\r\n\r\n"; // 7bit\r\n\r\n"; // 7bit РїРѕС‚РѕРјСѓ С‡С‚Рѕ СѓР¶Рµ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅ РІ UTF-8 Рё С‚Р°Рј С‚РѕР»СЊРєРѕ Р»Р°С‚РёРЅРёС†Р°
         $content .= $texthtml."\r\n";
 
         if( isset($this->inlineimages) && !empty($this->inlineimages))
@@ -414,18 +414,18 @@ protected function generateHtml()
 
 /**
  * 
- * @param string $str - строка в которой удаляются все переводы строк, новая строка - \r \n
- * @param string $substr - строка на которую заменяются, по умолчанию пробел
+ * @param string $str - СЃС‚СЂРѕРєР° РІ РєРѕС‚РѕСЂРѕР№ СѓРґР°Р»СЏСЋС‚СЃСЏ РІСЃРµ РїРµСЂРµРІРѕРґС‹ СЃС‚СЂРѕРє, РЅРѕРІР°СЏ СЃС‚СЂРѕРєР° - \r \n
+ * @param string $substr - СЃС‚СЂРѕРєР° РЅР° РєРѕС‚РѕСЂСѓСЋ Р·Р°РјРµРЅСЏСЋС‚СЃСЏ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РїСЂРѕР±РµР»
  * @return string
  */
 protected function replaceCRLF($str, $substr = ' ')
 {
     $eol=array("\r\n", "\n", "\r");
-    return str_replace($eol, $substr, $str); // для обычного текста все переводы строк удаляются и заменяются на пробел
+    return str_replace($eol, $substr, $str); // РґР»СЏ РѕР±С‹С‡РЅРѕРіРѕ С‚РµРєСЃС‚Р° РІСЃРµ РїРµСЂРµРІРѕРґС‹ СЃС‚СЂРѕРє СѓРґР°Р»СЏСЋС‚СЃСЏ Рё Р·Р°РјРµРЅСЏСЋС‚СЃСЏ РЅР° РїСЂРѕР±РµР»
 }
 
 /**
- * формирует изображения, которые будут отображаться в HTML-письме
+ * С„РѕСЂРјРёСЂСѓРµС‚ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РѕС‚РѕР±СЂР°Р¶Р°С‚СЊСЃСЏ РІ HTML-РїРёСЃСЊРјРµ
  * 
  * @return string
  */
@@ -438,19 +438,19 @@ protected function generateInlineImages()
     $content = "";
     foreach ($this->inlineimages as $filename)
     {
-        $image_type = image_type_to_mime_type( exif_imagetype($filename) ); // image/gif или...
+        $image_type = image_type_to_mime_type( exif_imagetype($filename) ); // image/gif РёР»Рё...
         $f = fopen($filename,"rb");
 
-        $basefilename = basename($filename); // оставляем только имя файла , без пути
+        $basefilename = basename($filename); // РѕСЃС‚Р°РІР»СЏРµРј С‚РѕР»СЊРєРѕ РёРјСЏ С„Р°Р№Р»Р° , Р±РµР· РїСѓС‚Рё
 
         $content .= $boundary."\r\n";
-        $content .= "Content-Type: {$image_type};\r\n"; // это для картинки
+        $content .= "Content-Type: {$image_type};\r\n"; // СЌС‚Рѕ РґР»СЏ РєР°СЂС‚РёРЅРєРё
         $content .= " name=\"". $this->setStrToCoding($basefilename) ."\"\r\n";
         $content .= "Content-Transfer-Encoding: base64\r\n";
         $content .= "Content-ID: <". sha1( trim($basefilename) ) .">\r\n";
-        $content .= "Content-Disposition: inline;\r\n"; // для картинок внутри тела письма
+        $content .= "Content-Disposition: inline;\r\n"; // РґР»СЏ РєР°СЂС‚РёРЅРѕРє РІРЅСѓС‚СЂРё С‚РµР»Р° РїРёСЃСЊРјР°
         $content .= " filename=\"".$this->setStrToCoding($basefilename)."\"\r\n\r\n";
-        // переводим содержимое файла в формат base64 и разбиваем на строки по 76 байт в соответствие с требованиями RFC 2045
+        // РїРµСЂРµРІРѕРґРёРј СЃРѕРґРµСЂР¶РёРјРѕРµ С„Р°Р№Р»Р° РІ С„РѕСЂРјР°С‚ base64 Рё СЂР°Р·Р±РёРІР°РµРј РЅР° СЃС‚СЂРѕРєРё РїРѕ 76 Р±Р°Р№С‚ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ СЃ С‚СЂРµР±РѕРІР°РЅРёСЏРјРё RFC 2045
         $content .= chunk_split( base64_encode( fread($f,filesize($filename)) )  )."\r\n";
 
         fclose ($f); 
@@ -460,7 +460,7 @@ protected function generateInlineImages()
 }
 
 /**
- * формируем прикрепленные файлы
+ * С„РѕСЂРјРёСЂСѓРµРј РїСЂРёРєСЂРµРїР»РµРЅРЅС‹Рµ С„Р°Р№Р»С‹
  * 
  * @return string
  */
@@ -475,15 +475,15 @@ protected function generateAttach()
     {
         $f = fopen($filename,"rb");
 
-        $basefilename = basename($filename); // оставляем только имя файла , без пути
+        $basefilename = basename($filename); // РѕСЃС‚Р°РІР»СЏРµРј С‚РѕР»СЊРєРѕ РёРјСЏ С„Р°Р№Р»Р° , Р±РµР· РїСѓС‚Рё
 
         $content .= $boundary."\r\n";
-	$content .= "Content-Type: application/octet-stream;\r\n"; // для присоединенных-вложенных файлов
+	$content .= "Content-Type: application/octet-stream;\r\n"; // РґР»СЏ РїСЂРёСЃРѕРµРґРёРЅРµРЅРЅС‹С…-РІР»РѕР¶РµРЅРЅС‹С… С„Р°Р№Р»РѕРІ
         $content .= " name=\"".$basefilename."\"\r\n";
         $content .= "Content-Transfer-Encoding: base64\r\n";
-	$content .= "Content-Disposition: attachment;\r\n"; // для присоединенных-вложенных файлов
+	$content .= "Content-Disposition: attachment;\r\n"; // РґР»СЏ РїСЂРёСЃРѕРµРґРёРЅРµРЅРЅС‹С…-РІР»РѕР¶РµРЅРЅС‹С… С„Р°Р№Р»РѕРІ
         $content .= " filename=\"".$basefilename."\"\r\n\r\n";
-        // переводим содержимое файла в формат base64 и разбиваем на строки по 76 байт в соответствие с требованиями RFC 2045
+        // РїРµСЂРµРІРѕРґРёРј СЃРѕРґРµСЂР¶РёРјРѕРµ С„Р°Р№Р»Р° РІ С„РѕСЂРјР°С‚ base64 Рё СЂР°Р·Р±РёРІР°РµРј РЅР° СЃС‚СЂРѕРєРё РїРѕ 76 Р±Р°Р№С‚ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ СЃ С‚СЂРµР±РѕРІР°РЅРёСЏРјРё RFC 2045
         $content .= chunk_split( base64_encode( fread($f,filesize($filename)) )  )."\r\n";
 
         fclose ($f); 
@@ -492,41 +492,41 @@ protected function generateAttach()
 }
 
 /**
- * проверяет заполнены ли необходимые поля для отправки письма
+ * РїСЂРѕРІРµСЂСЏРµС‚ Р·Р°РїРѕР»РЅРµРЅС‹ Р»Рё РЅРµРѕР±С…РѕРґРёРјС‹Рµ РїРѕР»СЏ РґР»СЏ РѕС‚РїСЂР°РІРєРё РїРёСЃСЊРјР°
  * 
- * @param boolean $strength - указывает строгая проверуа, или же нет и тело письма вместе с темой можно оставлять пустывми
+ * @param boolean $strength - СѓРєР°Р·С‹РІР°РµС‚ СЃС‚СЂРѕРіР°СЏ РїСЂРѕРІРµСЂСѓР°, РёР»Рё Р¶Рµ РЅРµС‚ Рё С‚РµР»Рѕ РїРёСЃСЊРјР° РІРјРµСЃС‚Рµ СЃ С‚РµРјРѕР№ РјРѕР¶РЅРѕ РѕСЃС‚Р°РІР»СЏС‚СЊ РїСѓСЃС‚С‹РІРјРё
  * @return boolean
  */
 protected function validate($strength = false)
 {
-    //в первую очередь необходимо проверить получателя
+    //РІ РїРµСЂРІСѓСЋ РѕС‡РµСЂРµРґСЊ РЅРµРѕР±С…РѕРґРёРјРѕ РїСЂРѕРІРµСЂРёС‚СЊ РїРѕР»СѓС‡Р°С‚РµР»СЏ
     if ( !isset($this->emailto) )
     {
-        throw new TRMEMailWrongRecepientExceptions("Не указан");
+        throw new TRMEMailWrongRecepientExceptions("РќРµ СѓРєР°Р·Р°РЅ");
     }
     if( !filter_var($this->emailto,FILTER_VALIDATE_EMAIL) )
     {
         throw new TRMEMailWrongRecepientExceptions($this->emailto);
     }
-    //если установлена строгая проверка, то проверяем дополнительно заполненность тела письма и темы
+    //РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅР° СЃС‚СЂРѕРіР°СЏ РїСЂРѕРІРµСЂРєР°, С‚Рѕ РїСЂРѕРІРµСЂСЏРµРј РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕ Р·Р°РїРѕР»РЅРµРЅРЅРѕСЃС‚СЊ С‚РµР»Р° РїРёСЃСЊРјР° Рё С‚РµРјС‹
     if($strength)
     {
-        // так же необходимо, что бы тема письма была заполнена
+        // С‚Р°Рє Р¶Рµ РЅРµРѕР±С…РѕРґРёРјРѕ, С‡С‚Рѕ Р±С‹ С‚РµРјР° РїРёСЃСЊРјР° Р±С‹Р»Р° Р·Р°РїРѕР»РЅРµРЅР°
         if ( !isset($this->subject) )
         {
-            throw new TRMEMailWrongThemeExceptions( __METHOD__ . " пустая");
+            throw new TRMEMailWrongThemeExceptions( __METHOD__ . " РїСѓСЃС‚Р°СЏ");
         }
-        // проверяем заполненность текста письма, должен быть задан хотя бы один из texthtml или textplain
+        // РїСЂРѕРІРµСЂСЏРµРј Р·Р°РїРѕР»РЅРµРЅРЅРѕСЃС‚СЊ С‚РµРєСЃС‚Р° РїРёСЃСЊРјР°, РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ Р·Р°РґР°РЅ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ РёР· texthtml РёР»Рё textplain
         if ( (!isset($this->texthtml) || strlen($this->texthtml)==0) && (!isset($this->textplain) || strlen($this->textplain)==0) )
         {
-            throw new TRMEMailWrongBodyExceptions( __METHOD__ . " сообщение пустое");
+            throw new TRMEMailWrongBodyExceptions( __METHOD__ . " СЃРѕРѕР±С‰РµРЅРёРµ РїСѓСЃС‚РѕРµ");
         }
     }
     return true;
 }
 
 /**
- * устанавливает e-mail отправителя
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ e-mail РѕС‚РїСЂР°РІРёС‚РµР»СЏ
  * 
  * @param type $emailfrom
  * @return string
@@ -537,9 +537,9 @@ public function setEmailFrom($emailfrom)
 }
 
 /**
- * устанавливает имя отправителя
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РёРјСЏ РѕС‚РїСЂР°РІРёС‚РµР»СЏ
  * 
- * @param string $name - имя отправителя
+ * @param string $name - РёРјСЏ РѕС‚РїСЂР°РІРёС‚РµР»СЏ
  */
 public function setNameFrom($name)
 {
@@ -547,7 +547,7 @@ public function setNameFrom($name)
 }
 
 /**
- * устанавливает e-mail адрес получателя
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ e-mail Р°РґСЂРµСЃ РїРѕР»СѓС‡Р°С‚РµР»СЏ
  * 
  * @param string $emailto
  * @return string
@@ -558,9 +558,9 @@ public function setEmailTo($emailto)
 }
 
 /**
- * устанавливает имя получаиеля
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РёРјСЏ РїРѕР»СѓС‡Р°РёРµР»СЏ
  * 
- * @param string $name - имя отправителя
+ * @param string $name - РёРјСЏ РѕС‚РїСЂР°РІРёС‚РµР»СЏ
  */
 public function setNameTo($name)
 {
@@ -568,18 +568,18 @@ public function setNameTo($name)
 }
 
 /**
- * устанавливает e-mail адрес получателя 2 (копия письма)
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ e-mail Р°РґСЂРµСЃ РїРѕР»СѓС‡Р°С‚РµР»СЏ 2 (РєРѕРїРёСЏ РїРёСЃСЊРјР°)
  * 
- * @param string $emailсс
+ * @param string $emailСЃСЃ
  * @return string
  */
-public function setEmailCc($emailсс)
+public function setEmailCc($emailСЃСЃ)
 {
-    return $this->emailCc = filter_var(trim($emailсс),FILTER_VALIDATE_EMAIL );
+    return $this->emailCc = filter_var(trim($emailСЃСЃ),FILTER_VALIDATE_EMAIL );
 }
 
 /**
- * устанавливает Reply-To - кому отвечать в сообщении
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ Reply-To - РєРѕРјСѓ РѕС‚РІРµС‡Р°С‚СЊ РІ СЃРѕРѕР±С‰РµРЅРёРё
  * 
  * @param type $email
  * @param type $name
@@ -591,9 +591,9 @@ public function setReplyTo($email, $name)
 }
 
 /**
- * устанавливает форматированное сообщение с возможными тегами HTML
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ СЃ РІРѕР·РјРѕР¶РЅС‹РјРё С‚РµРіР°РјРё HTML
  * 
- * @param string $msg - текст сообщения, возможно в формате HTML
+ * @param string $msg - С‚РµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ, РІРѕР·РјРѕР¶РЅРѕ РІ С„РѕСЂРјР°С‚Рµ HTML
  */
 public function setMessage($msg)
 {
@@ -601,9 +601,9 @@ public function setMessage($msg)
     else if( is_string($msg) ) { $this->texthtml = $this->setStrCharset( $msg ); }
 }
 /**
- * добавляет форматированное сообщение с возможными тегами HTML
+ * РґРѕР±Р°РІР»СЏРµС‚ С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ СЃ РІРѕР·РјРѕР¶РЅС‹РјРё С‚РµРіР°РјРё HTML
  * 
- * @param string $msg - текст сообщения, возможно в формате HTML
+ * @param string $msg - С‚РµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ, РІРѕР·РјРѕР¶РЅРѕ РІ С„РѕСЂРјР°С‚Рµ HTML
  */
 public function addMessage($msg)
 {
@@ -612,9 +612,9 @@ public function addMessage($msg)
 }
 
 /**
- * устанавливает простой текст, все  теги HTML убираются из текста!
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РїСЂРѕСЃС‚РѕР№ С‚РµРєСЃС‚, РІСЃРµ  С‚РµРіРё HTML СѓР±РёСЂР°СЋС‚СЃСЏ РёР· С‚РµРєСЃС‚Р°!
  * 
- * @param string $msg - простой текст сообщения без HTML-тегов
+ * @param string $msg - РїСЂРѕСЃС‚РѕР№ С‚РµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ Р±РµР· HTML-С‚РµРіРѕРІ
  */
 public function setTextPlain($msg)
 {
@@ -622,9 +622,9 @@ public function setTextPlain($msg)
     else if( is_string($msg) ) { $this->textplain = $this->setStrCharset( strip_tags($msg) ); }
 }
 /**
- * добавляет простой текст, все  теги HTML убираются из текста!
+ * РґРѕР±Р°РІР»СЏРµС‚ РїСЂРѕСЃС‚РѕР№ С‚РµРєСЃС‚, РІСЃРµ  С‚РµРіРё HTML СѓР±РёСЂР°СЋС‚СЃСЏ РёР· С‚РµРєСЃС‚Р°!
  * 
- * @param string $msg - простой текст сообщения без HTML-тегов
+ * @param string $msg - РїСЂРѕСЃС‚РѕР№ С‚РµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ Р±РµР· HTML-С‚РµРіРѕРІ
  */
 public function addTextPlain($msg)
 {
@@ -633,7 +633,7 @@ public function addTextPlain($msg)
 }
 
 /**
- * устанавливаем тему сообщения
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј С‚РµРјСѓ СЃРѕРѕР±С‰РµРЅРёСЏ
  * 
  * @param string $subj
  */
@@ -646,7 +646,7 @@ public function setSubject($subj)
 }
 
 /**
- * добавляем файл для отправки в присоединенных, проверяется существование файла на сервере
+ * РґРѕР±Р°РІР»СЏРµРј С„Р°Р№Р» РґР»СЏ РѕС‚РїСЂР°РІРєРё РІ РїСЂРёСЃРѕРµРґРёРЅРµРЅРЅС‹С…, РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёРµ С„Р°Р№Р»Р° РЅР° СЃРµСЂРІРµСЂРµ
  * 
  * @param string $filename
  * @return string|false
@@ -658,7 +658,7 @@ public function addAttachment($filename)
 }
 
 /**
- * добавляем картинку для вставки в тело HTML-письма, проверяется существование файла на сервере
+ * РґРѕР±Р°РІР»СЏРµРј РєР°СЂС‚РёРЅРєСѓ РґР»СЏ РІСЃС‚Р°РІРєРё РІ С‚РµР»Рѕ HTML-РїРёСЃСЊРјР°, РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёРµ С„Р°Р№Р»Р° РЅР° СЃРµСЂРІРµСЂРµ
  * 
  * @param string $filename
  * @return string|false
@@ -734,9 +734,9 @@ public static function quotedPrintableEncode($input , $line_max = 76, $eol = "\r
 } 
 
 /**
- * устанавливает настройки E-Mail
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РЅР°СЃС‚СЂРѕР№РєРё E-Mail
  * 
- * @param string $filename - файл, который фозвращает массив с настройками
+ * @param string $filename - С„Р°Р№Р», РєРѕС‚РѕСЂС‹Р№ С„РѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РЅР°СЃС‚СЂРѕР№РєР°РјРё
  * @return boolean
  * @throws TRMEMailExceptions
  */
@@ -744,13 +744,13 @@ public function setConfig( $filename )
 {
     if( !is_file($filename) )
     {
-        throw new TRMEMailExceptions( __METHOD__ . " Файл с настройками получить на удалось [{$filename}]!" );
+        throw new TRMEMailExceptions( __METHOD__ . " Р¤Р°Р№Р» СЃ РЅР°СЃС‚СЂРѕР№РєР°РјРё РїРѕР»СѓС‡РёС‚СЊ РЅР° СѓРґР°Р»РѕСЃСЊ [{$filename}]!" );
     }
     $this->config = include($filename);
 
     if( !is_array($this->config) || empty($this->config) )
     {
-        throw new TRMEMailExceptions( __METHOD__ . " Файл конфигурации вернул неверный формат данных [{$filename}]!" );
+        throw new TRMEMailExceptions( __METHOD__ . " Р¤Р°Р№Р» РєРѕРЅС„РёРіСѓСЂР°С†РёРё РІРµСЂРЅСѓР» РЅРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ РґР°РЅРЅС‹С… [{$filename}]!" );
     }
    
     if( isset($this->config["emailto"]) ) { $this->setEmailTo($this->config["emailto"]); }
@@ -767,14 +767,14 @@ public function setConfig( $filename )
 
 
 /**
- * Отправка письма через SMTP
+ * РћС‚РїСЂР°РІРєР° РїРёСЃСЊРјР° С‡РµСЂРµР· SMTP
  * 
- * @param string $mailTo - получатель письма - только почта вида - name$mail.com
- * @param string $subject - тема письма - в правильной кодировке для отправления
- * @param string $message - тело письма - в правильной кодировке для отправления
- * @param string $headers - заголовки письма - в правильной кодировке для отправления
+ * @param string $mailTo - РїРѕР»СѓС‡Р°С‚РµР»СЊ РїРёСЃСЊРјР° - С‚РѕР»СЊРєРѕ РїРѕС‡С‚Р° РІРёРґР° - name$mail.com
+ * @param string $subject - С‚РµРјР° РїРёСЃСЊРјР° - РІ РїСЂР°РІРёР»СЊРЅРѕР№ РєРѕРґРёСЂРѕРІРєРµ РґР»СЏ РѕС‚РїСЂР°РІР»РµРЅРёСЏ
+ * @param string $message - С‚РµР»Рѕ РїРёСЃСЊРјР° - РІ РїСЂР°РІРёР»СЊРЅРѕР№ РєРѕРґРёСЂРѕРІРєРµ РґР»СЏ РѕС‚РїСЂР°РІР»РµРЅРёСЏ
+ * @param string $headers - Р·Р°РіРѕР»РѕРІРєРё РїРёСЃСЊРјР° - РІ РїСЂР°РІРёР»СЊРЅРѕР№ РєРѕРґРёСЂРѕРІРєРµ РґР»СЏ РѕС‚РїСЂР°РІР»РµРЅРёСЏ
  *
- * @return boolean - в случае отправки вернет true, иначе
+ * @return boolean - РІ СЃР»СѓС‡Р°Рµ РѕС‚РїСЂР°РІРєРё РІРµСЂРЅРµС‚ true, РёРЅР°С‡Рµ
  * @throws TRMEMailSendingExceptions
  */
 protected function sendSMTP($mailTo, $subject, $message, $headers)
@@ -792,7 +792,7 @@ protected function sendSMTP($mailTo, $subject, $message, $headers)
         !isset($this->config["login"]) ||
         !isset($this->config["password"]) )
     {
-        throw new TRMEMailSendingExceptions("SMTP: Не все настройки установлены");
+        throw new TRMEMailSendingExceptions("SMTP: РќРµ РІСЃРµ РЅР°СЃС‚СЂРѕР№РєРё СѓСЃС‚Р°РЅРѕРІР»РµРЅС‹");
     }
 
 
@@ -869,14 +869,14 @@ protected function sendSMTP($mailTo, $subject, $message, $headers)
 }
 
 /**
- * читает из сокета данные, строка за строкой или по 256 символов,
- * пока не встретится строка, удовлетворяющая условию:
- * первые 3 символа должны быть 3-х цифровым кодм $response,
- * а за ними должен идти пробел
+ * С‡РёС‚Р°РµС‚ РёР· СЃРѕРєРµС‚Р° РґР°РЅРЅС‹Рµ, СЃС‚СЂРѕРєР° Р·Р° СЃС‚СЂРѕРєРѕР№ РёР»Рё РїРѕ 256 СЃРёРјРІРѕР»РѕРІ,
+ * РїРѕРєР° РЅРµ РІСЃС‚СЂРµС‚РёС‚СЃСЏ СЃС‚СЂРѕРєР°, СѓРґРѕРІР»РµС‚РІРѕСЂСЏСЋС‰Р°СЏ СѓСЃР»РѕРІРёСЋ:
+ * РїРµСЂРІС‹Рµ 3 СЃРёРјРІРѕР»Р° РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ 3-С… С†РёС„СЂРѕРІС‹Рј РєРѕРґРј $response,
+ * Р° Р·Р° РЅРёРјРё РґРѕР»Р¶РµРЅ РёРґС‚Рё РїСЂРѕР±РµР»
  * 
- * @param type $socket - сокет из которого читаются данные
- * @param type $response - кодк. который должен быть прочитан
- * @return boolean - если в сокете найдена строка с первыми символами кода $response, а затем пробел, то возвращается true, иначе false
+ * @param type $socket - СЃРѕРєРµС‚ РёР· РєРѕС‚РѕСЂРѕРіРѕ С‡РёС‚Р°СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param type $response - РєРѕРґРє. РєРѕС‚РѕСЂС‹Р№ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РїСЂРѕС‡РёС‚Р°РЅ
+ * @return boolean - РµСЃР»Рё РІ СЃРѕРєРµС‚Рµ РЅР°Р№РґРµРЅР° СЃС‚СЂРѕРєР° СЃ РїРµСЂРІС‹РјРё СЃРёРјРІРѕР»Р°РјРё РєРѕРґР° $response, Р° Р·Р°С‚РµРј РїСЂРѕР±РµР», С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ true, РёРЅР°С‡Рµ false
  */
 private function _parseServer($socket, $response)
 {

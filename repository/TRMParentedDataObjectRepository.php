@@ -7,16 +7,16 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 use TRMEngine\Exceptions\TRMObjectCreateException;
 
 /**
- * класс для работы с хранилищем объектов, зависимых от родительского объекта
+ * РєР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ С…СЂР°РЅРёР»РёС‰РµРј РѕР±СЉРµРєС‚РѕРІ, Р·Р°РІРёСЃРёРјС‹С… РѕС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ РѕР±СЉРµРєС‚Р°
  */
 abstract class TRMParentedDataObjectRepository extends TRMRepository
 {
 /**
- * @var array - массив array( имя объект, имя поля ) родительского ID в связующей таблице,
- * в данной реализации это одна из зависимостей, играющая роль главной, 
- * для которой выбираются все записи коллекции именно с одним таким ID,
- * например, для соотношения ( ID-товара-1 - [ID-товара-M, ID-характеристики-M] - ID-характеристики-1 )
- * такую роль играет ID-товара-M, для одного товара выбирается коллекция характеристик
+ * @var array - РјР°СЃСЃРёРІ array( РёРјСЏ РѕР±СЉРµРєС‚, РёРјСЏ РїРѕР»СЏ ) СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ ID РІ СЃРІСЏР·СѓСЋС‰РµР№ С‚Р°Р±Р»РёС†Рµ,
+ * РІ РґР°РЅРЅРѕР№ СЂРµР°Р»РёР·Р°С†РёРё СЌС‚Рѕ РѕРґРЅР° РёР· Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№, РёРіСЂР°СЋС‰Р°СЏ СЂРѕР»СЊ РіР»Р°РІРЅРѕР№, 
+ * РґР»СЏ РєРѕС‚РѕСЂРѕР№ РІС‹Р±РёСЂР°СЋС‚СЃСЏ РІСЃРµ Р·Р°РїРёСЃРё РєРѕР»Р»РµРєС†РёРё РёРјРµРЅРЅРѕ СЃ РѕРґРЅРёРј С‚Р°РєРёРј ID,
+ * РЅР°РїСЂРёРјРµСЂ, РґР»СЏ СЃРѕРѕС‚РЅРѕС€РµРЅРёСЏ ( ID-С‚РѕРІР°СЂР°-1 - [ID-С‚РѕРІР°СЂР°-M, ID-С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё-M] - ID-С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё-1 )
+ * С‚Р°РєСѓСЋ СЂРѕР»СЊ РёРіСЂР°РµС‚ ID-С‚РѕРІР°СЂР°-M, РґР»СЏ РѕРґРЅРѕРіРѕ С‚РѕРІР°СЂР° РІС‹Р±РёСЂР°РµС‚СЃСЏ РєРѕР»Р»РµРєС†РёСЏ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРє
  */
 static protected $ParentRelationIdFieldName = array();
 
@@ -25,13 +25,13 @@ public function __construct($objectclassname)
 {
     if( empty(static::$ParentRelationIdFieldName) )
     {
-        throw new TRMObjectCreateException("В дочернем объекте не указано имя поля, содержащее значение родительского ID для объектов ". get_class($this), 500);
+        throw new TRMObjectCreateException("Р’ РґРѕС‡РµСЂРЅРµРј РѕР±СЉРµРєС‚Рµ РЅРµ СѓРєР°Р·Р°РЅРѕ РёРјСЏ РїРѕР»СЏ, СЃРѕРґРµСЂР¶Р°С‰РµРµ Р·РЅР°С‡РµРЅРёРµ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ ID РґР»СЏ РѕР±СЉРµРєС‚РѕРІ ". get_class($this), 500);
     }
     parent::__construct($objectclassname);
 }
 
 /**
- * @return array -  array( имя родительского объекта, имя поля для связи )
+ * @return array -  array( РёРјСЏ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ РѕР±СЉРµРєС‚Р°, РёРјСЏ РїРѕР»СЏ РґР»СЏ СЃРІСЏР·Рё )
  */
 public function getParentRelationIdFieldName()
 {
@@ -39,7 +39,7 @@ public function getParentRelationIdFieldName()
     return $type::getParentIdFieldName();
 }
 /**
- * @param array $ParentRelationIdFieldName - array( имя родительского объекта, имя поля для связи )
+ * @param array $ParentRelationIdFieldName - array( РёРјСЏ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ РѕР±СЉРµРєС‚Р°, РёРјСЏ РїРѕР»СЏ РґР»СЏ СЃРІСЏР·Рё )
  */
 //static public function setParentRelationIdFieldName(array $ParentRelationIdFieldName)
 //{
@@ -49,10 +49,10 @@ public function getParentRelationIdFieldName()
 //}
 
 /**
- * возвращает коллекцию объектов, которые зависят от заданного родителя
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РєРѕР»Р»РµРєС†РёСЋ РѕР±СЉРµРєС‚РѕРІ, РєРѕС‚РѕСЂС‹Рµ Р·Р°РІРёСЃСЏС‚ РѕС‚ Р·Р°РґР°РЅРЅРѕРіРѕ СЂРѕРґРёС‚РµР»СЏ
  * 
- * @param TRMIdDataObjectInterface $parentobject - объект родителя, 
- * который будет установлен для коллекции и для которого будет выбрана из репозитория данная коллекция
+ * @param TRMIdDataObjectInterface $parentobject - РѕР±СЉРµРєС‚ СЂРѕРґРёС‚РµР»СЏ, 
+ * РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РґР»СЏ РєРѕР»Р»РµРєС†РёРё Рё РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ Р±СѓРґРµС‚ РІС‹Р±СЂР°РЅР° РёР· СЂРµРїРѕР·РёС‚РѕСЂРёСЏ РґР°РЅРЅР°СЏ РєРѕР»Р»РµРєС†РёСЏ
  * @return TRMDataObjectsCollectionInterface
  */
 public function getByParent( TRMIdDataObjectInterface $ParentObject, TRMDataObjectsCollectionInterface $Collection = null )

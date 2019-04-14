@@ -15,52 +15,52 @@ use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
 /**
- * îáùèé êëàññ äëÿ ðåïîçèòîðèÿ êîíòåéíåðà îáúåêòîâ
+ * Ð¾Ð±Ñ‰Ð¸Ð¹ ÐºÐ»Ð°ÑÑ Ð´Ð»Ñ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ñ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð° Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð²
  */
 class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInterface
 {
 /**
- * @var string - èìÿ òèïà äàííûõ, ñ êîòîðûìè ðàáîòàåò äàííûé ýêçåìïëÿð êëàññà Repository
+ * @var string - Ð¸Ð¼Ñ Ñ‚Ð¸Ð¿Ð° Ð´Ð°Ð½Ð½Ñ‹Ñ…, Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¼Ð¸ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ Ð´Ð°Ð½Ð½Ñ‹Ð¹ ÑÐºÐ·ÐµÐ¼Ð¿Ð»ÑÑ€ ÐºÐ»Ð°ÑÑÐ° Repository
  */
 protected $ObjectTypeName = "";
 /**
- * @var TRMRepositoryInterface - óêàçàòåëü íà ðåïîçèòîðèé 
- * äëÿ îáúåêòîâ òèïà ãëàâíîãî îáúåêòà â êîíòåéíåðå
+ * @var TRMRepositoryInterface - ÑƒÐºÐ°Ð·Ð°Ñ‚ÐµÐ»ÑŒ Ð½Ð° Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹ 
+ * Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² Ñ‚Ð¸Ð¿Ð° Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð² ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ
  */
 protected $MainDataObjectRepository = null;
 /**
- * @var TRMDataObjectsCollectionInterface - êîëëåêöèÿ îáúåêòîâ , 
- * äîáàâëåííûõ â ðåïîçèòîðèé, êîòîðûå íóæíî îáíîâèòü èëè äîáàâèòü â ïîñòîÿííîå õðàíèëèùå DataSource
+ * @var TRMDataObjectsCollectionInterface - ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² , 
+ * Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð½Ñ‹Ñ… Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð½ÑƒÐ¶Ð½Ð¾ Ð¾Ð±Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð¸Ð»Ð¸ Ð´Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð² Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ðµ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ DataSource
  */
 protected $CollectionToUpdate;
 /**
- * @var TRMDataObjectsCollectionInterface - êîëëåêöèÿ îáúåêòîâ , 
- * äîáàâëåííûõ â ðåïîçèòîðèé, êîòîðûå íóæíî îáíîâèòü èëè äîáàâèòü â ïîñòîÿííîå õðàíèëèùå DataSource
+ * @var TRMDataObjectsCollectionInterface - ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² , 
+ * Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð½Ñ‹Ñ… Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð½ÑƒÐ¶Ð½Ð¾ Ð¾Ð±Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð¸Ð»Ð¸ Ð´Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ Ð² Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ðµ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ DataSource
  */
 protected $CollectionToInsert;
 /**
- * @var TRMDataObjectsCollectionInterface - êîëëåêöèÿ îáúåêòîâ , 
- * êîòîðûå ïîäãîòîâëåíû ê óäàëåíèþ èç ïîñòîÿííîãî õðàíèëèùà DataSource
+ * @var TRMDataObjectsCollectionInterface - ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² , 
+ * ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²Ð»ÐµÐ½Ñ‹ Ðº ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸ÑŽ Ð¸Ð· Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ð³Ð¾ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð° DataSource
  */
 protected $CollectionToDelete;
 
 
 /**
- * @param string $ObjectTypeName - òèï îáúåêòîâ, ñ êîòîðûìè ðàáîòàåò ýòîò Repository
+ * @param string $ObjectTypeName - Ñ‚Ð¸Ð¿ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¼Ð¸ Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ ÑÑ‚Ð¾Ñ‚ Repository
  */
 public function __construct( $ObjectTypeName )
 {
     if( !class_exists($ObjectTypeName) )
     {
-        throw new TRMRepositoryUnknowDataObjectClassException( $ObjectTypeName . " íå çàðåãèñòðèðîâàí â ñèñòåìå - " . get_class($this) );
+        throw new TRMRepositoryUnknowDataObjectClassException( $ObjectTypeName . " Ð½Ðµ Ð·Ð°Ñ€ÐµÐ³Ð¸ÑÑ‚Ñ€Ð¸Ñ€Ð¾Ð²Ð°Ð½ Ð² ÑÐ¸ÑÑ‚ÐµÐ¼Ðµ - " . get_class($this) );
     }
     if( !is_subclass_of($ObjectTypeName, TRMDataObjectsContainerInterface::class) )
     {
-        throw new TRMRepositoryUnknowDataObjectClassException( $ObjectTypeName . " íå ÿâëÿåòñÿ êîíòåéíåðîì - " . get_class($this) );
+        throw new TRMRepositoryUnknowDataObjectClassException( $ObjectTypeName . " Ð½Ðµ ÑÐ²Ð»ÑÐµÑ‚ÑÑ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð¾Ð¼ - " . get_class($this) );
     }
 
     $this->ObjectTypeName = $ObjectTypeName;
-    // ñðàçó ïîëó÷èì ðåïîçèòîðèé äëÿ ãëàâíîãî îáúåêòà
+    // ÑÑ€Ð°Ð·Ñƒ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ð¼ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹ Ð´Ð»Ñ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
     $type = $this->ObjectTypeName;
     $MainObjectType = $type::getMainDataObjectType();
     $this->MainDataObjectRepository = TRMDIContainer::getStatic(TRMRepositoryManager::class)
@@ -81,10 +81,10 @@ public function getIdFieldName()
 }
 
 /**
- * @param TRMDataObjectsContainerInterface $Container - êîíòåéíåð îáúåêòîâ è êîëëåêöèé, 
- * äëÿ ãëàâíîãî îáúåêòà ýòîãî êîíòåéíåðà íóæíî ïîëó÷èòü ðåïîçèòîðèé
+ * @param TRMDataObjectsContainerInterface $Container - ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² Ð¸ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¹, 
+ * Ð´Ð»Ñ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° ÑÑ‚Ð¾Ð³Ð¾ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð° Ð½ÑƒÐ¶Ð½Ð¾ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹
  * 
- * @return TRMIdDataObjectRepository - âîçâðàùàåò îáúåêò (òî÷íåå ññûëêó) íà ðåïîçèòîðèé äëÿ ãëàâíîãî îáúåêòà
+ * @return TRMIdDataObjectRepository - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚ (Ñ‚Ð¾Ñ‡Ð½ÐµÐµ ÑÑÑ‹Ð»ÐºÑƒ) Ð½Ð° Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹ Ð´Ð»Ñ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
  */
 public function getMainRepositoryFor( TRMDataObjectsContainerInterface $Container )
 {
@@ -93,19 +93,19 @@ public function getMainRepositoryFor( TRMDataObjectsContainerInterface $Containe
 }
 
 /**
- * óñòàíàâëèâàåò óñëîâèå äëÿ WHERE ñåêöèè SQL-çàïðîñà ïðè âûáîðêå èç ÁÄ,
+ * ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ ÑƒÑÐ»Ð¾Ð²Ð¸Ðµ Ð´Ð»Ñ WHERE ÑÐµÐºÑ†Ð¸Ð¸ SQL-Ð·Ð°Ð¿Ñ€Ð¾ÑÐ° Ð¿Ñ€Ð¸ Ð²Ñ‹Ð±Ð¾Ñ€ÐºÐµ Ð¸Ð· Ð‘Ð”,
  * 
- * @param string $objectname - èìÿ îáúåêòà, ñîäåðæàùåå ïîëå äëÿ ñðàâíåíèÿ
- * @param string $fieldname - èìÿ ïîëÿ äëÿ ñðàâíåíèÿ
- * @param string|numeric|boolean $data - äàííûå äëÿ ñðàâíåíèÿ
- * @param string $operator - îïåðàòîð ñðàâíåíèÿ (=, !=, >, < è ò.ä.), ïîóìîë÷àíèþ =
- * @param string $andor - ÷òî ñòàâèòü ïåðåä ýòèì óñëîâèåì OR èëè AND ? ïî óìîë÷àíèþ AND
- * @param integer $quote - íóæíî ëè áðàòü â àïîñòðîôû èìåíà ïîëåé, ïî óìîë÷àíèþ íóæíî - TRMSqlDataSource::TRM_AR_QUOTE
- * @param string $alias - àëüÿñ äëÿ òàáëèöû èç êîòîðîé ñðàâíèâàåòñÿ ïîëå
- * @param integer $dataquote - åñëè íóæíî îñòàâèòü ñðàâíèâàåìîå âûðàæåíèå áåç êàâû÷åê, 
- * òî ýòîò àðãóìåíò äîëîæåí áûòü - TRMSqlDataSource::NOQUOTE
+ * @param string $objectname - Ð¸Ð¼Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°, ÑÐ¾Ð´ÐµÑ€Ð¶Ð°Ñ‰ÐµÐµ Ð¿Ð¾Ð»Ðµ Ð´Ð»Ñ ÑÑ€Ð°Ð²Ð½ÐµÐ½Ð¸Ñ
+ * @param string $fieldname - Ð¸Ð¼Ñ Ð¿Ð¾Ð»Ñ Ð´Ð»Ñ ÑÑ€Ð°Ð²Ð½ÐµÐ½Ð¸Ñ
+ * @param string|numeric|boolean $data - Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð´Ð»Ñ ÑÑ€Ð°Ð²Ð½ÐµÐ½Ð¸Ñ
+ * @param string $operator - Ð¾Ð¿ÐµÑ€Ð°Ñ‚Ð¾Ñ€ ÑÑ€Ð°Ð²Ð½ÐµÐ½Ð¸Ñ (=, !=, >, < Ð¸ Ñ‚.Ð´.), Ð¿Ð¾ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ =
+ * @param string $andor - Ñ‡Ñ‚Ð¾ ÑÑ‚Ð°Ð²Ð¸Ñ‚ÑŒ Ð¿ÐµÑ€ÐµÐ´ ÑÑ‚Ð¸Ð¼ ÑƒÑÐ»Ð¾Ð²Ð¸ÐµÐ¼ OR Ð¸Ð»Ð¸ AND ? Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ AND
+ * @param integer $quote - Ð½ÑƒÐ¶Ð½Ð¾ Ð»Ð¸ Ð±Ñ€Ð°Ñ‚ÑŒ Ð² Ð°Ð¿Ð¾ÑÑ‚Ñ€Ð¾Ñ„Ñ‹ Ð¸Ð¼ÐµÐ½Ð° Ð¿Ð¾Ð»ÐµÐ¹, Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ Ð½ÑƒÐ¶Ð½Ð¾ - TRMSqlDataSource::TRM_AR_QUOTE
+ * @param string $alias - Ð°Ð»ÑŒÑÑ Ð´Ð»Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ Ð¸Ð· ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¹ ÑÑ€Ð°Ð²Ð½Ð¸Ð²Ð°ÐµÑ‚ÑÑ Ð¿Ð¾Ð»Ðµ
+ * @param integer $dataquote - ÐµÑÐ»Ð¸ Ð½ÑƒÐ¶Ð½Ð¾ Ð¾ÑÑ‚Ð°Ð²Ð¸Ñ‚ÑŒ ÑÑ€Ð°Ð²Ð½Ð¸Ð²Ð°ÐµÐ¼Ð¾Ðµ Ð²Ñ‹Ñ€Ð°Ð¶ÐµÐ½Ð¸Ðµ Ð±ÐµÐ· ÐºÐ°Ð²Ñ‹Ñ‡ÐµÐº, 
+ * Ñ‚Ð¾ ÑÑ‚Ð¾Ñ‚ Ð°Ñ€Ð³ÑƒÐ¼ÐµÐ½Ñ‚ Ð´Ð¾Ð»Ð¾Ð¶ÐµÐ½ Ð±Ñ‹Ñ‚ÑŒ - TRMSqlDataSource::NOQUOTE
  * 
- * @return self - âîçâðàùàåò óêàçàòåëü íà ñåáÿ, ýòî äàåò âîçìîæíîñòü ïèñàòü òàêèå âûðàæåíèÿ:
+ * @return self - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ ÑƒÐºÐ°Ð·Ð°Ñ‚ÐµÐ»ÑŒ Ð½Ð° ÑÐµÐ±Ñ, ÑÑ‚Ð¾ Ð´Ð°ÐµÑ‚ Ð²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾ÑÑ‚ÑŒ Ð¿Ð¸ÑÐ°Ñ‚ÑŒ Ñ‚Ð°ÐºÐ¸Ðµ Ð²Ñ‹Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ:
  * $this->setWhereCondition(...)->setWhereCondition(...)->setWhereCondition(...)...
  */
 public function addCondition(
@@ -131,7 +131,7 @@ public function addCondition(
 }
 
 /**
- * î÷èùàåò óñëîâèÿ äëÿ âûáîðêè (â SQL-çàïðîñàõ ñåêöèÿ WHERE)
+ * Ð¾Ñ‡Ð¸Ñ‰Ð°ÐµÑ‚ ÑƒÑÐ»Ð¾Ð²Ð¸Ñ Ð´Ð»Ñ Ð²Ñ‹Ð±Ð¾Ñ€ÐºÐ¸ (Ð² SQL-Ð·Ð°Ð¿Ñ€Ð¾ÑÐ°Ñ… ÑÐµÐºÑ†Ð¸Ñ WHERE)
  */
 public function clearCondition()
 {
@@ -139,8 +139,8 @@ public function clearCondition()
 }
 
 /**
- * @param int $Count - êîëè÷åñòâî âûáèðàåìûõ ýëåìåíòîâ äëÿ êîëëåêóèè ãëàâíîãî îáúåêòà!
- * @param int $StartPosition - ïîçèöèÿ, ñ êîòîðîé íà÷èíàåòñÿ âûáîðêà, null - ñ íà÷àëà (ïî óìîë÷àíèþ)
+ * @param int $Count - ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÐµÐ¼Ñ‹Ñ… ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð´Ð»Ñ ÐºÐ¾Ð»Ð»ÐµÐºÑƒÐ¸Ð¸ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°!
+ * @param int $StartPosition - Ð¿Ð¾Ð·Ð¸Ñ†Ð¸Ñ, Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¹ Ð½Ð°Ñ‡Ð¸Ð½Ð°ÐµÑ‚ÑÑ Ð²Ñ‹Ð±Ð¾Ñ€ÐºÐ°, null - Ñ Ð½Ð°Ñ‡Ð°Ð»Ð° (Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ)
  */
 public function setLimit($Count, $StartPosition = null)
 {
@@ -149,16 +149,16 @@ public function setLimit($Count, $StartPosition = null)
 
 /**
  * 
- * @param TRMDataObjectsContainerInterface $Container - îáúåêò êîíòåéíåðà, 
- * â êîòîðîì çàïîëíÿþòñÿ èç ñîîòâåòñòâóþùèõ ðåïîçèòîðèåâ äî÷åðíèå êîëëåêöèè
+ * @param TRMDataObjectsContainerInterface $Container - Ð¾Ð±ÑŠÐµÐºÑ‚ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð°, 
+ * Ð² ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¼ Ð·Ð°Ð¿Ð¾Ð»Ð½ÑÑŽÑ‚ÑÑ Ð¸Ð· ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²ÑƒÑŽÑ‰Ð¸Ñ… Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸ÐµÐ² Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ðµ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸
  */
 protected function getAllChildCollectionForContainer( TRMDataObjectsContainerInterface $Container )
 {
     foreach( $Container as $Collection )
     {
-        // ýòî äî÷åðíèå òèïèçèðîâàííûå êîëëåêöèè,
-        // ó êàæäîãî ðåïîçèòîðÿ îáúåêòîâ, êîòîðûå õðàíÿòñÿ â êîëëåêöèÿõ, âûçûâàåì getByParent, 
-        // òèï äëÿ îáúåêòîâ êîëëåêöèè ìîæíî ïîëó÷èòü ÷åðåç åå ìåòîä ->getObjectsType()
+        // ÑÑ‚Ð¾ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ðµ Ñ‚Ð¸Ð¿Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ñ‹Ðµ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸,
+        // Ñƒ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ñ…Ñ€Ð°Ð½ÑÑ‚ÑÑ Ð² ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑÑ…, Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÐ¼ getByParent, 
+        // Ñ‚Ð¸Ð¿ Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸ Ð¼Ð¾Ð¶Ð½Ð¾ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ñ‡ÐµÑ€ÐµÐ· ÐµÐµ Ð¼ÐµÑ‚Ð¾Ð´ ->getObjectsType()
         $Rep = TRMDIContainer::getStatic(TRMRepositoryManager::class)
                 ->getRepository( $Collection->getObjectsType() );
         $Rep->getByParent( $Container->getMainDataObject(), $Collection );
@@ -166,16 +166,16 @@ protected function getAllChildCollectionForContainer( TRMDataObjectsContainerInt
 }
 /**
  * 
- * @param TRMDataObjectsContainerInterface $Container - îáúåêò êîíòåéíåðà, 
- * â êîòîðîì çàïîëíÿþòñÿ èç ñîîòâåòñòâóþùèõ ðåïîçèòîðèåâ äî÷åðíèå êîëëåêöèè
+ * @param TRMDataObjectsContainerInterface $Container - Ð¾Ð±ÑŠÐµÐºÑ‚ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð°, 
+ * Ð² ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¼ Ð·Ð°Ð¿Ð¾Ð»Ð½ÑÑŽÑ‚ÑÑ Ð¸Ð· ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²ÑƒÑŽÑ‰Ð¸Ñ… Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸ÐµÐ² Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ðµ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸
  */
 protected function getAllDependenciesObjectsForContainer( TRMDataObjectsContainerInterface $Container )
 {
     foreach( $Container->getDependenciesObjectsArray() as $Index => $DataObject )
     {
         $DependIndex = $Container->getDependenceField($Index);
-        // Åñëè ýòî îáúåêò-çàâèñèìîñòü äëÿ ãëàâíîãî, òî
-        // äëÿ íåãî âûçûâàåì getById
+        // Ð•ÑÐ»Ð¸ ÑÑ‚Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚-Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÑŒ Ð´Ð»Ñ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾, Ñ‚Ð¾
+        // Ð´Ð»Ñ Ð½ÐµÐ³Ð¾ Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÐ¼ getById
         TRMDIContainer::getStatic(TRMRepositoryManager::class)
                 ->getRepositoryFor( $DataObject )
                 ->getById(
@@ -197,19 +197,19 @@ public function getById($id, TRMDataObjectInterface $DataObject = null)
 }
 
 /**
- * Ïðîèçâîäèò âûáîðêó ãëàâíîãî îáúåêòà, óäîâëåòâîðÿþùåãî óêàçàííîìó çíà÷åíèþ äëÿ óêàçàííîãî ïîëÿ,
- * ïîî÷åðåäíî âûçûâàåò ìåòîä getOneBy äëÿ ðåïîçèòîðèåâ âñåõ îáúåêòîâ-çàâèñèìîñòåé,
- * îò êîòîðûõ çàâèñèò ãëàâíûé îáúåêò êîíòåéíåðà, ïåðåäàâàÿ ññûëêó â getBy ÷åðåç getDependence().
- * îáúåêòû-çàâèñèìîñòè äîëæíû ðåàëèçîâûâàòü TRMIdDataObjectInterface
- * è äëÿ âñåõ äî÷åðíèõ êîëëåêöèé âûçûâàåò getByParent, 
+ * ÐŸÑ€Ð¾Ð¸Ð·Ð²Ð¾Ð´Ð¸Ñ‚ Ð²Ñ‹Ð±Ð¾Ñ€ÐºÑƒ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°, ÑƒÐ´Ð¾Ð²Ð»ÐµÑ‚Ð²Ð¾Ñ€ÑÑŽÑ‰ÐµÐ³Ð¾ ÑƒÐºÐ°Ð·Ð°Ð½Ð½Ð¾Ð¼Ñƒ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸ÑŽ Ð´Ð»Ñ ÑƒÐºÐ°Ð·Ð°Ð½Ð½Ð¾Ð³Ð¾ Ð¿Ð¾Ð»Ñ,
+ * Ð¿Ð¾Ð¾Ñ‡ÐµÑ€ÐµÐ´Ð½Ð¾ Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÑ‚ Ð¼ÐµÑ‚Ð¾Ð´ getOneBy Ð´Ð»Ñ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸ÐµÐ² Ð²ÑÐµÑ… Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð²-Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÐµÐ¹,
+ * Ð¾Ñ‚ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… Ð·Ð°Ð²Ð¸ÑÐ¸Ñ‚ Ð³Ð»Ð°Ð²Ð½Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð°, Ð¿ÐµÑ€ÐµÐ´Ð°Ð²Ð°Ñ ÑÑÑ‹Ð»ÐºÑƒ Ð² getBy Ñ‡ÐµÑ€ÐµÐ· getDependence().
+ * Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹-Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸ Ð´Ð¾Ð»Ð¶Ð½Ñ‹ Ñ€ÐµÐ°Ð»Ð¸Ð·Ð¾Ð²Ñ‹Ð²Ð°Ñ‚ÑŒ TRMIdDataObjectInterface
+ * Ð¸ Ð´Ð»Ñ Ð²ÑÐµÑ… Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ñ… ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¹ Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÑ‚ getByParent, 
  * 
- * @param string $objectname - èìÿ ñóá-îáúåêòà (òàáëèöû â ÁÄ) äëÿ ïîèñêà ïî çíà÷åíèþ
- * @param string $fieldname - ïîëå, â êîòîðîì âûáèðàþòñÿ çíà÷åíèÿ
- * @param mixed $value - çíà÷åíèå äëÿ ñðàâíåíèÿ è ïîèñêà
- * @param TRMDataObjectInterface $Container - åñëè çàäàí îáúåêò, òî íîâûé ñîçäàâàòüñÿ íå áóäåò,
- * áóäóò çàïîëíÿòüñÿ ñâîéñòâà ýòîãî îáúåêòà
+ * @param string $objectname - Ð¸Ð¼Ñ ÑÑƒÐ±-Ð¾Ð±ÑŠÐµÐºÑ‚Ð° (Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ Ð² Ð‘Ð”) Ð´Ð»Ñ Ð¿Ð¾Ð¸ÑÐºÐ° Ð¿Ð¾ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸ÑŽ
+ * @param string $fieldname - Ð¿Ð¾Ð»Ðµ, Ð² ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¼ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÑŽÑ‚ÑÑ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ñ
+ * @param mixed $value - Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ Ð´Ð»Ñ ÑÑ€Ð°Ð²Ð½ÐµÐ½Ð¸Ñ Ð¸ Ð¿Ð¾Ð¸ÑÐºÐ°
+ * @param TRMDataObjectInterface $Container - ÐµÑÐ»Ð¸ Ð·Ð°Ð´Ð°Ð½ Ð¾Ð±ÑŠÐµÐºÑ‚, Ñ‚Ð¾ Ð½Ð¾Ð²Ñ‹Ð¹ ÑÐ¾Ð·Ð´Ð°Ð²Ð°Ñ‚ÑŒÑÑ Ð½Ðµ Ð±ÑƒÐ´ÐµÑ‚,
+ * Ð±ÑƒÐ´ÑƒÑ‚ Ð·Ð°Ð¿Ð¾Ð»Ð½ÑÑ‚ÑŒÑÑ ÑÐ²Ð¾Ð¹ÑÑ‚Ð²Ð° ÑÑ‚Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
  * 
- * @return TRMDataObjectsContainerInterface - îáúåêò-êîíòåéíåð, çàïîëíåííûé äàííûìè èç õðàíèëèùà
+ * @return TRMDataObjectsContainerInterface - Ð¾Ð±ÑŠÐµÐºÑ‚-ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€, Ð·Ð°Ð¿Ð¾Ð»Ð½ÐµÐ½Ð½Ñ‹Ð¹ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸ Ð¸Ð· Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°
  */
 public function getOneBy( $objectname, $fieldname, $value, TRMDataObjectInterface $Container = null)
 {
@@ -226,22 +226,22 @@ public function getOne(TRMDataObjectInterface $Container = null)
     }
     else
     {
-        // åñëè ïåðåäàí îáúåêò äëÿ îáðàáîòêè, 
-        // ïðîâåðÿåì åãî íà ñîîòâåòñòâèå òèïó,
-        // åñëè íå ïðîéäåò ïðîâåðêà , validateContainerObject âûáðàñûâàåò èñêëþ÷åíèå
+        // ÐµÑÐ»Ð¸ Ð¿ÐµÑ€ÐµÐ´Ð°Ð½ Ð¾Ð±ÑŠÐµÐºÑ‚ Ð´Ð»Ñ Ð¾Ð±Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐ¸, 
+        // Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ ÐµÐ³Ð¾ Ð½Ð° ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²Ð¸Ðµ Ñ‚Ð¸Ð¿Ñƒ,
+        // ÐµÑÐ»Ð¸ Ð½Ðµ Ð¿Ñ€Ð¾Ð¹Ð´ÐµÑ‚ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ° , validateContainerObject Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ
         $this->validateContainerObject($Container);
     }
     
-    // ïîëó÷àåì äàííûå äëÿ ãëàâíîãî îáúåêòà êîíòåéíåðà, 
-    // áåç íåãî íåò ñìûñëà ïðîäîëæàòü ðàáîòó, 
-    // ïîýòîìó ïðîâåðÿì, ÷òî îí ïîëó÷åí getOne,
+    // Ð¿Ð¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð´Ð»Ñ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð°, 
+    // Ð±ÐµÐ· Ð½ÐµÐ³Ð¾ Ð½ÐµÑ‚ ÑÐ¼Ñ‹ÑÐ»Ð° Ð¿Ñ€Ð¾Ð´Ð¾Ð»Ð¶Ð°Ñ‚ÑŒ Ñ€Ð°Ð±Ð¾Ñ‚Ñƒ, 
+    // Ð¿Ð¾ÑÑ‚Ð¾Ð¼Ñƒ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐ¼, Ñ‡Ñ‚Ð¾ Ð¾Ð½ Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½ getOne,
     if( !$this->getMainRepositoryFor($Container)->getOne( $Container->getMainDataObject() ) )
     {
-        throw new TRMRepositoryNoDataObjectException( "Äàííûå äëÿ ãëàâíîãî îáúåêòà ïîëó÷èòü íå óäàëîñü - "  . get_class($this) );
+        throw new TRMRepositoryNoDataObjectException( "Ð”Ð°Ð½Ð½Ñ‹Ðµ Ð´Ð»Ñ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð½Ðµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ - "  . get_class($this) );
     }
-    // öèêë ïî âñåì äî÷åðíèì êîëëåêöèÿì â êîíòåéíåðå
+    // Ñ†Ð¸ÐºÐ» Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑÐ¼ Ð² ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ
     $this->getAllChildCollectionForContainer($Container);
-    // öèêë ïî âñåì îáúåêòàì-çàâèñèìîñòÿì â êîíòåéíåðå
+    // Ñ†Ð¸ÐºÐ» Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°Ð¼-Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÑÐ¼ Ð² ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ
     $this->getAllDependenciesObjectsForContainer($Container);
     
     return $Container;
@@ -250,7 +250,7 @@ public function getOne(TRMDataObjectInterface $Container = null)
 /**
  * {@inheritDoc}
  * 
- * @param TRMDataObjectsCollectionInterface $ContainerCollection - êîëëåêöèÿ ñ êîíòåéíåðàìè, êîòîðûå íóæíî çàïîëíèòü äàííûìè
+ * @param TRMDataObjectsCollectionInterface $ContainerCollection - ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ñ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð°Ð¼Ð¸, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð½ÑƒÐ¶Ð½Ð¾ Ð·Ð°Ð¿Ð¾Ð»Ð½Ð¸Ñ‚ÑŒ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸
  * @throws TRMRepositoryNoDataObjectException
  */
 public function getAll(TRMDataObjectsCollectionInterface $ContainerCollection = null)
@@ -261,31 +261,31 @@ public function getAll(TRMDataObjectsCollectionInterface $ContainerCollection = 
     }
     else
     {
-        // åñëè ïåðåäàíà êîëëåêöèÿ äëÿ îáðàáîòêè, 
-        // ïðîâåðÿåì åå íà ñîîòâåòñòâèå òèïîâ îäúåêòîâ äàííûõ,
-        // åñëè íå ïðîéäåò ïðîâåðêà , validateContainerCollection âûáðàñûâàåò èñêëþ÷åíèå
+        // ÐµÑÐ»Ð¸ Ð¿ÐµÑ€ÐµÐ´Ð°Ð½Ð° ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ð´Ð»Ñ Ð¾Ð±Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐ¸, 
+        // Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ ÐµÐµ Ð½Ð° ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²Ð¸Ðµ Ñ‚Ð¸Ð¿Ð¾Ð² Ð¾Ð´ÑŠÐµÐºÑ‚Ð¾Ð² Ð´Ð°Ð½Ð½Ñ‹Ñ…,
+        // ÐµÑÐ»Ð¸ Ð½Ðµ Ð¿Ñ€Ð¾Ð¹Ð´ÐµÑ‚ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ° , validateContainerCollection Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ
         $this->validateContainerCollection($ContainerCollection);
     }
 
-    // ïîëó÷àåì êîëëåêöèþ ãëàâíûõ îáúåêòîâ
+    // Ð¿Ð¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð³Ð»Ð°Ð²Ð½Ñ‹Ñ… Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð²
     $MainDataObjectsCollection = $this->MainDataObjectRepository->getAll();
     if( !$MainDataObjectsCollection )
     {
-        throw new TRMRepositoryNoDataObjectException( "Äàííûå äëÿ ãëàâíûõ îáúåêòîâ ïîëó÷èòü íå óäàëîñü - "  . get_class($this) );
+        throw new TRMRepositoryNoDataObjectException( "Ð”Ð°Ð½Ð½Ñ‹Ðµ Ð´Ð»Ñ Ð³Ð»Ð°Ð²Ð½Ñ‹Ñ… Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð½Ðµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ - "  . get_class($this) );
     }
-    // ïåðåáèðàåì âñå ãëàâíûå îáúåêòû, ïîëó÷åííûå ïî óñëîâèþ
+    // Ð¿ÐµÑ€ÐµÐ±Ð¸Ñ€Ð°ÐµÐ¼ Ð²ÑÐµ Ð³Ð»Ð°Ð²Ð½Ñ‹Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹, Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð½Ñ‹Ðµ Ð¿Ð¾ ÑƒÑÐ»Ð¾Ð²Ð¸ÑŽ
     foreach( $MainDataObjectsCollection as $MainDataObject )
     {
-        // äëÿ êàæäîãî ãëàâíîãî îáúåêòà ñîçäàåòñÿ ñâîé êîíòåéíåð
+        // Ð´Ð»Ñ ÐºÐ°Ð¶Ð´Ð¾Ð³Ð¾ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° ÑÐ¾Ð·Ð´Ð°ÐµÑ‚ÑÑ ÑÐ²Ð¾Ð¹ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€
         $Container = new $this->ObjectTypeName;
         
         $Container->setMainDataObject($MainDataObject);
-        // öèêë ïî âñåì äî÷åðíèì êîëëåêöèÿì â î÷åðåäíîì êîíòåéíåðå
+        // Ñ†Ð¸ÐºÐ» Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑÐ¼ Ð² Ð¾Ñ‡ÐµÑ€ÐµÐ´Ð½Ð¾Ð¼ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ
         $this->getAllChildCollectionForContainer($Container);
-        // öèêë ïî âñåì îáúåêòàì-çàâèñèìîñòÿì â î÷åðåäíîì êîíòåéíåðå
+        // Ñ†Ð¸ÐºÐ» Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°Ð¼-Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÑÐ¼ Ð² Ð¾Ñ‡ÐµÑ€ÐµÐ´Ð½Ð¾Ð¼ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ
         $this->getAllDependenciesObjectsForContainer($Container);
-        // äîáàâëÿåì ñîçäàííûé êîíòåéíåð ñ ãëàâíûì îáúåêòîì 
-        // è ïîëó÷åííûìè çàâèñèìîñòÿìè â ðåçóëüòèðóþùóþ êîëëåêöè
+        // Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ¾Ð·Ð´Ð°Ð½Ð½Ñ‹Ð¹ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€ Ñ Ð³Ð»Ð°Ð²Ð½Ñ‹Ð¼ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð¼ 
+        // Ð¸ Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð½Ñ‹Ð¼Ð¸ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÑÐ¼Ð¸ Ð² Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð¸Ñ€ÑƒÑŽÑ‰ÑƒÑŽ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸
         $ContainerCollection->addDataObject($Container);
     }
     
@@ -303,15 +303,15 @@ public function getBy($objectname, $fieldname, $value, TRMDataObjectsCollectionI
 
 
 /**
- * îáíîâëÿåò îáúåêò òîâàðà
- * è âñå äî÷åðíèå îáúåêòû â êîíòåéíåðå, 
- * åñëè îíè ïîäïèñàíû íà ñîáûòèå updateComplexProductDBEvent.
- * îáíîâëåíèå ïðîèñõîäèò íå çàòðàãèâàÿ îáúåêòû-çàâèñèìîñòè!!!
- * çàâèñèìîñòè - ýòî îòäåëüíûå íåçàâèñèìûå ñóùíîñòè, îáíîâëÿþòñÿ îòäåëüíî,
- * ëèáî äîëæåí èñïîëüçîâàòüñÿ ìåõàíèçì
+ * Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ‚Ð¾Ð²Ð°Ñ€Ð°
+ * Ð¸ Ð²ÑÐµ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹ Ð² ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ, 
+ * ÐµÑÐ»Ð¸ Ð¾Ð½Ð¸ Ð¿Ð¾Ð´Ð¿Ð¸ÑÐ°Ð½Ñ‹ Ð½Ð° ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ðµ updateComplexProductDBEvent.
+ * Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ Ð¿Ñ€Ð¾Ð¸ÑÑ…Ð¾Ð´Ð¸Ñ‚ Ð½Ðµ Ð·Ð°Ñ‚Ñ€Ð°Ð³Ð¸Ð²Ð°Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹-Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸!!!
+ * Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸ - ÑÑ‚Ð¾ Ð¾Ñ‚Ð´ÐµÐ»ÑŒÐ½Ñ‹Ðµ Ð½ÐµÐ·Ð°Ð²Ð¸ÑÐ¸Ð¼Ñ‹Ðµ ÑÑƒÑ‰Ð½Ð¾ÑÑ‚Ð¸, Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÑŽÑ‚ÑÑ Ð¾Ñ‚Ð´ÐµÐ»ÑŒÐ½Ð¾,
+ * Ð»Ð¸Ð±Ð¾ Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÑŒÑÑ Ð¼ÐµÑ…Ð°Ð½Ð¸Ð·Ð¼
  * 
- * @param TRMDataObjectInterface $Container - îáíîâëÿåìûé îáúåêò-êîíòåéíåð, 
- * íà ñàìîì äåëå äîëæåí áûòü òèï TRMDataObjectsContainerInterface
+ * @param TRMDataObjectInterface $Container - Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÐ¼Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚-ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€, 
+ * Ð½Ð° ÑÐ°Ð¼Ð¾Ð¼ Ð´ÐµÐ»Ðµ Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð±Ñ‹Ñ‚ÑŒ Ñ‚Ð¸Ð¿ TRMDataObjectsContainerInterface
  * 
  * @return boolean
  */
@@ -321,13 +321,13 @@ function update( TRMDataObjectInterface $Container )
     
     $this->getMainRepositoryFor($Container)->update( $Container->getMainDataObject() );
 
-    // öèêë ïî âñåì äî÷åðíèì êîëëåêöèÿì â êîíòåéíåðå,
-    // ðåàëèçàöèÿ èòåðàòîðà íå çàòðàãèâàåò çàâèñèìîñòè
+    // Ñ†Ð¸ÐºÐ» Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑÐ¼ Ð² ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ,
+    // Ñ€ÐµÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ñ Ð¸Ñ‚ÐµÑ€Ð°Ñ‚Ð¾Ñ€Ð° Ð½Ðµ Ð·Ð°Ñ‚Ñ€Ð°Ð³Ð¸Ð²Ð°ÐµÑ‚ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸
     foreach( $Container as $DataObjectsCollection )
     {
-        // ýòî äî÷åðíèå êîëëåêöèè, äëÿ íèõ âûçûâàåì updateCollection
-        // äîáàâëÿåì êîëëåêöèþ îáúåêòîâ $DataObjectsCollection 
-        // ê ïðåäâàðèòåëüíîé äëÿ îáíîâëåíèÿ â ðåïîçèòîðèè
+        // ÑÑ‚Ð¾ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ðµ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸, Ð´Ð»Ñ Ð½Ð¸Ñ… Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÐ¼ updateCollection
+        // Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² $DataObjectsCollection 
+        // Ðº Ð¿Ñ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ð¹ Ð´Ð»Ñ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ñ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸
         TRMDIContainer::getStatic(TRMRepositoryManager::class)
                 ->getRepository( $DataObjectsCollection->getObjectsType() )
                 ->updateCollection( $DataObjectsCollection );
@@ -336,8 +336,8 @@ function update( TRMDataObjectInterface $Container )
     $this->CollectionToUpdate->addDataObject($Container);
 }
 /**
- * @param TRMDataObjectsCollectionInterface $Collection - êîëëåêöèÿ îáúåêòîâ-êîíòåéíåðîâ, 
- * êîòîðûå áóäóò äîáàâëåí â êîëëåêöèþ îáíîâëÿåìûõ
+ * @param TRMDataObjectsCollectionInterface $Collection - ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð²-ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð¾Ð², 
+ * ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð±ÑƒÐ´ÑƒÑ‚ Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½ Ð² ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÐ¼Ñ‹Ñ…
  */
 public function updateCollection(TRMDataObjectsCollectionInterface $Collection)
 {
@@ -353,7 +353,7 @@ public function insert(TRMDataObjectInterface $Container)
     
     $this->getMainRepositoryFor($Container)->insert( $Container->getMainDataObject() );
 
-    // öèêë ïî âñåì äî÷åðíèì êîëëåêöèÿì â êîíòåéíåðå
+    // Ñ†Ð¸ÐºÐ» Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑÐ¼ Ð² ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ
     foreach( $Container as $DataObjectsCollection )
     {
         TRMDIContainer::getStatic(TRMRepositoryManager::class)
@@ -373,14 +373,14 @@ public function insertCollection(TRMDataObjectsCollectionInterface $Collection)
 }
 
 /**
- * óäàëÿåò îñíîâíîé îáúåêò, áåç çàâèñèìîñòåé!!!
- * Îáúåêòû-çàâèñèìîñòè íå çàâèñÿò îò ãëàâíîãî îáúåêòà è óäàëÿþòñÿ àâòîíîìíî.
- * Âûçûâàåò ñîáûòèå deleteComplexProductDBEvent,
- * îïîâåùàÿ âñå äî÷åðíèå îáúåêòû, ÷òî ðîäèòåëü óäàëåí,
- * çàòåì ïðîèñõîäèò óäàäåíèå ãëàâíîãî îáúåêòà
+ * ÑƒÐ´Ð°Ð»ÑÐµÑ‚ Ð¾ÑÐ½Ð¾Ð²Ð½Ð¾Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚, Ð±ÐµÐ· Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÐµÐ¹!!!
+ * ÐžÐ±ÑŠÐµÐºÑ‚Ñ‹-Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸ Ð½Ðµ Ð·Ð°Ð²Ð¸ÑÑÑ‚ Ð¾Ñ‚ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð¸ ÑƒÐ´Ð°Ð»ÑÑŽÑ‚ÑÑ Ð°Ð²Ñ‚Ð¾Ð½Ð¾Ð¼Ð½Ð¾.
+ * Ð’Ñ‹Ð·Ñ‹Ð²Ð°ÐµÑ‚ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ðµ deleteComplexProductDBEvent,
+ * Ð¾Ð¿Ð¾Ð²ÐµÑ‰Ð°Ñ Ð²ÑÐµ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹, Ñ‡Ñ‚Ð¾ Ñ€Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒ ÑƒÐ´Ð°Ð»ÐµÐ½,
+ * Ð·Ð°Ñ‚ÐµÐ¼ Ð¿Ñ€Ð¾Ð¸ÑÑ…Ð¾Ð´Ð¸Ñ‚ ÑƒÐ´Ð°Ð´ÐµÐ½Ð¸Ðµ Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
  * 
- * @param TRMDataObjectInterface $Container - óäàëÿåìûé îáúåêò-êîíòåéíåð, 
- * íà ñàìîì äåëå äîëæåí áûòü òèï TRMDataObjectsContainerInterface
+ * @param TRMDataObjectInterface $Container - ÑƒÐ´Ð°Ð»ÑÐµÐ¼Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚-ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€, 
+ * Ð½Ð° ÑÐ°Ð¼Ð¾Ð¼ Ð´ÐµÐ»Ðµ Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð±Ñ‹Ñ‚ÑŒ Ñ‚Ð¸Ð¿ TRMDataObjectsContainerInterface
  * 
  * @return boolean
  */
@@ -388,11 +388,11 @@ public function delete( TRMDataObjectInterface $Container )
 {
     $this->validateContainerObject($Container);
 
-    // öèêë ïî âñåì äî÷åðíèì êîëëåêöèÿì â êîíòåéíåðå
+    // Ñ†Ð¸ÐºÐ» Ð¿Ð¾ Ð²ÑÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑÐ¼ Ð² ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ
     foreach( $Container as $DataObjectsCollection )
     {
-        // äîáàâëÿåì êîëëåêöèþ îáúåêòîâ $DataObjectsCollection 
-        // ê ïðåäâàðèòåëüíîé äëÿ óäàëåíèÿ â ðåïîçèòîðèè
+        // Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² $DataObjectsCollection 
+        // Ðº Ð¿Ñ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ð¹ Ð´Ð»Ñ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸
         TRMDIContainer::getStatic(TRMRepositoryManager::class)
                 ->getRepository( $DataObjectsCollection->getObjectsType() )
                 ->deleteCollection( $DataObjectsCollection );
@@ -403,8 +403,8 @@ public function delete( TRMDataObjectInterface $Container )
     $this->CollectionToDelete->addDataObject($Container);
 }
 /**
- * @param TRMDataObjectsCollectionInterface $Collection - êîëëåêöèÿ îáúåêòîâ-êîíòåéíåðîâ, 
- * êîòîðûå áóäóò äîáàâëåí â êîëëåêöèþ óäàëÿåìûõ
+ * @param TRMDataObjectsCollectionInterface $Collection - ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð²-ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ð¾Ð², 
+ * ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð±ÑƒÐ´ÑƒÑ‚ Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½ Ð² ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ ÑƒÐ´Ð°Ð»ÑÐµÐ¼Ñ‹Ñ…
  */
 public function deleteCollection(TRMDataObjectsCollectionInterface $Collection)
 {
@@ -415,10 +415,10 @@ public function deleteCollection(TRMDataObjectsCollectionInterface $Collection)
 }
 
 /**
- * ñîõðàíÿåò ñîñòàâíîé îáúåêò ñ ãëàâíûì îáúåêòîì è âñïîìîãàòåëüíûìè â âèäå êîëëåêöèè
+ * ÑÐ¾Ñ…Ñ€Ð°Ð½ÑÐµÑ‚ ÑÐ¾ÑÑ‚Ð°Ð²Ð½Ð¾Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ Ð³Ð»Ð°Ð²Ð½Ñ‹Ð¼ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð¼ Ð¸ Ð²ÑÐ¿Ð¾Ð¼Ð¾Ð³Ð°Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ð¼Ð¸ Ð² Ð²Ð¸Ð´Ðµ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸
  * 
- * @param TRMDataObjectInterface $Container - ñîõðàíÿåìûé îáúåêò-êîíòåéíåð, 
- * íà ñàìîì äåëå äîëæåí áûòü òèï TRMDataObjectsContainerInterface
+ * @param TRMDataObjectInterface $Container - ÑÐ¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚-ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€, 
+ * Ð½Ð° ÑÐ°Ð¼Ð¾Ð¼ Ð´ÐµÐ»Ðµ Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð±Ñ‹Ñ‚ÑŒ Ñ‚Ð¸Ð¿ TRMDataObjectsContainerInterface
  */
 public function save(TRMDataObjectInterface $Container)
 {
@@ -426,11 +426,11 @@ public function save(TRMDataObjectInterface $Container)
 }
 
 /**
- * ïðîâåðÿåò, ÷òî îáúåêò îáðàáàòûâàåòñÿ èìåííî ýòèì ðåïîçèòîðèåì
+ * Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÑ‚, Ñ‡Ñ‚Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚ Ð¾Ð±Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÐµÑ‚ÑÑ Ð¸Ð¼ÐµÐ½Ð½Ð¾ ÑÑ‚Ð¸Ð¼ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸ÐµÐ¼
  * 
- * @param TRMDataObjectsContainerInterface $Container - ïðîâåðÿåìûé îáúåêò
+ * @param TRMDataObjectsContainerInterface $Container - Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚
  * 
- * @return boolean - â ñëó÷àå ñîâïàäåíèÿ òèïîâ âåðíåò true, èíà÷å âûáðàñûâàåòñÿ èñêëþ÷åíèå
+ * @return boolean - Ð² ÑÐ»ÑƒÑ‡Ð°Ðµ ÑÐ¾Ð²Ð¿Ð°Ð´ÐµÐ½Ð¸Ñ Ñ‚Ð¸Ð¿Ð¾Ð² Ð²ÐµÑ€Ð½ÐµÑ‚ true, Ð¸Ð½Ð°Ñ‡Ðµ Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ÑÑ Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ
  * 
  * @throws TRMRepositoryUnknowDataObjectClassException
  */
@@ -438,17 +438,17 @@ public function validateContainerObject( TRMDataObjectsContainerInterface $Conta
 {
     if( get_class($Container) !== $this->ObjectTypeName )
     {
-        throw new TRMRepositoryUnknowDataObjectClassException( get_class($Container) . " äëÿ " . get_class($this) );
+        throw new TRMRepositoryUnknowDataObjectClassException( get_class($Container) . " Ð´Ð»Ñ " . get_class($this) );
     }
     return true;
 }
 /**
- * ïðîâåðÿåò, ÷òî áû êîëëåêöèÿ ðàáîòàëà ñ îáúåêòàìè òîãî æå òèïà, 
- * ÷òî è äàííûé ýåçåìïëÿð ðåïîçèòîðèÿ
+ * Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÑ‚, Ñ‡Ñ‚Ð¾ Ð±Ñ‹ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ð»Ð° Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°Ð¼Ð¸ Ñ‚Ð¾Ð³Ð¾ Ð¶Ðµ Ñ‚Ð¸Ð¿Ð°, 
+ * Ñ‡Ñ‚Ð¾ Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ð¹ ÑÐµÐ·ÐµÐ¼Ð¿Ð»ÑÑ€ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ñ
  * 
- * @param TRMTypedCollection $ContainerCollection - êîëëåöèÿ äëÿ ïðîâåðóè
+ * @param TRMTypedCollection $ContainerCollection - ÐºÐ¾Ð»Ð»ÐµÑ†Ð¸Ñ Ð´Ð»Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑƒÐ¸
  * 
- * @return boolean - â ñëó÷àå ñîâïàäåíèÿ òèïîâ âåðíåò true, èíà÷å âûáðàñûâàåòñÿ èñêëþ÷åíèå
+ * @return boolean - Ð² ÑÐ»ÑƒÑ‡Ð°Ðµ ÑÐ¾Ð²Ð¿Ð°Ð´ÐµÐ½Ð¸Ñ Ñ‚Ð¸Ð¿Ð¾Ð² Ð²ÐµÑ€Ð½ÐµÑ‚ true, Ð¸Ð½Ð°Ñ‡Ðµ Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ÑÑ Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ
  * 
  * @throws TRMRepositoryUnknowDataObjectClassException
  */
@@ -456,18 +456,18 @@ public function validateContainerCollection(TRMTypedCollection $ContainerCollect
 {
     if( $ContainerCollection->getObjectsType() !== $this->ObjectTypeName )
     {
-        throw new TRMRepositoryUnknowDataObjectClassException( get_class($ContainerCollection) . " äëÿ " . get_class($this) );
+        throw new TRMRepositoryUnknowDataObjectClassException( get_class($ContainerCollection) . " Ð´Ð»Ñ " . get_class($this) );
     }
     return true;
 }
 
 /**
- * ïðîèçâîäèò ôàêòè÷åñîêå óäàëåíèå êîëëåêöèè èç ïîñòîÿííîãî õðàíèëèùà DataSource
+ * Ð¿Ñ€Ð¾Ð¸Ð·Ð²Ð¾Ð´Ð¸Ñ‚ Ñ„Ð°ÐºÑ‚Ð¸Ñ‡ÐµÑÐ¾ÐºÐµ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ðµ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸ Ð¸Ð· Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ð³Ð¾ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð° DataSource
  * 
- * @param bool $ClearCollectionFlag - åñëè íóæíî ïîñëå óäàëåíèÿ ñîõðàíèòü êîëëåêöèþ óäàëåííûõ îáúåêòîâ, 
- * òî ýòîò ôëàã ñëåäóåò óòñàíîâèòü â false, ýòî ìîæåò ïîíàäîáèòüñÿ äî÷åðíèì ìåòîäàì,
- * íî ïåðåä çàâåðøåíèåì äî÷åðíåãî doDelete íóæíî î÷èñòèòü êîëëåêöèþ,
- * ÷òî áû íå ïîâòîðÿòü óäàëåíèå â áóäóùåì 2 ðàçà!
+ * @param bool $ClearCollectionFlag - ÐµÑÐ»Ð¸ Ð½ÑƒÐ¶Ð½Ð¾ Ð¿Ð¾ÑÐ»Ðµ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ ÑÐ¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ ÑƒÐ´Ð°Ð»ÐµÐ½Ð½Ñ‹Ñ… Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², 
+ * Ñ‚Ð¾ ÑÑ‚Ð¾Ñ‚ Ñ„Ð»Ð°Ð³ ÑÐ»ÐµÐ´ÑƒÐµÑ‚ ÑƒÑ‚ÑÐ°Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð² false, ÑÑ‚Ð¾ Ð¼Ð¾Ð¶ÐµÑ‚ Ð¿Ð¾Ð½Ð°Ð´Ð¾Ð±Ð¸Ñ‚ÑŒÑÑ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ Ð¼ÐµÑ‚Ð¾Ð´Ð°Ð¼,
+ * Ð½Ð¾ Ð¿ÐµÑ€ÐµÐ´ Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½Ð¸ÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½ÐµÐ³Ð¾ doDelete Ð½ÑƒÐ¶Ð½Ð¾ Ð¾Ñ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ,
+ * Ñ‡Ñ‚Ð¾ Ð±Ñ‹ Ð½Ðµ Ð¿Ð¾Ð²Ñ‚Ð¾Ñ€ÑÑ‚ÑŒ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ðµ Ð² Ð±ÑƒÐ´ÑƒÑ‰ÐµÐ¼ 2 Ñ€Ð°Ð·Ð°!
  */
 public function doDelete( $ClearCollectionFlag = true )
 {
@@ -477,8 +477,8 @@ public function doDelete( $ClearCollectionFlag = true )
     {
         foreach( $Container as $DataObjectsCollection )
         {
-            // äîáàâëÿåì êîëëåêöèþ îáúåêòîâ $DataObjectsCollection 
-            // ê ïðåäâàðèòåëüíîé äëÿ óäàëåíèÿ â ðåïîçèòîðèè
+            // Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² $DataObjectsCollection 
+            // Ðº Ð¿Ñ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ð¹ Ð´Ð»Ñ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸
             TRMDIContainer::getStatic(TRMRepositoryManager::class)
                     ->getRepository( $DataObjectsCollection->getObjectsType() )
                     ->doDelete( $ClearCollectionFlag );
@@ -502,8 +502,8 @@ public function doInsert( $ClearCollectionFlag = true )
     {
         foreach( $Container as $DataObjectsCollection )
         {
-            // äîáàâëÿåì êîëëåêöèþ îáúåêòîâ $DataObjectsCollection 
-            // ê ïðåäâàðèòåëüíîé äëÿ óäàëåíèÿ â ðåïîçèòîðèè
+            // Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² $DataObjectsCollection 
+            // Ðº Ð¿Ñ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ð¹ Ð´Ð»Ñ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸
             TRMDIContainer::getStatic(TRMRepositoryManager::class)
                     ->getRepository( $DataObjectsCollection->getObjectsType() )
                     ->doInsert( $ClearCollectionFlag );
@@ -526,8 +526,8 @@ public function doUpdate( $ClearCollectionFlag = true )
     {
         foreach( $Container as $DataObjectsCollection )
         {
-            // äîáàâëÿåì êîëëåêöèþ îáúåêòîâ $DataObjectsCollection 
-            // ê ïðåäâàðèòåëüíîé äëÿ óäàëåíèÿ â ðåïîçèòîðèè
+            // Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² $DataObjectsCollection 
+            // Ðº Ð¿Ñ€ÐµÐ´Ð²Ð°Ñ€Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾Ð¹ Ð´Ð»Ñ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸
             TRMDIContainer::getStatic(TRMRepositoryManager::class)
                     ->getRepository( $DataObjectsCollection->getObjectsType() )
                     ->doUpdate( $ClearCollectionFlag );

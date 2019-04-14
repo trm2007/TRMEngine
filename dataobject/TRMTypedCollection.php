@@ -9,7 +9,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
 
 /**
- * класс для работы с коллекциями однотипных объектов DataObject
+ * РєР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РєРѕР»Р»РµРєС†РёСЏРјРё РѕРґРЅРѕС‚РёРїРЅС‹С… РѕР±СЉРµРєС‚РѕРІ DataObject
  * 
  * @version 2019-03-29
  */
@@ -17,7 +17,7 @@ class TRMTypedCollection extends TRMDataObjectsCollection
 {
 /**
  *
- * @var string - тип сохраняемых объектов в данной коллекции
+ * @var string - С‚РёРї СЃРѕС…СЂР°РЅСЏРµРјС‹С… РѕР±СЉРµРєС‚РѕРІ РІ РґР°РЅРЅРѕР№ РєРѕР»Р»РµРєС†РёРё
  */
 protected $ObjectsType;
 
@@ -32,7 +32,7 @@ public function __construct($ObjectsType)
 }
 
 /**
- * @return string - тип сохраняемых объектов в данной коллекции
+ * @return string - С‚РёРї СЃРѕС…СЂР°РЅСЏРµРјС‹С… РѕР±СЉРµРєС‚РѕРІ РІ РґР°РЅРЅРѕР№ РєРѕР»Р»РµРєС†РёРё
  */
 public function getObjectsType()
 {
@@ -40,9 +40,9 @@ public function getObjectsType()
 }
 
 /**
- * проверяет соответствие типа объекта установленному для коллекции
+ * РїСЂРѕРІРµСЂСЏРµС‚ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ С‚РёРїР° РѕР±СЉРµРєС‚Р° СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРјСѓ РґР»СЏ РєРѕР»Р»РµРєС†РёРё
  * 
- * @param TRMDataObjectInterface $DataObject - проверяемый объект
+ * @param TRMDataObjectInterface $DataObject - РїСЂРѕРІРµСЂСЏРµРјС‹Р№ РѕР±СЉРµРєС‚
  * 
  * @throws TRMDataObjectsCollectionWrongTypeException
  */
@@ -55,8 +55,8 @@ public function validateObject(TRMDataObjectInterface $DataObject)
 }
 
 /**
- * @param int $Index - целочисленный индекс объекта в коллекции объектов
- * @param TRMDataObjectInterface $DataObject - объект для установки в коллекции
+ * @param int $Index - С†РµР»РѕС‡РёСЃР»РµРЅРЅС‹Р№ РёРЅРґРµРєСЃ РѕР±СЉРµРєС‚Р° РІ РєРѕР»Р»РµРєС†РёРё РѕР±СЉРµРєС‚РѕРІ
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РІ РєРѕР»Р»РµРєС†РёРё
  * 
  * @throws TRMDataObjectsCollectionWrongIndexException
  */
@@ -67,13 +67,13 @@ public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 }
 
 /**
- * @param TRMDataObjectInterface $DataObject - добавит это объект в коллекцию
- * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добавятся дубликаты объектов,
- * если утсановить в TRUE, то объект добавится как новый,
- * даже если он дублирует уже присутсвующий,
- * по умолчанию - false (дубли не добавляются)
+ * @param TRMDataObjectInterface $DataObject - РґРѕР±Р°РІРёС‚ СЌС‚Рѕ РѕР±СЉРµРєС‚ РІ РєРѕР»Р»РµРєС†РёСЋ
+ * @param bool $AddDuplicateFlag - РµСЃР»Рё СЌС‚РѕС‚ С„Р»Р°Рі СѓСЃС‚Р°РЅРѕРІРґРµРЅ РІ false, С‚Рѕ РІ РєРѕР»Р»РµРєС†РёСЋ РЅРµ РґРѕР±Р°РІСЏС‚СЃСЏ РґСѓР±Р»РёРєР°С‚С‹ РѕР±СЉРµРєС‚РѕРІ,
+ * РµСЃР»Рё СѓС‚СЃР°РЅРѕРІРёС‚СЊ РІ TRUE, С‚Рѕ РѕР±СЉРµРєС‚ РґРѕР±Р°РІРёС‚СЃСЏ РєР°Рє РЅРѕРІС‹Р№,
+ * РґР°Р¶Рµ РµСЃР»Рё РѕРЅ РґСѓР±Р»РёСЂСѓРµС‚ СѓР¶Рµ РїСЂРёСЃСѓС‚СЃРІСѓСЋС‰РёР№,
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ - false (РґСѓР±Р»Рё РЅРµ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ)
  * 
- * @return boolean - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
+ * @return boolean - РµСЃР»Рё РѕР±СЉРµРєС‚ РґРѕР±Р°РІР»РµРЅ РІ РєРѕР»Р»РµРєС†РёСЋ, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ TRUE, РёРЅР°С‡Рµ FALSE
  */
 public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false )
 {
@@ -82,14 +82,14 @@ public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicate
 }
 
 /**
- * добавляет в коллекцию содержимое другой коллекции,
- * если только такого объект еще нет в своем массиве,
- * точнее не самого объекта, а ссылки на этот же самы йобъект
+ * РґРѕР±Р°РІР»СЏРµС‚ РІ РєРѕР»Р»РµРєС†РёСЋ СЃРѕРґРµСЂР¶РёРјРѕРµ РґСЂСѓРіРѕР№ РєРѕР»Р»РµРєС†РёРё,
+ * РµСЃР»Рё С‚РѕР»СЊРєРѕ С‚Р°РєРѕРіРѕ РѕР±СЉРµРєС‚ РµС‰Рµ РЅРµС‚ РІ СЃРІРѕРµРј РјР°СЃСЃРёРІРµ,
+ * С‚РѕС‡РЅРµРµ РЅРµ СЃР°РјРѕРіРѕ РѕР±СЉРµРєС‚Р°, Р° СЃСЃС‹Р»РєРё РЅР° СЌС‚РѕС‚ Р¶Рµ СЃР°РјС‹ Р№РѕР±СЉРµРєС‚
  * 
  * @param TRMDataObjectsCollection $Collection
- * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добавятся дубликаты объектов,
- * если утсановить в TRUE, то новая коллекция добавистя как есть к существующей, со всеми элементами,
- * даже если они дублируют уже присутсвующие, по умолчанию - false (дубли не добавляются)
+ * @param bool $AddDuplicateFlag - РµСЃР»Рё СЌС‚РѕС‚ С„Р»Р°Рі СѓСЃС‚Р°РЅРѕРІРґРµРЅ РІ false, С‚Рѕ РІ РєРѕР»Р»РµРєС†РёСЋ РЅРµ РґРѕР±Р°РІСЏС‚СЃСЏ РґСѓР±Р»РёРєР°С‚С‹ РѕР±СЉРµРєС‚РѕРІ,
+ * РµСЃР»Рё СѓС‚СЃР°РЅРѕРІРёС‚СЊ РІ TRUE, С‚Рѕ РЅРѕРІР°СЏ РєРѕР»Р»РµРєС†РёСЏ РґРѕР±Р°РІРёСЃС‚СЏ РєР°Рє РµСЃС‚СЊ Рє СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµР№, СЃРѕ РІСЃРµРјРё СЌР»РµРјРµРЅС‚Р°РјРё,
+ * РґР°Р¶Рµ РµСЃР»Рё РѕРЅРё РґСѓР±Р»РёСЂСѓСЋС‚ СѓР¶Рµ РїСЂРёСЃСѓС‚СЃРІСѓСЋС‰РёРµ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ - false (РґСѓР±Р»Рё РЅРµ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ)
  */
 public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $AddDuplicateFlag = false )
 {

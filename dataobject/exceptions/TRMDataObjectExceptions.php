@@ -5,26 +5,26 @@ namespace TRMEngine\DataObject\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * выбрасывается при ошибке в работе с объектами данных TRMDataObject и их наслдениками
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РїСЂРё РѕС€РёР±РєРµ РІ СЂР°Р±РѕС‚Рµ СЃ РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С… TRMDataObject Рё РёС… РЅР°СЃР»РґРµРЅРёРєР°РјРё
  */
 class TRMDataObjectException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка объекта данных! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РѕР±СЉРµРєС‚Р° РґР°РЅРЅС‹С…! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * выбрасывается при ошибке в работе с контейнером объектов данных TRMDataObjectsContainer и их наслдениками
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РїСЂРё РѕС€РёР±РєРµ РІ СЂР°Р±РѕС‚Рµ СЃ РєРѕРЅС‚РµР№РЅРµСЂРѕРј РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С… TRMDataObjectsContainer Рё РёС… РЅР°СЃР»РґРµРЅРёРєР°РјРё
  */
 class TRMDataObjectContainerException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка при работе с контейнером данных! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РїСЂРё СЂР°Р±РѕС‚Рµ СЃ РєРѕРЅС‚РµР№РЅРµСЂРѕРј РґР°РЅРЅС‹С…! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
@@ -33,7 +33,7 @@ class TRMDataObjectContainerNoMainException extends TRMDataObjectContainerExcept
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Отсутсвует ключ Main! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС‚СЃСѓС‚СЃРІСѓРµС‚ РєР»СЋС‡ Main! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
@@ -42,20 +42,20 @@ class TRMDataObjectsContainerWrongIndexException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка в коллекции объектов данных! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РІ РєРѕР»Р»РµРєС†РёРё РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * выбрасывается при ошибке в работе с коллекцией объектов данных TRMDataObjectsCollection и их наслдениками
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РїСЂРё РѕС€РёР±РєРµ РІ СЂР°Р±РѕС‚Рµ СЃ РєРѕР»Р»РµРєС†РёРµР№ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С… TRMDataObjectsCollection Рё РёС… РЅР°СЃР»РґРµРЅРёРєР°РјРё
  */
 class TRMDataObjectsCollectionException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка в коллекции объектов данных! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РІ РєРѕР»Р»РµРєС†РёРё РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
@@ -64,7 +64,7 @@ class TRMDataObjectsCollectionWrongIndexException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка в коллекции объектов данных! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РІ РєРѕР»Р»РµРєС†РёРё РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
@@ -73,7 +73,7 @@ class TRMDataObjectsCollectionWrongTypeException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Неверный тип объекта! " . PHP_EOL;
+        $message .= PHP_EOL . " РќРµРІРµСЂРЅС‹Р№ С‚РёРї РѕР±СЉРµРєС‚Р°! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
