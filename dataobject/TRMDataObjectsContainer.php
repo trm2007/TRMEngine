@@ -249,7 +249,7 @@ public function jsonSerialize()
 {
     $arr = array();
     // для "Main" части устанавливается ссылка на главный объект
-    // У него рекурсивно быдкт вызвана jsonSerialize
+    // У него рекурсивно будет вызвана jsonSerialize
     $arr[static::MAIN_INDEX] = $this->MainDataObject;
     
     if( count($this->ChildCollectionsArray) )
@@ -259,6 +259,7 @@ public function jsonSerialize()
         {
             if( $ChildCollection->count() )
             {
+                // У $ChildCollection рекурсивно будет вызвана jsonSerialize
                 $arr[static::CHILDRENS_INDEX][$Name] = $ChildCollection;
             }
         }
@@ -268,6 +269,7 @@ public function jsonSerialize()
         $arr[static::DEPENDENCIES_INDEX] = array();
         foreach ($this->DependenciesObjectsArray as $Name => $Dependence)
         {
+            // У $Dependence рекурсивно будет вызвана jsonSerialize
             $arr[static::DEPENDENCIES_INDEX][$Name] = $Dependence;
         }
     }
