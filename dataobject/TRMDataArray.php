@@ -9,7 +9,7 @@ use TRMEngine\DataArray\Interfaces\TRMDataArrayInterface;
  *
  * @author TRM
  */
-class TRMDataArray implements TRMDataArrayInterface
+class TRMDataArray implements TRMDataArrayInterface, \JsonSerializable
 {
 /**
  * @var array - массив данных
@@ -146,5 +146,9 @@ public function offsetUnset($offset)
     unset( $this->DataArray[$offset] );
 }
 
+public function jsonSerialize()
+{
+    return $this->getDataArray();
+}
 
 } // TRMDataArray

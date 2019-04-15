@@ -11,7 +11,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
  * 
  * @version 2019-03-29
  */
-class TRMDataObjectsCollection implements TRMDataObjectsCollectionInterface
+class TRMDataObjectsCollection implements TRMDataObjectsCollectionInterface, \JsonSerializable
 {
 /**
  * @var int - текущая позиция указателя в массиве для реализации интерфейса Iterator
@@ -131,14 +131,24 @@ public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
     }
 }
 
-// ********************    **************************************************
+public function getTotalArray()
+{
+    $TotalArray = array();
+    foreach( $this->DataObjectsArray as $Key => $Object )
+    {
+        $TotalArray[$Key] = $Object->getDataArray();
+    }
+    return $TotalArray;
+}
+
+// ******************** Countable   **************************************************
 
 public function count()
 {
     return count($this->DataObjectsArray);
 }
 
-// ********************    **************************************************
+// ******************** ArrayAccess   **************************************************
 
 public function current()
 {
@@ -197,6 +207,18 @@ public function offsetSet($offset, $value)
 public function offsetUnset($offset)
 {
     unset($this->DataObjectsArray[$offset]);
+}
+
+/**
+ * реализация интерфейса JsonSerializable,
+ * возвращает данные, 
+ * которые будут обрабатываться при вызове json_encode для этого объекта
+ * 
+ * @return array
+ */
+public function jsonSerialize()
+{
+    return $this->DataObjectsArray;
 }
 
 
