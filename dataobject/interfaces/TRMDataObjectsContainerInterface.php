@@ -82,19 +82,19 @@ public function clearDependencies();
 
 /**
  * 
- * @param TRMDataObjectsCollection $Collection - коллекция, 
+ * @param TRMTypedCollectionInterface $Collection - коллекция, 
  * для каждого объекта которой нужно установить родителем данный объект контейнера
  */
-public function setParentFor( TRMDataObjectsCollection $Collection, TRMIdDataObjectInterface $Parent);
+public function setParentFor( TRMTypedCollectionInterface $Collection, TRMIdDataObjectInterface $Parent);
 
 /**
  * помещает коллекцию дочерних объект данных в массив под номером $Index, 
  * сохраняется только ссылка, объекты не клонируются!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectsCollection $Collection - добавляемый объект-коллекция
+ * @param TRMTypedCollectionInterface $Collection - добавляемый объект-коллекция
  */
-public function setChildCollection($Index, TRMDataObjectsCollection $Collection);
+public function setChildCollection($Index, TRMTypedCollectionInterface $Collection);
 
 /**
  * возвращает объект из контейнера под номером $Index

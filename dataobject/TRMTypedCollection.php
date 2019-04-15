@@ -2,10 +2,12 @@
 
 namespace TRMEngine\DataObject;
 
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongTypeException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
+use TRMEngine\DataObject\Interfaces\TRMTypedCollectionInterface;
 use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
 
 /**
@@ -13,7 +15,7 @@ use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
  * 
  * @version 2019-03-29
  */
-class TRMTypedCollection extends TRMDataObjectsCollection
+class TRMTypedCollection extends TRMDataObjectsCollection implements TRMTypedCollectionInterface
 {
 /**
  *
@@ -100,5 +102,29 @@ public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $
     parent::mergeCollection($Collection, $AddDuplicateFlag);
 }
 
+/**
+ * перебирает массив $Array,
+ * на основе каждого его элемента создает новый объет хранимого типа,
+ * и вызывает у него так же функцию initializeFromArray,
+ * добавляет вновь созданный объект в коллекцию
+ * 
+ * @param array $Array - массив с данными для инициализации элементов коллекции
+ * 
+ * @throws TRMDataObjectsCollectionException - если передан пустой массив выбрасывает исключение
+ */
+public function initializeFromArray( array $Array )
+{
+    if( empty($Array) )
+    {
+        throw new TRMDataObjectsCollectionException( " Передан пустой массив данных для инициализации " .$this->ObjectsType  );
+    }
+    foreach( $Array as $Index => $Data )
+    {
+        if( empty($Data) ) { continue; }
+        $DataObject = new $this->ObjectsType;
+        $DataObject->initializeFromArray($Data);
+        $this->setDataObject($Index, $DataObject);
+    }
+}
 
-} // TRMDataObjectsCollection
+} // TRMTypedCollection

@@ -44,7 +44,7 @@ static public function setParentIdFieldName(array $ParentIdFieldName)
 /**
  * @return TRMIdDataObjectInterface - возвращает объект родителя
  */
-function getParentDataObject()
+public function getParentDataObject()
 {
     return $this->ParentDataObject;
 }
@@ -53,28 +53,13 @@ function getParentDataObject()
  * @param TRMIdDataObjectInterface $ParentDataObject - устанавливает объект родителя, 
  * при этом меняются все родительские Id в коллекции
  */
-function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject)
+public function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject)
 {
     $this->ParentDataObject = $ParentDataObject;
-    $this->changeParentIdForCurrentParent();
-}
 
-/**
- * вспомогательная функция, меняет все значения поля родительского ID для коллекции 
- * на значение ID из родительского объекта, 
- * используется только в функциях копирования, установки всей коллекции из другого объекта, и смены родителя.
- * если родительский объект еще не установлен, то все значения родительскиго Id будут установлены в null
- */
-private function changeParentIdForCurrentParent()
-{
-    if( $this->ParentDataObject )
-    {
-        $this->changeAllValuesFor( $this->ParentIdFieldName[0], $this->ParentIdFieldName[1], $this->ParentDataObject->getId() );
-    }
-    else
-    {
-        $this->changeAllValuesFor( $this->ParentIdFieldName[0], $this->ParentIdFieldName[1], null );
-    }
+    $ParentIdFieldName = static::getParentIdFieldName();
+    // устанавливаем значение родительского поля в Id нового родителя
+    $this->setData( $ParentIdFieldName[0], $ParentIdFieldName[1], $ParentDataObject->getId() );
 }
 
 

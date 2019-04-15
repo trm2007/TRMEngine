@@ -170,27 +170,6 @@ public function presentFieldNamesIn( $rownum, array &$fieldnames )
  * 
  */
 
-/**
- * меняет во всех записях значение поля $FieldName на новое значение $FieldValue
- *
- * @param string $ObjectName - имя объекта, в котором меняется значение 
- * @param string $FieldName - имя поля-колонки
- * @param mixed $FieldValue - новое значение
- */
-/*
-public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
-{
-    foreach( $this->DataArray as $i => &$row)
-    {
-        if( key_exists($ObjectName, $this->DataArray[$i]) && 
-            key_exists($FieldName, $this->DataArray[$i][$ObjectName]) )
-        {
-            $row[$ObjectName][$FieldName] = $FieldValue;
-        }
-    }
-}
- * 
- */
 
 /**
  * удаляет из массива записи, в которых поле $FieldName удовлетворяет значению $FieldValue

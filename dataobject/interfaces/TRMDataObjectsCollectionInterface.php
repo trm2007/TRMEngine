@@ -2,6 +2,7 @@
 
 namespace TRMEngine\DataObject\Interfaces;
 
+use TRMEngine\DataArray\Interfaces\initializibleFromArray;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 
@@ -23,8 +24,6 @@ public function getDataObject($Index);
 /**
  * @param int $Index - целочисленный индекс объекта в коллекции объектов
  * @param TRMDataObjectInterface $DataObject - объект для установки в коллекции
- * 
- * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject);
 
@@ -53,7 +52,7 @@ public function hasDataObject( TRMDataObjectInterface $Object );
  * если только такого объект еще нет в своем массиве,
  * точнее не самого объекта, а ссылки на этот же самы йобъект
  * 
- * @param TRMDataObjectsCollection $Collection
+ * @param TRMDataObjectsCollectionInterface $Collection
  * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добавятся дубликаты объектов,
  * если утсановить в TRUE, то новая коллекция добавистя как есть к существующей, со всеми элементами,
  * даже если они дублируют уже присутсвующие, по умолчанию - false (дубли не добавляются)
@@ -67,10 +66,21 @@ public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $
  */
 public function clearCollection();
 
+/**
+ * меняет во всех объектах коллекции значение 
+ * поля $FieldName sub-объекта $ObjectName на новое значение $FieldValue
+ *
+ * @param string $ObjectName - имя объекта, в котором меняется значение 
+ * @param string $FieldName - имя поля в объектах данных
+ * @param mixed $FieldValue - новое значение
+ */
+public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue);
+
+
 } // TRMDataObjectsCollectionInterface
 
 
-interface TRMTypedCollection extends TRMDataObjectsCollectionInterface
+interface TRMTypedCollectionInterface extends TRMDataObjectsCollectionInterface, initializibleFromArray
 {
 /**
  * @return string - тип сохраняемых объектов в коллекциях данного типа
@@ -85,15 +95,6 @@ public function getObjectsType();
  * @throws TRMDataObjectSCollectionWrongTypeException
  */
 public function validateObject(TRMDataObjectInterface $DataObject);
-
-/**
- * меняет во всех записях значение поля $FieldName на новое значение $FieldValue, если разрешена запись
- *
- * @param string $ObjectName - имя объекта, в котором меняется значение 
- * @param string $FieldName - имя поля в объектах данных
- * @param mixed $FieldValue - новое значение
- */
-public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue);
 
 
 } // TRMTypedCollection

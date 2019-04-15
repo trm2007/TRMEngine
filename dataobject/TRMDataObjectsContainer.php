@@ -7,6 +7,7 @@ use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
+use TRMEngine\DataObject\Interfaces\TRMTypedCollectionInterface;
 
 /**
  * класс контейнер объектов данных, используется для составных объектов.
@@ -26,13 +27,17 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
  */
 class TRMDataObjectsContainer implements TRMDataObjectsContainerInterface
 {
+const MAIN_INDEX = "Main";
+const CHILDRENS_INDEX = "Childrens";
+const DEPENDENCIES_INDEX = "Dependencies";
+
 /**
  * @var TRMIdDataObjectInterface - основной объект с уникальным идентификатором ID,
  * по униакльному ID объекты в контейнере связываются с главным объектом
  */
 protected $MainDataObject;
 /**
- * @var array(TRMDataObjectsCollection) - массив с коллекциями объектов данных, дополняющих основной объект, 
+ * @var array(TRMTypedCollectionInterface) - массив с коллекциями объектов данных, дополняющих основной объект, 
  * например коллекция характеристик, доп.изображения, комплекты, скидки и т.д.
  */
 protected $ChildCollectionsArray = array();
@@ -163,10 +168,10 @@ public function clearDependencies()
 
 /**
  * 
- * @param TRMDataObjectsCollection $Collection - коллекция, 
+ * @param TRMTypedCollectionInterface $Collection - коллекция, 
  * для каждого объекта которой нужно установить родителем данный объект контейнера
  */
-public function setParentFor( TRMDataObjectsCollection $Collection, TRMIdDataObjectInterface $Parent)
+public function setParentFor(TRMTypedCollectionInterface $Collection, TRMIdDataObjectInterface $Parent)
 {
     foreach( $Collection as $Object )
     {
@@ -179,9 +184,9 @@ public function setParentFor( TRMDataObjectsCollection $Collection, TRMIdDataObj
  * сохраняется только ссылка, объекты не клонируются!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectsCollection $Collection - добавляемый объект-коллекция
+ * @param TRMTypedCollectionInterface $Collection - добавляемый объект-коллекция
  */
-public function setChildCollection($Index, TRMDataObjectsCollection $Collection) // был TRMParentedDataObject, но позже сделал для все объектов данных
+public function setChildCollection($Index, TRMTypedCollectionInterface $Collection) // был TRMParentedDataObject, но позже сделал для все объектов данных
 {
     $this->ChildCollectionsArray[$Index] = $Collection;
     $this->setParentFor($Collection, $this);
@@ -228,25 +233,42 @@ public function clearChildCollectionsArray()
  * @return array - вернет массив из двух элементов вида :
  * array(
  * "Main" => данные главного объекта,
- * "Children" => array(
- *      "NameOfChild1" => данные первого дочернего объекта,
- *      "NameOfChild2" => данные второго дочернего объекта,
- *      "NameOfChild3" => данные третьего дочернего объекта,
- * ...
+ * "Childrens" => array(
+ *      "NameOfChild1" => TypedCollection1,
+ *      "NameOfChild2" => TypedCollection1,
+ *      "NameOfChild3" => TypedCollection1,
+ *      ...
  *      )
+ * "Dependencies" => array(
+ *      "NameOfDependence1" => IdDataObject1,
+ *      ... 
+ *     )
  * )
  */
-public function getOwnData()
+public function jsonSerialize()
 {
-    $arr = array( 
-        "Main" => $this->MainDataObject->getOwnData(), 
-        "Children" => array() );
+    $arr = array();
+    // для "Main" части устанавливается ссылка на главный объект
+    // У него рекурсивно быдкт вызвана jsonSerialize
+    $arr[static::MAIN_INDEX] = $this->MainDataObject;
     
-    foreach ($this->ChildCollectionsArray as $Name => $Child)
+    if( count($this->ChildCollectionsArray) )
     {
-        if( $Child->count() )
+        $arr[static::CHILDRENS_INDEX] = array();
+        foreach ($this->ChildCollectionsArray as $Name => $ChildCollection)
         {
-            $arr["Children"][$Name] = $Child->getOwnData();
+            if( $ChildCollection->count() )
+            {
+                $arr[static::CHILDRENS_INDEX][$Name] = $ChildCollection;
+            }
+        }
+    }
+    if( count($this->DependenciesObjectsArray) )
+    {
+        $arr[static::DEPENDENCIES_INDEX] = array();
+        foreach ($this->DependenciesObjectsArray as $Name => $Dependence)
+        {
+            $arr[static::DEPENDENCIES_INDEX][$Name] = $Dependence;
         }
     }
 
@@ -254,42 +276,63 @@ public function getOwnData()
 }
 
 /**
+ * Инициализирует все части контейнера из массива данных соответсвующей структуры,
+ * инициализируем главный объект из части массива Main,
+ * каждая дочерняя коллекция будет проинициализирована своими данными
+ * из части Childrens общего массива, перед инициализацией коллекции очищаются,
+ * если какой-то чатси не будет, то коллекция останется пустой
+ * инициализируется каждая зависимость и части Dependencies общего массива,
+ * если каких-то данных не будет, то зависимость останется не тронутой!
  * 
- * @param array $data  - массив из двух элементов вида :
+ * @param array $Array - массив с данными вида
  * array(
  * "Main" => данные главного объекта,
- * "Children" => array(
- *      "NameOfChild1" => данные первого дочернего объекта,
- *      "NameOfChild2" => данные второго дочернего объекта,
- *      "NameOfChild3" => данные третьего дочернего объекта,
- * ...
+ * "Childrens" => array(
+ *      "NameOfChild1" => TypedCollection1,
+ *      "NameOfChild2" => TypedCollection1,
+ *      "NameOfChild3" => TypedCollection1,
+ *      ...
  *      )
- * ), при этом в массиве $this->ChildCollectionsArray - уже должны быть проинициализированны объекты, 
- * соответсвующих типов, что бы принять данные, и объект $this->MainDataObject тоже должен быть создан
- * 
- * @throws TRMDataObjectContainerNoMainException - в текущей версии если не установлены данные в главной части контейнера - Main, тогда выбрасывается исключение
- * // если какой-то из частей не будет в массиве $data, то выбрасывается исключение
+ * "Dependencies" => array(
+ *      "NameOfDependence1" => IdDataObject1,
+ *      ... 
+ *     )
+ * ) 
+ * @throws TRMDataObjectContainerNoMainException
  */
-public function setOwnData(array $data)
+public function initializeFromArray(array $Array)
 {
-    // основная часть объекта должна быть установлена всегда
-    if( !isset($data["Main"]) )
+    if( !isset( $Array[static::MAIN_INDEX] ) )
     {
-        throw new TRMDataObjectContainerNoMainException( __METHOD__ );
+        throw new TRMDataObjectContainerNoMainException( " Отсутствуют данные для главного объекта " . get_class($this) );
     }
-
-    $this->MainDataObject->setOwnData($data["Main"]);
-
-    foreach( $this->ChildCollectionsArray as $Name => $Child )
+    // инициализируем главный объект из части массива Main
+    $this->MainDataObject->initializeFromArray($Array[static::MAIN_INDEX]);
+    
+    // каждая дочерняя коллекция будет проинициализирована своими данными
+    // из части Childrens общего массива, перед инициализацией коллекции очищаются,
+    // если какой-то чатси не будет, то коллекция останется пустой
+    foreach( $this->ChildCollectionsArray as $Index => $ChildCollection )
     {
-        if( !isset($data["Children"][$Name]) )
+        $ChildCollection->clearCollection();
+        if( !isset($Array[static::CHILDRENS_INDEX][$Index]) )
         {
-            // если часть данных не заполнена, то пропускаем
             continue;
-            // throw new Exception( __METHOD__ . " Неверный формат данных! Отсутсвует часть объекта - {$Name} в разделе Children!");
         }
-        $Child->setOwnData( $data["Children"][$Name] );
+        $ChildCollection->initializeFromArray( $Array[static::CHILDRENS_INDEX][$Index] );
     }
+    
+    // инициализируется каждая зависимость и части Dependencies общего массива,
+    // если каких-то данных не будет, то зависимость останется не тронутой!
+    foreach( $this->DependenciesObjectsArray as $Index => $Dependence )
+    {
+        if( !isset($Array[static::DEPENDENCIES_INDEX][$Index]) )
+        {
+            continue;
+        }
+        $Dependence->initializeFromArray($Array[static::DEPENDENCIES_INDEX][$Index]);
+    }
+
 }
 
 

@@ -40,15 +40,9 @@ public function getDataObject($Index)
 /**
  * @param int $Index - целочисленный индекс объекта в коллекции объектов
  * @param TRMDataObjectInterface $DataObject - объект для установки в коллекции
- * 
- * @throws TRMDataObjectsCollectionWrongIndexException
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 {
-    if( !key_exists($Index, $this->DataObjectsArray) )
-    {
-        throw new TRMDataObjectsCollectionWrongIndexException();
-    }
     $this->DataObjectsArray[$Index] = $DataObject;
 }
 
@@ -117,7 +111,8 @@ public function clearCollection()
 }
 
 /**
- * меняет во всех записях значение поля $FieldName на новое значение $FieldValue, если разрешена запись
+ * меняет во всех объектах коллекции значение 
+ * поля $FieldName sub-объекта $ObjectName на новое значение $FieldValue
  *
  * @param string $ObjectName - имя объекта, в котором меняется значение 
  * @param string $FieldName - имя поля в объектах данных
