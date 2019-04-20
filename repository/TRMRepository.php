@@ -316,6 +316,31 @@ protected function getDataObjectFromDataArray( array $DataArray, TRMDataObjectIn
 }
 
 /**
+ * создает новый объект,
+ * заполняет значениями по умолчанию из DataMapper,
+ * 
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
+ * 
+ * @return \TRMEngine\Repository\TRMDataObjectInterface - новый объект
+ */
+public function getNewObject( TRMDataObjectInterface $DataObject = null )
+{
+     if( !$DataObject )
+    {
+        $DataObject = new $this->ObjectTypeName;
+    }
+    foreach( $this->DataMapper as $TableName => $TableState )
+    {
+        foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
+        {
+            $DataObject->setData( $TableName, $FieldName, $FieldState[TRMDataMapper::DEFAULT_INDEX]);
+        }
+    }
+    return $DataObject;
+}
+
+/**
  * Сохраняет объект в хранилище данных,
  * в данной реализации вызывает $this->update($DataObject),
  * который сохраняет объет в локальной коллекции,

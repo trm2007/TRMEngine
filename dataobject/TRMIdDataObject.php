@@ -3,6 +3,7 @@
 namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
+use TRMEngine\Exceptions\TRMException;
 
 /**
  * абстрактный класс для объекта данных, которые могут быть сохранены в репозитории-хранилище,
@@ -12,7 +13,7 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
  * @author TRM
 
  */
-abstract class TRMIdDataObject extends TRMDataObject implements \ArrayAccess, TRMIdDataObjectInterface
+abstract class TRMIdDataObject extends TRMDataObject implements TRMIdDataObjectInterface
 {
 /**
  * @var array - имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,

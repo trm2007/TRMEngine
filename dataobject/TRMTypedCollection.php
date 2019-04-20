@@ -18,7 +18,6 @@ use TRMEngine\Repository\Exceptions\TRMRepositoryUnknowDataObjectClassException;
 class TRMTypedCollection extends TRMDataObjectsCollection implements TRMTypedCollectionInterface
 {
 /**
- *
  * @var string - тип сохраняемых объектов в данной коллекции
  */
 protected $ObjectsType;
@@ -28,7 +27,7 @@ public function __construct($ObjectsType)
 {
     if( !class_exists($ObjectsType) )
     {
-        throw new TRMRepositoryUnknowDataObjectClassException( $objectclassname );
+        throw new TRMRepositoryUnknowDataObjectClassException( $ObjectsType );
     }
     $this->ObjectsType = $ObjectsType;
 }
@@ -109,14 +108,13 @@ public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $
  * добавляет вновь созданный объект в коллекцию
  * 
  * @param array $Array - массив с данными для инициализации элементов коллекции
- * 
- * @throws TRMDataObjectsCollectionException - если передан пустой массив выбрасывает исключение
  */
 public function initializeFromArray( array $Array )
 {
     if( empty($Array) )
     {
-        throw new TRMDataObjectsCollectionException( " Передан пустой массив данных для инициализации " .$this->ObjectsType  );
+        $this->clearCollection();
+        return;
     }
     foreach( $Array as $Index => $Data )
     {

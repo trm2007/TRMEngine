@@ -15,11 +15,6 @@ use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
 class TRMDataMapper implements \ArrayAccess, \Countable, \Iterator
 {
 /**
- * @var array(TRMObject) - массив с объектами TRMObject
- */
-protected $Objects = array();
-
-/**
  * константы для индексов 
  */
 const STATE_INDEX       = "State"; // устанавливает возможность чтения/записи для поля

@@ -38,7 +38,6 @@ static public function setParentIdFieldName(array $ParentIdFieldName)
 {
     static::$ParentIdFieldName[0] = reset($ParentIdFieldName);
     static::$ParentIdFieldName[1] = next($ParentIdFieldName);
-    reset($ParentIdFieldName);
 }
 
 /**

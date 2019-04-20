@@ -257,11 +257,8 @@ public function jsonSerialize()
         $arr[static::CHILDRENS_INDEX] = array();
         foreach ($this->ChildCollectionsArray as $Name => $ChildCollection)
         {
-            if( $ChildCollection->count() )
-            {
-                // У $ChildCollection рекурсивно будет вызвана jsonSerialize
-                $arr[static::CHILDRENS_INDEX][$Name] = $ChildCollection;
-            }
+            // У $ChildCollection рекурсивно будет вызвана jsonSerialize
+            $arr[static::CHILDRENS_INDEX][$Name] = $ChildCollection;
         }
     }
     if( count($this->DependenciesObjectsArray) )
@@ -317,11 +314,13 @@ public function initializeFromArray(array $Array)
     foreach( $this->ChildCollectionsArray as $Index => $ChildCollection )
     {
         $ChildCollection->clearCollection();
+        $ChildCollection->setParentDataObject($this);
         if( !isset($Array[static::CHILDRENS_INDEX][$Index]) )
         {
             continue;
         }
         $ChildCollection->initializeFromArray( $Array[static::CHILDRENS_INDEX][$Index] );
+        
     }
     
     // инициализируется каждая зависимость и части Dependencies общего массива,

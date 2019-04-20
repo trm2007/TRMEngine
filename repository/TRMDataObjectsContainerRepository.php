@@ -171,7 +171,10 @@ protected function getAllChildCollectionForContainer( TRMDataObjectsContainerInt
  */
 protected function getAllDependenciesObjectsForContainer( TRMDataObjectsContainerInterface $Container )
 {
-    foreach( $Container->getDependenciesObjectsArray() as $Index => $DataObject )
+    // что бы на каждой итерации цикла не вызывалась функция getDependenciesObjectsArray(),
+    // сохраняем ее результат в переменной $DependenciesObjectsArray
+    $DependenciesObjectsArray = $Container->getDependenciesObjectsArray();
+    foreach( $DependenciesObjectsArray as $Index => $DataObject )
     {
         $DependIndex = $Container->getDependenceField($Index);
         // Если это объект-зависимость для главного, то
@@ -502,8 +505,11 @@ public function doInsert( $ClearCollectionFlag = true )
     {
         foreach( $Container as $DataObjectsCollection )
         {
-            // добавляем коллекцию объектов $DataObjectsCollection 
-            // к предварительной для удаления в репозитории
+            // перед обновлением коллекции устанавдиаем для нее родительский элемент,
+            // тем самым будет обновлен Id-родителя во всех дочерних объектах
+            $DataObjectsCollection->setParentDataObject($Container);
+            // вызываем doInsert из репозитория для объектов
+            // хранящихся в очередной коллекции $DataObjectsCollection
             TRMDIContainer::getStatic(TRMRepositoryManager::class)
                     ->getRepository( $DataObjectsCollection->getObjectsType() )
                     ->doInsert( $ClearCollectionFlag );
@@ -524,16 +530,20 @@ public function doUpdate( $ClearCollectionFlag = true )
 
     foreach( $this->CollectionToUpdate as $Container )
     {
+        $this->getMainRepositoryFor($Container)->doUpdate( $ClearCollectionFlag );
+
         foreach( $Container as $DataObjectsCollection )
         {
-            // добавляем коллекцию объектов $DataObjectsCollection 
-            // к предварительной для удаления в репозитории
+            // перед обновлением коллекции устанавдиаем для нее родительский элемент,
+            // тем самым будет обновлен Id-родителя во всех дочерних объектах
+            $DataObjectsCollection->setParentDataObject($Container);
+            // вызываем doUpdate из репозитория для объектов
+            // хранящихся в очередной коллекции $DataObjectsCollection
             TRMDIContainer::getStatic(TRMRepositoryManager::class)
                     ->getRepository( $DataObjectsCollection->getObjectsType() )
                     ->doUpdate( $ClearCollectionFlag );
         }
 
-        $this->getMainRepositoryFor($Container)->doUpdate( $ClearCollectionFlag );
     }
     if( $ClearCollectionFlag ) { $this->CollectionToUpdate->clearCollection(); }
 }
@@ -551,6 +561,30 @@ public function getKeepQueryParams()
 public function setKeepQueryParams($KeepQueryParams)
 {
     $this->MainDataObjectRepository->setKeepQueryParams($KeepQueryParams);
+}
+
+public function getNewObject( TRMDataObjectInterface $DataContainer = null )
+{
+    if( !$DataContainer )
+    {
+        $DataContainer = new $this->ObjectTypeName;
+    }
+    
+    $DataContainer->setMainDataObject( 
+            $this->MainDataObjectRepository->getNewObject( $DataContainer->getMainDataObject() ) 
+        );
+    // что бы на каждой итерации цикла не вызывалась функция getDependenciesObjectsArray(),
+    // сохраняем ее результат в переменной $DependenciesObjectsArray
+    $DependenciesObjectsArray = $DataContainer->getDependenciesObjectsArray();
+    foreach( $DependenciesObjectsArray as $DataObject )
+    {
+        // это объект-зависимость для главного
+        TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepositoryFor( $DataObject )
+                ->getNewObject($DataObject);
+    }
+    
+    return $DataContainer;
 }
 
 } // TRMRepositoiesContainer

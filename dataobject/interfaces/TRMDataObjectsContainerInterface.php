@@ -8,7 +8,7 @@ use TRMEngine\DataObject\TRMDataObjectsCollection;
  * интерфейс для составных объектов,
  * у которых есть главный объект данных, и коллекция вспомогательных (дочерних)
  */
-interface TRMDataObjectsContainerInterface extends TRMIdDataObjectInterface, \Iterator
+interface TRMDataObjectsContainerInterface extends TRMDataObjectInterface, TRMIdDataObjectInterface, \Iterator
 {
 /**
  * @return TRMIdDataObjectInterface - возвращает главный (сохраненный под 0-м номером в массиве) объект данных

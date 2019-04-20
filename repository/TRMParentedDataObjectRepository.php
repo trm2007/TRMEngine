@@ -4,7 +4,6 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
-use TRMEngine\Exceptions\TRMObjectCreateException;
 
 /**
  * класс для работы с хранилищем объектов, зависимых от родительского объекта

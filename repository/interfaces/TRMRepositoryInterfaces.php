@@ -121,6 +121,16 @@ public function getAll(TRMDataObjectsCollectionInterface $Collection = null);
  */
 public function getBy($objectname, $fieldname, $value, TRMDataObjectsCollectionInterface $Collection = null);
 /**
+ * создает новый объект,
+ * заполняет значениями по умолчанию из DataMapper,
+ * 
+ * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+ * будут заполняться свойства этого объекта
+ * 
+ * @return \TRMEngine\Repository\TRMDataObjectInterface - новый объект
+ */
+public function getNewObject( TRMDataObjectInterface $DataObject = null );
+/**
  * Сохраняет объект в хранилище данных
  * 
  * @param TRMDataObjectInterface $DataObject - объект, данные которого нужно сохранить в репозитории

@@ -14,6 +14,18 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 class TRMDataObject extends TRMDataArray implements TRMDataObjectInterface
 {
 
+
+public function initializeFromArray(array $Array)
+{
+    foreach($Array as $ObjectName => $Object)
+    {
+        foreach( $Object as $FieldName => $FieldValue )
+        {
+            $this->setData($ObjectName, $FieldName, $FieldValue);
+        }
+    }
+}
+
 /**
  * проверяет наличие поля с именем fieldname в sub-объекте $objectname
  * 
@@ -42,14 +54,7 @@ public function fieldExists( $objectname, $fieldname )
  */
 public function setData( $objectname, $fieldname, $value )
 {
-    if( !isset($this->DataArray[$objectname]) )
-    {
-        $this->DataArray[$objectname] = array( $fieldname => $value );
-    }
-    else
-    {
-        $this->DataArray[$objectname][$fieldname] = $value;
-    }
+    $this->DataArray[$objectname][$fieldname] = $value;
 }
 
 /**
@@ -62,7 +67,7 @@ public function setData( $objectname, $fieldname, $value )
  */
 public function getData( $objectname, $fieldname )
 {
-    if( !$this->fieldExists($objectname, $fieldname) ) { return null; }
+    if( !isset($this->DataArray[$objectname][$fieldname]) ) { return null; }
     
     return $this->DataArray[$objectname][$fieldname];
 }

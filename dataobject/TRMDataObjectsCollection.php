@@ -7,11 +7,11 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 
 /**
- * класс для работы с коллекциями однотипных объектов DataObject
+ * класс для работы с коллекциями объектов DataObject
  * 
  * @version 2019-03-29
  */
-class TRMDataObjectsCollection implements TRMDataObjectsCollectionInterface, \JsonSerializable
+class TRMDataObjectsCollection implements TRMDataObjectsCollectionInterface
 {
 /**
  * @var int - текущая позиция указателя в массиве для реализации интерфейса Iterator

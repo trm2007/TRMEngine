@@ -58,7 +58,7 @@ public function presentDataIn( $objectname, array &$fieldnames );
  * @author TRM
 
  */
-interface TRMIdDataObjectInterface extends TRMDataObjectInterface
+interface TRMIdDataObjectInterface
 {
 /**
  * @return array - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
@@ -103,7 +103,7 @@ public function resetId();
  * например, у объекта товара может быть ссылка на группу,
  * у коллекции изображений ссылка на товар, к которому он принадлежит и т.д...
  */
-interface TRMParentedDataObjectInterface extends TRMDataObjectInterface
+interface TRMParentedDataObjectInterface
 {
 /**
  * @return array - имя свойства внутри объекта содержащего Id родителя
