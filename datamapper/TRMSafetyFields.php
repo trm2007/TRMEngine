@@ -46,25 +46,8 @@ public function getAliasForTableName( $TableName )
 }
 
 /**
- * генерирует массив допустимых для записи и чтения полей на основании запроса данных о таблице из БД,
- * обрамляет имена полей в апострофы и добавляет имя таблицы или имяа, если установлено,
- * новые значения будут добавлены к уже существующему массиву с полями,
- * можно добавлять несколько таблиц с различными значениями для статусов их полей,
- * перед началом работы с новым набором данных необходимо вызвать clear, 
- * чтобы очистить текущий набор состояний полей
- *
- * @param string $TableName - имя таблицы, для которой устанавливается набор полей
- * @param int $State - состояние, по умолчанию = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
- */
-public function generateSafetyFromDB($TableName, $State = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
-{
-    $this->setSafetyFromDB( $TableName, TRMDBObject::getTableColumnsInfo($TableName), $State, $Extends );
-}
-
-/**
  * дополняет уже заполненный мссив $this->SafetyFieldsArray данными из БД,
- * если массив не заданы хотя бы ассоциативные ключи, соответвующие именам таблиц в БД, 
+ * если в массиве не заданы хотя бы ассоциативные ключи, соответвующие именам таблиц в БД, 
  * то будет выброщено исключение
  * 
  * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
@@ -75,29 +58,18 @@ public function completeSafetyFieldsFromDB($Extends = false)
 {
     if( empty($this->SafetyFieldsArray) )
     {
-        throw new TRMDataMapperEmptySafetyFieldsArrayException( __METHOD__ . " Массив SafetyFieldsArray - пустой, "
+        throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+                __METHOD__ 
+                . " Массив SafetyFieldsArray - пустой, "
                 . "необходимо указать хотябы имена таблиц как ключи массива array( TableName => array(...), ... )" );
     }
     foreach( array_keys($this->SafetyFieldsArray) as $TableName )
     {
-        $Status = isset( $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] ) ?  $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD;
+        $Status = isset( $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] ) 
+                        ?  $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] 
+                        : TRMDataMapper::READ_ONLY_FIELD;
         $this->completeSafetyFieldsFromDBFor($TableName, TRMDBObject::getTableColumnsInfo($TableName), $Status, $Extends);
     }
-}
-
-/**
- * вспомогательная функция, устанавливает параметры полей в массив $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
- * все старые значения для этого поля стираются
- * 
- * @param string $TableName - имя таблицы, для которой устанавливается набор полей
- * @param array $Cols - параметры колонок в таблице БД, получается запросом SHOW COLUMNS FROM...
- * @param int $Status - состояние, по умолчанию = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
- */
-private function setSafetyFromDB( $TableName, array $Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
-{
-    $this->SafetyFieldsArray[$TableName] = array();
-    $this->completeSafetyFieldsFromDBFor($TableName, $Cols, $Status, $Extends);
 }
 
 /**
