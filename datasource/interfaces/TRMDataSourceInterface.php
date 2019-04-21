@@ -141,13 +141,17 @@ public function getDataFrom(TRMSafetyFields $SafetyFields);
  */
 public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection);
 /**
- * добавляет новую запись в БД, 
+ * добавляет новые записи в БД из коллекции $DataCollection, 
  * 
- * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
+ * @param TRMSafetyFields $SafetyFields - DataMapper, для которого добавляются данные в БД
+ * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
+ * @param boolean $ODKUFlag - если установлен в TRUE, 
+ * то используется метод вставки с заменой, если встречаются дубликаты ключевых полей,
+ * ON DUPLICATE KEY UPDATE, по умолчанию = FALSE - используется обычная вставка
  * 
- * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
+ * @throws TRMSqlQueryException
  */
-public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection );
+public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection, $ODKUFlag = false );
 /**
  * удаляет записи коллекции из таблиц БД,
  * из основной таблицы удаляются записи, которые удовлетворяют значению сохраненного ID-поля,

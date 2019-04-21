@@ -150,9 +150,11 @@ public function isFieldAutoIncrement($TableName, $FieldName)
 
 /**
  * @param string $TableName - имя таблицы, для которй собирается массив имен полей
- * @param string $KeyStatus - "PRI" или "UNI" или "*" - собрать массив имен полей первичного или уникального индекса или вернуть все поля таблицы, соответственно
+ * @param string $KeyStatus - "PRI" или "UNI" или "*" - собрать массив имен полей 
+ * первичного или уникального индекса или вернуть все поля таблицы, соответственно
  * 
- * @return array - возвращает массив с именами первичных или уникальных ключей-индексов таблицы $TableName или все поля
+ * @return array - возвращает массив с именами 
+ * первичных или уникальных ключей-индексов таблицы $TableName или все поля
  */
 public function getIndexFieldsNames( $TableName, $KeyStatus = "PRI" )
 {
@@ -202,14 +204,15 @@ public function getAutoIncrementFieldsNamesFor( $TableName )
 
 /**
  * @param string $TableName - имя таблицы, для которй собирается массив имен полей
- * @param string $StateName - имя проверяемого статуса поля
+ * @param string $StateName - имя проверяемого статуса поля, 
+ * если не установлен, т.е. === null, то вернутся все поля из $TableName
  * @param string $Value - искомое значение статуса поля
  * 
  * @return array - возвращает массив с именами полей таблицы $TableName соответсвуюших условию FieldsState[$StateName] == $Value
  */
 private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $Value = null )
 {
-    if( $StateName == null )
+    if( $StateName === null )
     {
         return array_keys($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
     }
