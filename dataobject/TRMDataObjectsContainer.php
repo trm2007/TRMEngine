@@ -3,6 +3,8 @@
 namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Exceptions\TRMDataObjectContainerNoMainException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongDependenceObjectException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongDependenceTypeException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
@@ -85,16 +87,54 @@ public function setMainDataObject(TRMIdDataObjectInterface $do)
  * сохраняется только ссылка, объект не клонируется!!!
  * 
  * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMIdDataObjectInterface $do - добавляемая коллекция, как дочерняя
+ * @param string $dotype - тип объекта-зависимости, который будет установлен для данного объекта
  * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
  * @param string $FieldName - имя поля основного суб-объекта в главном объекте, 
  * по которому установлена связь зависимостью
  */
-public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName )
+public function setDependence($Index, $dotype, $ObjectName, $FieldName )
 {
-    $this->DependenciesFieldsArray[$Index] = array( strval($ObjectName), strval($FieldName) ); 
+    if( !class_exists($dotype) )
+    {
+        throw new TRMDataObjectsContainerWrongDependenceTypeException( 
+                get_class($this) . " - " . __METHOD__ . " - " . $dotype 
+            );
+    }
+    $this->DependenciesFieldsArray[$Index] = array( strval($ObjectName), strval($FieldName), $dotype );
+    // если в массиве объектов-зависимостей данного типа еще нет объекта,
+    // или там сохранен объект другого типа от $dotype,
+    // то создаем пустой элемент массива
+    if( !key_exists( $dotype, $this->DependenciesObjectsArray ) ||
+        get_class($this->DependenciesObjectsArray[$dotype]) !== $dotype   )
+    {
+        $this->DependenciesObjectsArray[$dotype] = null;
+    }
+}
+
+/**
+ * помещает объект в массив-контейнер зависимостей,
+ * индекс в массиве будет соответсвовать типу объекта!
+ * сохраняется только ссылка, объект не клонируется!!!
+ * 
+ * @param TRMIdDataObjectInterface $do - объект зависимости, который устанавливается для данного объекта
+ */
+public function setDependenceObject( TRMIdDataObjectInterface $do )
+{
+    $dotype = get_class($do);
+    foreach( $this->DependenciesFieldsArray as $DependenceField )
+    {
+        if( $DependenceField[2] === $dotype )
+        {
+            $this->MainDataObject->setData( $DependenceField[0], $DependenceField[1], $do->getId() );
+            $this->DependenciesObjectsArray[$dotype] = $do;
+            return;
+        }
+    }
     
-    $this->DependenciesObjectsArray[$Index] = $do;
+    // если не установлена связь с зависимостью, то выбрасываем исключение
+    throw new TRMDataObjectsContainerWrongDependenceObjectException( 
+            get_class($this) . __METHOD__ . " - " . $dotype 
+        );
 }
 
 /**
@@ -122,17 +162,17 @@ public function getDependenciesObjectsArray()
 /**
  * возвращает объект зависимости с индексом $Index из контейнера объектов
  * 
- * @param string $Index - имя/номер-индекс объекта в контейнере
+ * @param string $dotype - тип объекта-зависимости в контейнере
  * 
  * @return TRMIdDataObjectInterface - коллекция с объектами данных, сохраненная в контейнере
  */
-public function getDependenceObject($Index)
+public function getDependenceObject($dotype)
 {
-    if( !isset($this->DependenciesObjectsArray[$Index]) )
+    if( !key_exists($dotype, $this->DependenciesObjectsArray) )
     {
-        throw new TRMDataObjectsContainerWrongIndexException( get_class($this) . " - " . __METHOD__ . " - " . $Index );
+        throw new TRMDataObjectsContainerWrongIndexException( get_class($this) . " - " . __METHOD__ . " - " . $dotype );
     }
-    return $this->DependenciesObjectsArray[$Index];
+    return $this->DependenciesObjectsArray[$dotype];
 }
 
 /**
@@ -264,11 +304,17 @@ public function jsonSerialize()
     if( count($this->DependenciesObjectsArray) )
     {
         $arr[static::DEPENDENCIES_INDEX] = array();
-        foreach ($this->DependenciesObjectsArray as $Name => $Dependence)
+        foreach( $this->getDependenciesFieldsArray() as $Index => $DependenceField )
         {
-            // У $Dependence рекурсивно будет вызвана jsonSerialize
-            $arr[static::DEPENDENCIES_INDEX][$Name] = $Dependence;
+            // тип объекта зависимоти
+            $obtype = $DependenceField[2];
+            $arr[static::DEPENDENCIES_INDEX][$Index] = $this->DependenciesObjectsArray[$obtype];
         }
+//        foreach ($this->DependenciesObjectsArray as $Name => $Dependence)
+//        {
+//            // У $Dependence рекурсивно будет вызвана jsonSerialize
+//            $arr[static::DEPENDENCIES_INDEX][$Name] = $Dependence;
+//        }
     }
 
     return $arr;
@@ -324,15 +370,27 @@ public function initializeFromArray(array $Array)
     }
     
     // инициализируется каждая зависимость и части Dependencies общего массива,
-    // если каких-то данных не будет, то зависимость останется не тронутой!
-    foreach( $this->DependenciesObjectsArray as $Index => $Dependence )
+    // если каких-то данных не будет, то создается новый объект типа очередной зависимости !
+    foreach( $this->getDependenciesFieldsArray() as $Index => $DependenceField )
     {
-        if( !isset($Array[static::DEPENDENCIES_INDEX][$Index]) )
+        // тип объекта зависимоти
+        $obtype = $DependenceField[2];
+        if( !isset( $this->DependenciesObjectsArray[$obtype] ) )
         {
-            continue;
+            $this->DependenciesObjectsArray[$obtype] = new $obtype;
         }
-        $Dependence->initializeFromArray($Array[static::DEPENDENCIES_INDEX][$Index]);
+        $this->DependenciesObjectsArray[$obtype]->initializeFromArray($Array[static::DEPENDENCIES_INDEX][$Index]);
     }
+    // инициализируется каждая зависимость и части Dependencies общего массива,
+    // если каких-то данных не будет, то зависимость останется не тронутой!
+//    foreach( $this->DependenciesObjectsArray as $Index => $Dependence )
+//    {
+//        if( !isset($Array[static::DEPENDENCIES_INDEX][$Index]) )
+//        {
+//            continue;
+//        }
+//        $Dependence->initializeFromArray($Array[static::DEPENDENCIES_INDEX][$Index]);
+//    }
 
 }
 

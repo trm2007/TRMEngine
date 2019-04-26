@@ -171,20 +171,25 @@ protected function getAllChildCollectionForContainer( TRMDataObjectsContainerInt
  */
 protected function getAllDependenciesObjectsForContainer( TRMDataObjectsContainerInterface $Container )
 {
-    // что бы на каждой итерации цикла не вызывалась функция getDependenciesObjectsArray(),
-    // сохраняем ее результат в переменной $DependenciesObjectsArray
-    $DependenciesObjectsArray = $Container->getDependenciesObjectsArray();
-    foreach( $DependenciesObjectsArray as $Index => $DataObject )
+    // что бы на каждой итерации цикла не вызывалась функция getDependenciesFieldsArray(),
+    // сохраняем ее результат в переменной $DependenciesFieldsArray
+    $DependenciesFieldsArray = $Container->getDependenciesFieldsArray();
+    
+    foreach( $DependenciesFieldsArray as $DependenceField )
     {
-        $DependIndex = $Container->getDependenceField($Index);
-        // Если это объект-зависимость для главного, то
-        // для него вызываем getById
-        TRMDIContainer::getStatic(TRMRepositoryManager::class)
-                ->getRepositoryFor( $DataObject )
-                ->getById(
-                        $Container->getMainDataObject()->getData( $DependIndex[0], $DependIndex[1] ),
-                        $DataObject
-                        );
+        // $DependenceField[0] - имя суб-объекта в главном объекте для связи
+        // $DependenceField[1] - имя поля в суб-объекте главного объекта для связи
+        // $DependenceField[2] - тип объекта-зависимости для этой связи 
+        // это объект-зависимость для главного объекта,
+        // поэтому для него вызываем getById,
+        // в массиве зависимостей хранится только тип объекта-зависимости,
+        // сам объект-зависимость, если он не установлен, то вернет его репозиторий
+        $Container->setDependenceObject( TRMDIContainer::getStatic(TRMRepositoryManager::class)
+            ->getRepository( $DependenceField[2] )
+            ->getById(
+                $Container->getMainDataObject()->getData( $DependenceField[0], $DependenceField[1] ),
+                $Container->getDependenceObject($DependenceField[2])
+            ) );
     }
 }
 
@@ -573,15 +578,20 @@ public function getNewObject( TRMDataObjectInterface $DataContainer = null )
     $DataContainer->setMainDataObject( 
             $this->MainDataObjectRepository->getNewObject( $DataContainer->getMainDataObject() ) 
         );
-    // что бы на каждой итерации цикла не вызывалась функция getDependenciesObjectsArray(),
+    // что бы на каждой итерации цикла не вызывалась функция getDependenciesFieldsArray(),
     // сохраняем ее результат в переменной $DependenciesObjectsArray
-    $DependenciesObjectsArray = $DataContainer->getDependenciesObjectsArray();
-    foreach( $DependenciesObjectsArray as $DataObject )
+    $DependenciesFieldsArray = $DataContainer->getDependenciesFieldsArray();
+
+    foreach( $DependenciesFieldsArray as $DependenceField )
     {
-        // это объект-зависимость для главного
-        TRMDIContainer::getStatic(TRMRepositoryManager::class)
-                ->getRepositoryFor( $DataObject )
-                ->getNewObject($DataObject);
+        // $DependenceField[0] - имя суб-объекта в главном объекте для связи
+        // $DependenceField[1] - имя поля в суб-объекте главного объекта для связи
+        // $DependenceField[2] - тип объекта-зависимости для этой связи 
+        $DataContainer->setDependenceObject(
+            TRMDIContainer::getStatic(TRMRepositoryManager::class)
+                ->getRepository( $DependenceField[2] )
+                ->getNewObject()
+        );
     }
     
     return $DataContainer;

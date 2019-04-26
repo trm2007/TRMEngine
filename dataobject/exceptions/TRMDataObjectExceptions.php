@@ -42,11 +42,28 @@ class TRMDataObjectsContainerWrongIndexException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка в коллекции объектов данных! " . PHP_EOL;
+        $message .= PHP_EOL . " Ошибка в коллекции объектов-зависимостей, не верный индекс! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
+class TRMDataObjectsContainerWrongDependenceTypeException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " Не найден класс устанавливаемого объекта зависимости! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+}
+
+class TRMDataObjectsContainerWrongDependenceObjectException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " Ошибка при работе с объектом-зависимотью! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }    
+}
 
 /**
  * выбрасывается при ошибке в работе с коллекцией объектов данных TRMDataObjectsCollection и их наслдениками

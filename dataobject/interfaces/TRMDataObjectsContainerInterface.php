@@ -35,6 +35,15 @@ public function setMainDataObject(TRMIdDataObjectInterface $do);
 public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName );
 
 /**
+ * помещает объект в массив-контейнер зависимостей,
+ * индекс в массиве будет соответсвовать типу объекта!
+ * сохраняется только ссылка, объект не клонируется!!!
+ * 
+ * @param TRMIdDataObjectInterface $do - объект зависимости, который устанавливается для данного объекта
+ */
+public function setDependenceObject( TRMIdDataObjectInterface $do );
+
+/**
  * возвращает массив с именами полей зависимости с индексом $Index
  * 
  * @param string $Index - имя/номер-индекс объекта в контейнере
@@ -54,11 +63,11 @@ public function getDependenciesObjectsArray();
 /**
  * возвращает объект зависимости с индексом $Index из контейнера объектов
  * 
- * @param string $Index - имя/номер-индекс объекта в контейнере
+ * @param string $dotype - имя/номер-индекс объекта в контейнере
  * 
  * @return TRMIdDataObjectInterface - коллекция с объектами данных, сохраненная в контейнере
  */
-public function getDependenceObject($Index);
+public function getDependenceObject($dotype);
 
 /**
  * 
