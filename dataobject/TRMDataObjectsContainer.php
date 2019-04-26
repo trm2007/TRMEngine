@@ -373,6 +373,11 @@ public function initializeFromArray(array $Array)
     // если каких-то данных не будет, то создается новый объект типа очередной зависимости !
     foreach( $this->getDependenciesFieldsArray() as $Index => $DependenceField )
     {
+        // если данных для зависимости нет, то объект не создается
+        if( !isset($Array[static::DEPENDENCIES_INDEX][$Index]) )
+        {
+            continue;
+        }
         // тип объекта зависимоти
         $obtype = $DependenceField[2];
         if( !isset( $this->DependenciesObjectsArray[$obtype] ) )
