@@ -3,6 +3,7 @@
 namespace TRMEngine\DataObject\Interfaces;
 
 use TRMEngine\DataArray\Interfaces\InitializibleFromArray;
+use TRMEngine\DataArray\Interfaces\TRMDataArrayInterface;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 
@@ -11,7 +12,7 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
  * 
  * @version 2019-03-29
  */
-interface TRMDataObjectsCollectionInterface extends \ArrayAccess, \Iterator, \Countable, \JsonSerializable
+interface TRMDataObjectsCollectionInterface extends TRMDataArrayInterface
 {
 /**
  * @param int $Index - индекс запрашиваемого объекта в массиве-коллекции
@@ -80,7 +81,7 @@ public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue);
 } // TRMDataObjectsCollectionInterface
 
 
-interface TRMTypedCollectionInterface extends TRMDataObjectsCollectionInterface, InitializibleFromArray
+interface TRMTypedCollectionInterface extends TRMDataObjectsCollectionInterface
 {
 /**
  * @return string - тип сохраняемых объектов в коллекциях данного типа

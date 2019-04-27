@@ -2,6 +2,7 @@
 
 namespace TRMEngine\DataMapper;
 
+use TRMEngine\DataArray\TRMDataArray;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperNotStringFieldNameException;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
 
@@ -10,9 +11,9 @@ use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
  * сделан из старого TRMSafetyFields, 
  * теперь TRMSafetyFields наследуется от TRMDataMapper
  *
- * @author TRM - 2018-08-26
+ * @author TRM - 2019-04-27
  */
-class TRMDataMapper implements \ArrayAccess, \Countable, \Iterator
+class TRMDataMapper extends TRMDataArray
 {
 /**
  * константы для индексов 
@@ -59,34 +60,27 @@ const READ_ONLY_FIELD = 512;
 const UPDATABLE_FIELD = 256;
 const FULL_ACCESS_FIELD = 768;
 
-/**
- * список названий полей, значения которых можно менять и записывать в БД
- * @var array
- */
-protected $SafetyFieldsArray = array();
-/**
- * @var integer - текущая позиция указателя, для реализации интерфейса итератора
- */
-private $Position = 0;
 
 /**
  * @return array - $SafetyFieldsArray
  */
-public function getSafetyFieldsArray()
+public function getFieldsArray()
 {
-    return $this->SafetyFieldsArray;
+    return $this->DataArray;
 }
 /**
  * @param array $SafetyFieldsArray
  */
-public function setSafetyFieldsArray( array $SafetyFieldsArray )
+public function setFieldsArray( array $SafetyFieldsArray )
 {
-    $this->SafetyFieldsArray = array();
+    $this->DataArray = array();
     foreach( $SafetyFieldsArray as $ObjectName => $ObjectState )
     {
-        $this->setSafetyFieldsFor($ObjectState[TRMDataMapper::FIELDS_INDEX], 
-                $ObjectName, 
-                isset($ObjectState[TRMDataMapper::STATE_INDEX]) ? $ObjectState[TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD );
+        $this->setFieldsFor(
+            $ObjectName, 
+            $ObjectState[TRMDataMapper::FIELDS_INDEX], 
+            isset($ObjectState[TRMDataMapper::STATE_INDEX]) ? $ObjectState[TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD 
+        );
     }
 }
 
@@ -94,18 +88,18 @@ public function setSafetyFieldsArray( array $SafetyFieldsArray )
  * устанавливает характеристики поля для объекта $ObjectName,
  * если поле было ранее установлено, то данные перезапишутся!!!
  *
- * @param string $FieldName - имя добавляемого поля
  * @param string $ObjectName - имя объекта, для которого добавляется поле
+ * @param string $FieldName - имя добавляемого поля
  * @param array $FieldState - массив со свойствами поля array("State", "Type", "Default", "Key", "Extra", "FieldAlias", "Quote", "Comment")
  * @param int $DefaultState - статус поля, 
  * который будет установлен для поля по умолчанию, 
  * если у него явно не задан параметр "State",
  * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
  */
-public function setSafetyField( $FieldName, $ObjectName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+public function setField( $ObjectName, $FieldName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
-    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
-    $this->completeSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
+    $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
+    $this->completeField($ObjectName, $FieldName, $FieldState, $DefaultState);
 }
 
 /**
@@ -113,51 +107,51 @@ public function setSafetyField( $FieldName, $ObjectName, array $FieldState, $Def
  * если поле было ранее установлено, то данные перезапишутся, если совпадут ключи,
  * остальные данные останутся нетронутыми!!!
  *
- * @param string $FieldName - имя добавляемого поля
  * @param string $ObjectName - имя объекта, для которого добавляется поле
+ * @param string $FieldName - имя добавляемого поля
  * @param array $FieldState - массив со свойствами поля array("State", "Type", "Default", "Key", "Extra", "FieldAlias", "Quote", "Comment")
  * @param int $DefaultState - статус поля, 
  * который будет установлен для поля по умолчанию, 
  * если у него явно не задан параметр "State",
  * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
  */
-protected function completeSafetyField( $FieldName, $ObjectName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+protected function completeField( $ObjectName, $FieldName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
     if( !is_string($FieldName) )
     {
         throw new TRMDataMapperNotStringFieldNameException( " [{$FieldName}] " );
     }
     // если для поля еще не установлен массив параметров, создаем как пустой
-    if(!isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]))
+    if(!isset($this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]))
     {
-        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
+        $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
     }
     // объединяем переданные параметры и уже существующие для поля, 
     // заменяя старые значения на новый
-    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = 
+    $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = 
             array_merge(
-                    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName], 
+                    $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName], 
                     $FieldState
                     );
     // если какой-то из параметров не задан, 
     // то присваиваем ему значение по умолчанию из массива self::$IndexArray
     foreach( self::$IndexArray as $Index => $Value)
     {
-        if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index]) )
+        if( isset($this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index]) )
         {
             continue;
         }
         if( $Index == TRMDataMapper::STATE_INDEX )
         {
-            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $DefaultState;
+            $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $DefaultState;
         }
         elseif( $Index == TRMDataMapper::COMMENT_INDEX )
         {
-            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $FieldName;
+            $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $FieldName;
         }
         else
         {
-            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $Value;
+            $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $Value;
         }
     }
 }
@@ -170,25 +164,25 @@ protected function completeSafetyField( $FieldName, $ObjectName, array $FieldSta
  */
 public function hasObject($ObjectName)
 {
-    return array_key_exists($ObjectName, $this->SafetyFieldsArray);
+    return $this->keyExists($ObjectName);
 }
 
 /**
  * добавляет поля доступные для записи/чтения к объекту $ObjectName,
  * устанавливает внутренний счетчик итератора SafetyFields в начало!!!
  *
- * @param array $Fields - массив массивов array( FieldName => array(State...), ... ), список полей и их параметры, в том числе возможность записи-чтения
  * @param string $ObjectName - имя объекта, для которого добавляются поля
+ * @param array $Fields - массив массивов array( FieldName => array(State...), ... ), список полей и их параметры, в том числе возможность записи-чтения
  * @param int $DefaultState - статус поля, 
  * который будет установлен для всех элементов массива по умолчанию, 
  * если у них явно не задан параметр "State",
  * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
  */
-public function setSafetyFieldsFor( array $Fields, $ObjectName, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+public function setFieldsFor( $ObjectName, array $Fields, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
-    if( !isset($this->SafetyFieldsArray[$ObjectName]) )
+    if( !isset($this->DataArray[$ObjectName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName] = array( 
+        $this->DataArray[$ObjectName] = array( 
             TRMDataMapper::STATE_INDEX => $DefaultState, 
             TRMDataMapper::FIELDS_INDEX => array() 
         );
@@ -196,7 +190,7 @@ public function setSafetyFieldsFor( array $Fields, $ObjectName, $DefaultState = 
 
     foreach( $Fields as $FieldName => $FieldState )
     {
-        $this->completeSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
+        $this->completeField($ObjectName, $FieldName, $FieldState, $DefaultState);
     }
     $this->rewind();
 }
@@ -204,14 +198,14 @@ public function setSafetyFieldsFor( array $Fields, $ObjectName, $DefaultState = 
 /**
  * убираем поле из массива доступных для любой обработки
  *
- * @param string $FieldName - имя поля, которое нужно исключить
  * @param string $ObjectName - имя объекта, из которого удаляется поле, по умолчанию из главной
+ * @param string $FieldName - имя поля, которое нужно исключить
  */
-public function removeSafetyField( $FieldName, $ObjectName )
+public function removeField( $ObjectName, $FieldName )
 {
-    if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
+    if( isset($this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
     {
-        unset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]);
+        unset($this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]);
     }
 }
 
@@ -220,11 +214,11 @@ public function removeSafetyField( $FieldName, $ObjectName )
  *
  * @param string $ObjectName - имя объекта, для которого удаляются поля
  */
-public function removeSafetyFieldsForObject( $ObjectName  )
+public function removeFieldsForObject( $ObjectName  )
 {
-    if( isset($this->SafetyFieldsArray[$ObjectName]) )
+    if( isset($this->DataArray[$ObjectName]) )
     {
-        unset($this->SafetyFieldsArray[$ObjectName]);
+        unset($this->DataArray[$ObjectName]);
     }
 }
 
@@ -236,37 +230,38 @@ public function removeSafetyFieldsForObject( $ObjectName  )
  * и устанавливает у него только статус чтения-записи,
  * все остальные свойства поля устанавливаются по умолчанию
  *
- * @param string $FieldName - имя поля
  * @param string $ObjectName - имя объекта, для которого устанавливается поле
+ * @param string $FieldName - имя поля
  * @param int $State - состояние, по умолчанию = READ_ONLY_FIELD
  */
-public function setSafetyFieldState( $FieldName, $ObjectName, $State = TRMDataMapper::READ_ONLY_FIELD )
+public function setFieldState( $ObjectName, $FieldName, $State = TRMDataMapper::READ_ONLY_FIELD )
 {
-    if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
+    if( isset($this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::STATE_INDEX] = $State;
+        $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::STATE_INDEX] = $State;
     }
     else
     {
-        $this->setSafetyField($FieldName, $ObjectName, array( TRMDataMapper::STATE_INDEX => $State ) );
+        $this->setField($ObjectName, $FieldName, array( TRMDataMapper::STATE_INDEX => $State ) );
     }
 }
 
 /**
- * @param string $FieldName - имя поля, для которого нужно получить статус
  * @param string $ObjectName - имя объекта, которому принадлежит поле $FieldName
+ * @param string $FieldName - имя поля, для которого нужно получить статус 
+ * 
  * @return int|null - возвращает статус поля $FieldName в объекте $ObjectName - доступен для чтений/записи,
  * TRMDataMapper::READ_ONLY_FIELD или 
  * TRMDataMapper::FULL_ACCESS_FIELD или 
  * TRMDataMapper::UPDATABLE_FIELD
  */
-public function getSafetyFieldState( $FieldName, $ObjectName )
+public function getSafetyFieldState( $ObjectName, $FieldName )
 {
-    if( !isset( $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] ) )
+    if( !isset( $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] ) )
     {
         return null;
     }
-    return $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::STATE_INDEX];
+    return $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::STATE_INDEX];
 }
 
 /**
@@ -279,7 +274,7 @@ public function getSafetyFieldState( $FieldName, $ObjectName )
 public function getBackRelationFor($LookingObjectName, $LookingFieldName)
 {
     $FieldsArray = array();
-    foreach( $this->SafetyFieldsArray as $ObjectName => $ObjectState )
+    foreach( $this->DataArray as $ObjectName => $ObjectState )
     {
         foreach( $ObjectState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
         {
@@ -298,18 +293,18 @@ public function getBackRelationFor($LookingObjectName, $LookingFieldName)
 }
 
 /**
- * сортирует порядок объектов в массиве $this->SafetyFieldsArray,
+ * сортирует порядок объектов в массиве $this->DataArray,
  * таким образом, что сначала идут объекты, на которые есть ссылки, но которые ни на кого не ссылаются,
  * и дальше в такой последоватенльности, 
  * что бы ссылающиеся объекты располагались дальше, чем те, на которые они ссылаются
  */
 public function sortObjectsForRelationOrder()
 {
-    return uksort( $this->SafetyFieldsArray, array($this, "compareTwoTablesRelation") );
+    return uksort( $this->DataArray, array($this, "compareTwoTablesRelation") );
 }
 
 /**
- * функция для сортировка ключей массива $this->SafetyFieldsArray,
+ * функция для сортировка ключей массива $this->DataArray,
  * т.е. для сортировка по именам таблиц, основываясь на наличии Relation и ссылок одной таблицы на другу,
  * если одна таблица ссылается на другую, значит она больше другой, 
  * и другая должна идти в порядке обработки первее...
@@ -327,7 +322,7 @@ public function sortObjectsForRelationOrder()
 private function compareTwoTablesRelation( $Table1Name, $Table2Name )
 {
     // проверяем ссылается ли таблица 1 на таблицу 2
-    foreach( $this->SafetyFieldsArray[$Table1Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
+    foreach( $this->DataArray[$Table1Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
     {
         if( isset($FieldState[TRMDataMapper::RELATION_INDEX]) 
                 && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] == $Table2Name
@@ -344,7 +339,7 @@ private function compareTwoTablesRelation( $Table1Name, $Table2Name )
     }
     // если ссылок из Т1 на Т2 не нйдено проверяем наоборот, ссылки из Т2 на Т1
     // проверяем ссылается ли таблица 1 на таблицу 2
-    foreach( $this->SafetyFieldsArray[$Table2Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
+    foreach( $this->DataArray[$Table2Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
     {
         if( isset($FieldState[TRMDataMapper::RELATION_INDEX]) 
                 && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] == $Table1Name
@@ -378,9 +373,9 @@ public function getObjectsNamesWithoutBackRelations()
     // получаем все имена объектов внутри SafetyFields
     // меняем ключи со значением местами, 
     // таким образом получаем пустой массив с ключами как у SafetyFieldsArray
-    $ObjectsNamesArray = array_flip( array_keys( $this->SafetyFieldsArray ) );
+    $ObjectsNamesArray = array_flip( array_keys( $this->DataArray ) );
     
-    foreach( $this->SafetyFieldsArray as $ObjectState )
+    foreach( $this->DataArray as $ObjectState )
     {
         foreach( $ObjectState[TRMDataMapper::FIELDS_INDEX] as $FieldState )
         {
@@ -401,107 +396,6 @@ public function getObjectsNamesWithoutBackRelations()
 
     // возвращаем массив из оставшихся ключей. т.е. из оставшихся имен объектов!!!
     return array_keys($ObjectsNamesArray);
-}
-
-/**
- * оцищает весь массив с информацией об объектах и их полях
- */
-public function clear()
-{
-    $this->Position = 0;
-    $this->SafetyFieldsArray = array();
-}
-
-
-/**
- * Присваивает значение заданному смещению - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @param array $value
- */
-public function offsetSet($offset, $value)
-{
-    if (is_null($offset)) {
-        $this->SafetyFieldsArray[] = $value;
-    } else {
-        $this->SafetyFieldsArray[$offset] = $value;
-    }
-}
-
-/**
- * Определяет, существует ли заданное смещение (ключ) - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @return array
- */
-public function offsetExists($offset)
-{
-    return isset($this->SafetyFieldsArray[$offset]);
-}
-
-/**
- * Удаляет смещение, т.е. объект из массива по заданному смещению - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- */
-public function offsetUnset($offset)
-{
-    unset($this->SafetyFieldsArray[$offset]);
-}
-
-/**
- * Возвращает заданное смещение (ключ) - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @return array
- */
-public function offsetGet($offset)
-{
-    return isset($this->SafetyFieldsArray[$offset]) ? $this->SafetyFieldsArray[$offset] : null;
-}
-
-/**
- *  возвращает количество объектов в массиве
- */
-public function count()
-{
-    return count($this->SafetyFieldsArray);
-}
-
-
-/**
- * Устанавливает внутренний счетчик массива в начало - реализация интерфейса Iterator
- */
-public function rewind()
-{
-    reset($this->SafetyFieldsArray);
-    $this->Position = 0;
-}
-
-public function current()
-{
-    return current($this->SafetyFieldsArray);
-}
-
-public function key()
-{
-    return key($this->SafetyFieldsArray);
-}
-
-public function next()
-{
-    next($this->SafetyFieldsArray);
-    ++$this->Position;
-}
-/**
- * если счетчик превышает или равен размеру массива, значит в этом элеменет уже ничего нет,
- * $this->Position всегда должна быть < count($this->SafetyFieldsArray)
- * 
- * @return boolean
- */
-public function valid()
-{
-    return ($this->Position < count($this->SafetyFieldsArray));
 }
 
 

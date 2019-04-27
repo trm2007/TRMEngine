@@ -12,6 +12,10 @@ use TRMEngine\DataArray\Interfaces\TRMDataArrayInterface;
 class TRMDataArray implements TRMDataArrayInterface
 {
 /**
+ * @var int - текущая позиция указателя в массиве для реализации интерфейса Iterator
+ */
+private $Position = 0;
+/**
  * @var array - массив данных
  */
 protected $DataArray = array();
@@ -109,6 +113,7 @@ public function addRow( array $Data )
 public function clear()
 {
     $this->DataArray = array();
+    $this->Position = 0;
 }
 
 
@@ -120,6 +125,42 @@ public function clear()
 public function count()
 {
     return count($this->DataArray);
+}
+
+// ******************** Iterator   **************************************************
+/**
+ * Устанавливает внутренний счетчик массива в начало - реализация интерфейса Iterator
+ */
+public function rewind()
+{
+    reset($this->DataArray);
+    $this->Position = 0;
+}
+
+public function current()
+{
+    return current($this->DataArray);
+}
+
+public function key()
+{
+    return key($this->DataArray);
+}
+
+public function next()
+{
+    next($this->DataArray);
+    ++$this->Position;
+}
+/**
+ * если счетчик превышает или равен размеру массива, значит в этом элеменет уже ничего нет,
+ * $this->Position всегда должна быть < count($this->DataArray)
+ * 
+ * @return boolean
+ */
+public function valid()
+{
+    return ($this->Position < count($this->DataArray));
 }
 
 
@@ -146,6 +187,13 @@ public function offsetUnset($offset)
     unset( $this->DataArray[$offset] );
 }
 
+/**
+ * реализация интерфейса JsonSerializable,
+ * возвращает данные, 
+ * которые будут обрабатываться при вызове json_encode для этого объекта
+ * 
+ * @return array
+ */
 public function jsonSerialize()
 {
     return $this->getDataArray();

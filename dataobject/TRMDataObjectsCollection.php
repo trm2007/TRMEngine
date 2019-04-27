@@ -2,6 +2,8 @@
 
 namespace TRMEngine\DataObject;
 
+use TRMEngine\DataArray\TRMDataArray;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
@@ -9,18 +11,10 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 /**
  * класс для работы с коллекциями объектов DataObject
  * 
- * @version 2019-03-29
+ * @version 2019-04-27
  */
-class TRMDataObjectsCollection implements TRMDataObjectsCollectionInterface
+class TRMDataObjectsCollection extends TRMDataArray implements TRMDataObjectsCollectionInterface
 {
-/**
- * @var int - текущая позиция указателя в массиве для реализации интерфейса Iterator
- */
-private $Position = 0;
-/**
- * @var array(TRMDataObjectInterface) - массив-коллекция с объектами данных TRMDataObject
- */
-protected $DataObjectsArray = array();
 
 /**
  * @param int $Index - индекс запрашиваемого объекта в массиве-коллекции
@@ -30,11 +24,11 @@ protected $DataObjectsArray = array();
  */
 public function getDataObject($Index)
 {
-    if( !key_exists($Index, $this->DataObjectsArray) )
+    if( !key_exists($Index, $this->DataArray) )
     {
         throw new TRMDataObjectsCollectionWrongIndexException();
     }
-    return $this->DataObjectsArray[$Index];
+    return $this->DataArray[$Index];
 }
 
 /**
@@ -43,7 +37,7 @@ public function getDataObject($Index)
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 {
-    $this->DataObjectsArray[$Index] = $DataObject;
+    $this->DataArray[$Index] = $DataObject;
 }
 
 /**
@@ -61,7 +55,7 @@ public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicate
     {
         return false;
     }
-    $this->DataObjectsArray[] = $DataObject;
+    $this->DataArray[] = $DataObject;
     return true;
 }
 
@@ -74,7 +68,7 @@ public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicate
  */
 public function hasDataObject( TRMDataObjectInterface $Object )
 {
-    foreach( $this->DataObjectsArray as $Item )
+    foreach( $this->DataArray as $Item )
     {
         if( $Item === $Object ) { return true; }
     }
@@ -106,8 +100,7 @@ public function mergeCollection(TRMDataObjectsCollectionInterface $Collection, $
  */
 public function clearCollection()
 {
-    $this->DataObjectsArray = array();
-    $this->Position = 0;
+    $this->clear();
 }
 
 /**
@@ -120,7 +113,7 @@ public function clearCollection()
  */
 public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
 {
-    foreach( $this->DataObjectsArray as $Object )
+    foreach( $this->DataArray as $Object )
     {
         $Object->setData( $ObjectName, $FieldName, $FieldValue );
     }
@@ -129,91 +122,19 @@ public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue)
 public function getTotalArray()
 {
     $TotalArray = array();
-    foreach( $this->DataObjectsArray as $Key => $Object )
+    foreach( $this->DataArray as $Key => $Object )
     {
         $TotalArray[$Key] = $Object->getDataArray();
     }
     return $TotalArray;
 }
 
-// ******************** Countable   **************************************************
 
-public function count()
+public function initializeFromArray(array $Array)
 {
-    return count($this->DataObjectsArray);
-}
-
-// ******************** ArrayAccess   **************************************************
-
-public function current()
-{
-    return $this->DataObjectsArray[$this->Position];
-    // return current($this->DataObjectsArray);
-}
-
-public function key()
-{
-    return $this->Position;
-    // return key($this->DataObjectsArray);
-}
-
-public function next()
-{
-    $this->Position++;
-    // next($this->DataObjectsArray);
-}
-
-public function rewind()
-{
-    $this->Position = 0;
-    //rewind($this->DataObjectsArray);
-}
-
-public function valid()
-{
-    if(key_exists($this->Position, $this->DataObjectsArray) )
-    {
-        return true;
-    }
-    return false;
-}
-
-// ********************    **************************************************
-
-public function offsetExists($offset)
-{
-    if(key_exists($offset, $this->DataObjectsArray) )
-    {
-        return true;
-    }
-    return false;
-}
-
-public function offsetGet($offset)
-{
-    return $this->DataObjectsArray[$offset];
-}
-
-public function offsetSet($offset, $value)
-{
-    $this->DataObjectsArray[$offset] = $value;
-}
-
-public function offsetUnset($offset)
-{
-    unset($this->DataObjectsArray[$offset]);
-}
-
-/**
- * реализация интерфейса JsonSerializable,
- * возвращает данные, 
- * которые будут обрабатываться при вызове json_encode для этого объекта
- * 
- * @return array
- */
-public function jsonSerialize()
-{
-    return $this->DataObjectsArray;
+    throw new TRMDataObjectsCollectionException( 
+        "Не типизированная коллекция не может быть инициализирована данными из массива! Тип инициализируемых объектов не известен! "
+    );
 }
 
 

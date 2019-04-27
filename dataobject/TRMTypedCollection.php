@@ -2,7 +2,6 @@
 
 namespace TRMEngine\DataObject;
 
-use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongIndexException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsCollectionWrongTypeException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;

@@ -28,8 +28,7 @@ const TABLEALIAS_INDEX  = "TableAlias";
  */
 public function setAliasForTableName($TableName, $TableAlias)
 {
-    if( !isset($this->SafetyFieldsArray[$TableName]) ) { $this->SafetyFieldsArray[$TableName] = array(); }
-    $this->SafetyFieldsArray[$TableName][self::TABLEALIAS_INDEX] = $TableAlias;
+    $this->setRow($TableName, array(self::TABLEALIAS_INDEX => $TableAlias) );
 }
 
 /**
@@ -40,13 +39,14 @@ public function setAliasForTableName($TableName, $TableAlias)
  */
 public function getAliasForTableName( $TableName )
 {
-    if( empty( $this->SafetyFieldsArray[$TableName][self::TABLEALIAS_INDEX] ) ) { return null; }
 
-    return  $this->SafetyFieldsArray[$TableName][self::TABLEALIAS_INDEX];
+    if( empty( $this->DataArray[$TableName][self::TABLEALIAS_INDEX] ) ) { return null; }
+
+    return  $this->DataArray[$TableName][self::TABLEALIAS_INDEX];
 }
 
 /**
- * дополняет уже заполненный мссив $this->SafetyFieldsArray данными из БД,
+ * дополняет уже заполненный мссив $this->DataArray данными из БД,
  * если в массиве не заданы хотя бы ассоциативные ключи, соответвующие именам таблиц в БД, 
  * то будет выброщено исключение
  * 
@@ -56,24 +56,29 @@ public function getAliasForTableName( $TableName )
  */
 public function completeSafetyFieldsFromDB($Extends = false)
 {
-    if( empty($this->SafetyFieldsArray) )
+    if( !$this->count() )
     {
         throw new TRMDataMapperEmptySafetyFieldsArrayException( 
                 __METHOD__ 
-                . " Массив SafetyFieldsArray - пустой, "
+                . " Массив DataArray - пустой, "
                 . "необходимо указать хотябы имена таблиц как ключи массива array( TableName => array(...), ... )" );
     }
-    foreach( array_keys($this->SafetyFieldsArray) as $TableName )
+    foreach( array_keys($this->DataArray) as $TableName )
     {
-        $Status = isset( $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] ) 
-                        ?  $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] 
+        $Status = isset( $this->DataArray[$TableName][TRMDataMapper::STATE_INDEX] ) 
+                        ?  $this->DataArray[$TableName][TRMDataMapper::STATE_INDEX] 
                         : TRMDataMapper::READ_ONLY_FIELD;
-        $this->completeSafetyFieldsFromDBFor($TableName, TRMDBObject::getTableColumnsInfo($TableName), $Status, $Extends);
+        $this->completeSafetyFieldsFromDBFor(
+            $TableName, 
+            TRMDBObject::getTableColumnsInfo($TableName), 
+            $Status, 
+            $Extends
+        );
     }
 }
 
 /**
- * вспомогательная функция, добавляет параметры полей в массив $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
+ * вспомогательная функция, добавляет параметры полей в массив $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX],
  * старые значения перезаписываются, только если ключи совпадают,
  * несовпадающие ключи массива остаются нетронутыми
  * 
@@ -86,10 +91,10 @@ private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status
 {
     foreach( $Cols as $Column )
     {
-        if( !$Extends ) { $this->completeSafetyField( $Column["Field"], $TableName, $Column, $Status); }
+        if( !$Extends ) { $this->completeField( $TableName, $Column["Field"], $Column, $Status); }
         else
         {
-            $this->completeSafetyField( $Column["COLUMN_NAME"], $TableName, 
+            $this->completeField( $TableName, $Column["COLUMN_NAME"], 
                 array(
                     TRMDataMapper::COMMENT_INDEX => $Column['COLUMN_COMMENT'],
                     TRMDataMapper::DEFAULT_INDEX => $Column['COLUMN_DEFAULT'],
@@ -112,8 +117,8 @@ private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status
  */
 public function isFieldAutoIncrement($TableName, $FieldName)
 {
-    if( isset($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX])
-        && $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX] == "auto_increment" )
+    if( isset($this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX])
+        && $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX] == "auto_increment" )
     {
         return true;
     }
@@ -132,7 +137,7 @@ public function getIndexFieldsNames( $TableName, $KeyStatus = "PRI" )
 {
     if( $KeyStatus == "*" )
     {
-        return array_keys($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
+        return array_keys($this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
     }
     return $this->getAllFieldsNamesForCondition( $TableName, TRMDataMapper::KEY_INDEX, $KeyStatus );
 }
@@ -186,7 +191,7 @@ private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $
 {
     if( $StateName === null )
     {
-        return array_keys($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
+        return array_keys($this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
     }
     /*
      * убираем проверку, на время пока метод приватен, и вызывают его только внутренние функции с верными аргументами...
@@ -198,7 +203,7 @@ private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $
      */
     
     $FieldsNames = array();
-    foreach ( $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FileldState )
+    foreach ( $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FileldState )
     {
         if( isset($FileldState[$StateName]) && $FileldState[$StateName] == $Value )
         {

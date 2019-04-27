@@ -16,7 +16,7 @@ public function initializeFromArray( array $Array );
 
 }
 
-interface TRMDataArrayInterface extends InitializibleFromArray, \Countable, \ArrayAccess, \JsonSerializable
+interface TRMDataArrayInterface extends InitializibleFromArray, \Countable, \Iterator, \ArrayAccess, \JsonSerializable
 {
 /**
  * возвращает весь массив с данными, вернется дубликат,
