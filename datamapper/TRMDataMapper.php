@@ -5,6 +5,7 @@ namespace TRMEngine\DataMapper;
 use TRMEngine\DataArray\TRMDataArray;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperNotStringFieldNameException;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
+use TRMEngine\DataMapper\Interfaces\TRMDataMapperInterface;
 
 /**
  * Класс для объектов DataMapper,
@@ -13,7 +14,7 @@ use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
  *
  * @author TRM - 2019-04-27
  */
-class TRMDataMapper extends TRMDataArray
+class TRMDataMapper extends TRMDataArray implements TRMDataMapperInterface
 {
 /**
  * константы для индексов 
@@ -60,6 +61,18 @@ const READ_ONLY_FIELD = 512;
 const UPDATABLE_FIELD = 256;
 const FULL_ACCESS_FIELD = 768;
 
+/**
+ * добавляет данные из другого объекта $DataMapper,
+ * если в массиве текущего объекта уже есть данные (совпадают индексы)
+ * об одном из добавляемых sub-объектов,
+ * то они будут заменены на новые из $DataMapper
+ * 
+ * @param self $DataMapper - добавляемый $DataMapper
+ */
+public function addDataMapper(TRMDataMapperInterface $DataMapper)
+{
+    $this->mergeDataArray($DataMapper->DataArray);
+}
 
 /**
  * @return array - $SafetyFieldsArray
@@ -168,8 +181,7 @@ public function hasObject($ObjectName)
 }
 
 /**
- * добавляет поля доступные для записи/чтения к объекту $ObjectName,
- * устанавливает внутренний счетчик итератора SafetyFields в начало!!!
+ * добавляет описание поля доступные для записи/чтения к объекту $ObjectName
  *
  * @param string $ObjectName - имя объекта, для которого добавляются поля
  * @param array $Fields - массив массивов array( FieldName => array(State...), ... ), список полей и их параметры, в том числе возможность записи-чтения
@@ -255,7 +267,7 @@ public function setFieldState( $ObjectName, $FieldName, $State = TRMDataMapper::
  * TRMDataMapper::FULL_ACCESS_FIELD или 
  * TRMDataMapper::UPDATABLE_FIELD
  */
-public function getSafetyFieldState( $ObjectName, $FieldName )
+public function getFieldState( $ObjectName, $FieldName )
 {
     if( !isset( $this->DataArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] ) )
     {
@@ -316,7 +328,7 @@ public function sortObjectsForRelationOrder()
  * @param string $Table1Name - первый сравниваемый ключ - имя таблицы 1
  * @param string $Table2Name - второй сравниваемый ключ - имя таблицы 1
  * @return int - 0 - порядок одинаковый, 
- * +1 $Table1Name больше $Table2Name, и $Table2Name должна идти раньше (сортировка по возрастснию),
+ * +1 $Table1Name больше $Table2Name, и $Table2Name должна идти раньше (сортировка по возрастанию),
  * -1 $Table2Name больше $Table1Name, и $Table1Name должна идти раньше
  */
 private function compareTwoTablesRelation( $Table1Name, $Table2Name )

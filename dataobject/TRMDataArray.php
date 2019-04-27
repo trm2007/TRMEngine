@@ -46,14 +46,14 @@ public function setDataArray( array $data )
 
 /**
  * "склеивает" два массива с данными, проверка на уникальность не проводится,
- * при использовании этого метода нужно быть осторожным с передаваемым массивом, 
- * он должен быть двумерным и каждая запись-строка должна иметь численный индекс
+ * если в новом массиве встерится уже существующий строковый индекс, 
+ * старые данные перезапишутся
  *
- * @param array $data - массив для склеивания
+ * @param array $Array - массив для склеивания
  */
-public function mergeDataArray( array $data )
+public function mergeDataArray( array $Array )
 {
-    $this->DataArray = array_merge( $this->DataArray, $data );
+    $this->DataArray = array_merge( $this->DataArray, $Array );
 }
 
 /**
