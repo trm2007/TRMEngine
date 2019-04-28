@@ -1,6 +1,9 @@
 <?php
 
-namespace TRMEngine\TRMDataMapper;
+namespace TRMEngine\DataMapper;
+
+use TRMEngine\DataArray\Interfaces\InitializibleFromArray;
+use TRMEngine\DataMapper\TRMDataMapper;
 
 /**
  * Класс для работы с DataMapper одного поля объекта данных,
@@ -8,7 +11,7 @@ namespace TRMEngine\TRMDataMapper;
  *
  * @version 2019-04-27
  */
-class TRMField
+class TRMFieldMapper implements InitializibleFromArray
 {
 /** статус поля - доступно только для чтения */
 const TRM_FIELD_STATE_READ_ONLY = 512;
@@ -40,7 +43,7 @@ public $Type = "varchar(1024)";
 /**
  * @var string - может ли поле оставаться пустым
  */
-public $Null =  "NO";
+public $Null = "NO";
 /**
  * @var string - указывает хранится ли в этом поле ключ-ID, 
  * принимает значение PRI - перфичный ключ, для совместимости с MySQL
@@ -63,7 +66,7 @@ public $Alias = "";
  * @var int - показвает нужно ли брать имя данного поля в апосторфы, 
  * по умолчанию нужно TRM_FIELD_NEED_QUOTE
  */
-public $Quote = self::TRM_FIELD_NEED_QUOTE;
+public $Quote = TRMFieldMapper::TRM_FIELD_NEED_QUOTE;
 /**
  * @var string - комментарий к полю, фактически название,
  * может использоваться в качестве <label> к Input-полю в форме на клинте
@@ -73,7 +76,7 @@ public $Comment = "";
  * @var array - массив, 
  * который должен содержать array( OBJECT_NAME_INDEX => имя объекта, FIELD_NAME_INDEX => имя поля в объекте)
  */
-protected $Relation = array();
+public $Relation = array();
 
 public function setRelation($ObjectName, $FieldName)
 {
@@ -84,6 +87,94 @@ public function setRelation($ObjectName, $FieldName)
 public function getRelation()
 {
     return $this->Relation;
+}
+
+/**
+ * устанавливает все свойства поля в значения по умолчанию,
+ * имя остается не тронутым
+ */
+public function setDefaultValue()
+{
+    $this->State = self::TRM_FIELD_STATE_READ_ONLY;
+    $this->Type = "varchar(1024)";
+    $this->Null = "NO";
+    $this->Key = "";
+    $this->Default = "";
+    $this->Extra = "";
+    $this->Alias = "";
+    $this->Quote = TRMFieldMapper::TRM_FIELD_NEED_QUOTE;
+    $this->Comment = "";
+    $this->Relation = array();
+}
+
+/**
+ * 
+ * @param array $Array - массив из которого будут установлены занчения свойств поля
+ * @param boolean $ClearFlag - если этот флаг установлен в TRUE, 
+ * то все старые значения перед инициализацией стираются,
+ * если нужно сохранить отсутсвующие в $Array свойства со старыми значениями, 
+ * то этот флаг нужно установить в FALSE
+ */
+public function initializeFromArray( array $Array, $ClearFlag = true )
+{
+    if($ClearFlag)
+    {
+        $this->setDefaultValue();
+    }
+    
+    if( isset( $Array[TRMDataMapper::STATE_INDEX] ) )
+    {
+        $this->State = $Array[TRMDataMapper::STATE_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::TYPE_INDEX] ) )
+    {
+        $this->Type = $Array[TRMDataMapper::TYPE_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::NULL_INDEX] ) )
+    {
+        $this->Null = $Array[TRMDataMapper::NULL_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::KEY_INDEX] ) )
+    {
+        $this->Key = $Array[TRMDataMapper::KEY_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::DEFAULT_INDEX] ) )
+    {
+        $this->Default = $Array[TRMDataMapper::DEFAULT_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::EXTRA_INDEX] ) )
+    {
+        $this->Extra = $Array[TRMDataMapper::EXTRA_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::ALIAS_INDEX] ) )
+    {
+        $this->Alias = $Array[TRMDataMapper::ALIAS_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::QUOTE_INDEX] ) )
+    {
+        $this->Quote = $Array[TRMDataMapper::QUOTE_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::COMMENT_INDEX] ) )
+    {
+        $this->Comment = $Array[TRMDataMapper::COMMENT_INDEX];
+    }
+    
+    if( isset( $Array[TRMDataMapper::RELATION_INDEX] ) )
+    {
+        $this->setRelation(
+                $Array[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX], 
+                $Array[TRMDataMapper::RELATION_INDEX][TRMDataMapper::FIELD_NAME_INDEX]
+            );
+    }
+
 }
 
 

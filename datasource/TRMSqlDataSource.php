@@ -263,23 +263,23 @@ private function generateFieldsString( TRMSafetyFields $SafetyFields )
         throw new TRMDataSourceSQLNoSafetyFieldsException( __METHOD__  . " - " . get_class($this) );
     }
     $fieldstr = "";
-    foreach( $SafetyFields as $TableName => $TableState )
+    foreach( $SafetyFields as $TableName => $Table )
     {        
-        $TableAlias = $SafetyFields->getAliasForTableName($TableName);
+        $TableAlias = $Table->Alias;
         $tn = empty($TableAlias) ? $TableName : $TableAlias;
-        foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $fieldname => $state )
+        foreach( $Table as $FieldName => $Field )
         {
             if( !empty($tn) ) { $fieldstr .= "`" . $tn . "`."; }
 
-            if( isset($state[ TRMDataMapper::QUOTE_INDEX ]) && $state[ TRMDataMapper::QUOTE_INDEX ] == TRMDataMapper::NEED_QUOTE )
+            if( $Field->Quote == TRMDataMapper::NEED_QUOTE )
             {
-                $fieldstr .= "`" . $fieldname . "`";
+                $fieldstr .= "`" . $FieldName . "`";
             }
-            else { $fieldstr .= $fieldname; }
+            else { $fieldstr .= $FieldName; }
 
-            if( isset($state[TRMDataMapper::FIELDALIAS_INDEX]) && strlen($state[TRMDataMapper::FIELDALIAS_INDEX])>0 )
+            if( strlen($Field->Alias)>0 )
             {
-                $fieldstr .= (" AS ".$state["FieldAlias"]);
+                $fieldstr .= (" AS ".$Field->Alias);
             }
             $fieldstr .= ",";
         }
@@ -290,46 +290,48 @@ private function generateFieldsString( TRMSafetyFields $SafetyFields )
 /**
  * формирует часть запроса связанную с JOIN таблиц
  * 
- * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
+ * @param TRMSafetyFields $DataMapper - DataMapper, для которого формируется выборка из БД
  *
  * @return string - строка с JOIN-частью запроса
  */
-private function generateJoinString( TRMSafetyFields $SafetyFields )
+private function generateJoinString( TRMSafetyFields $DataMapper )
 {
+    $SafetyFields = clone $DataMapper;
+    $SafetyFields->sortObjectsForReverseRelationOrder();
     $JoinedTables = array();
-    foreach( $SafetyFields as $CurrentTableName => $CurrentTableState )
+    foreach( $SafetyFields as $CurrentTableName => $CurrentTable )
     {
-        foreach ( $CurrentTableState[TRMDataMapper::FIELDS_INDEX] as $CurrentFieldName => $CurrentFieldState )
+        foreach ( $CurrentTable as $CurrentFieldName => $CurrentField )
         {
             // если есть Relation, занчит таблица из Relation должна быть присоединена по полю из Relation
-            if( isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]) )
+            if( !empty($CurrentField->Relation) )
             {
                 $JoinedTables
-                    [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
-                        [TRMDataMapper::FIELDS_INDEX]
-                            [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::FIELD_NAME_INDEX] ]
+                    [ $CurrentField->Relation[TRMDataMapper::OBJECT_NAME_INDEX] ]
+                    [ TRMDataMapper::FIELDS_INDEX ]
+                    [ $CurrentField->Relation[TRMDataMapper::FIELD_NAME_INDEX] ]
                         = array(
                             // если для главной таблицы задан альяс, то будем испльзовать его в строке JOIN,
                             // если не задан, то имя таблицы
-                            TRMDataMapper::OBJECT_NAME_INDEX => isset($CurrentTableState["ObjectAlias"]) ? $CurrentTableState["ObjectAlias"] : $CurrentTableName,
+                            TRMDataMapper::OBJECT_NAME_INDEX => !empty($CurrentTable->Alias) ? $CurrentTable->Alias : $CurrentTableName,
                             TRMDataMapper::FIELD_NAME_INDEX => $CurrentFieldName,
                             // оператор применяется в родительском $CurrentFieldName поле по отношению проверяемому TRMDataMapper::FIELD_NAME_INDEX...
-                            "Operator" => isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Operator"]) ?
-                                self::makeValidSQLOperator($CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Operator"]) :
-                                "=",
+                            "Operator" =>   isset($CurrentField->Relation["Operator"]) ?
+                                            self::makeValidSQLOperator($CurrentField->Relation["Operator"]) :
+                                            "=",
                         );
-                if( !empty( $CurrentTableState["ObjectAlias"] ) )
+                if( !empty($CurrentTable->Alias) )
                 {
                     $JoinedTables
-                        [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
-                            ["ObjectAlias"] = $CurrentTableState["ObjectAlias"];
+                        [ $CurrentField->Relation[TRMDataMapper::OBJECT_NAME_INDEX] ]
+                        ["ObjectAlias"] = $CurrentTable->Alias;
                 }
                 
                 $JoinedTables
-                    [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
-                        ["Join"] = isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Join"]) ?
-                            $CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Join"] :
-                            self::DATASOURCE_JOIN_DEFAULT;
+                    [ $CurrentField->Relation[TRMDataMapper::OBJECT_NAME_INDEX] ]
+                    ["Join"] =  isset($CurrentField->Relation["Join"]) ?
+                                $CurrentField->Relation["Join"] :
+                                self::DATASOURCE_JOIN_DEFAULT;
             }
         }
     }
@@ -753,7 +755,7 @@ public function getDataFrom( TRMSafetyFields $SafetyFields )
 }
 
 /**
- * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
+ * @param TRMSafetyFields $DataMapper - DataMapper, для которого формируется выборка из БД
  * @param array $IndexesNames - после работы функции будет содержать поля, 
  * которые следует включать в секцию WHERE update-запроса, 
  * проверяет сначала наличие первичных индексов, 
@@ -776,7 +778,7 @@ public function getDataFrom( TRMSafetyFields $SafetyFields )
  * @throws TRMDataSourceNoUpdatebleFieldsException
  */
 private function generateIndexesAndUpdatableFieldsNames( 
-        TRMSafetyFields $SafetyFields, 
+        TRMSafetyFields $DataMapper, 
         array &$IndexesNames, 
         array &$UpdatableFieldsNames, 
         array &$CurrentKeyFlag = null )
@@ -785,6 +787,7 @@ private function generateIndexesAndUpdatableFieldsNames(
     // что бы сначала шли все назависимые объеты, 
     // например, производители, группы, ед. измерения,
     // и уже потом зависимые от них 
+    $SafetyFields = clone $DataMapper;
     if(!$SafetyFields->sortObjectsForRelationOrder())
     {
         throw new TRMDataSourceWrongTableSortException(__METHOD__ . " отсортировать массив с таблицами не удалось");
@@ -801,8 +804,9 @@ private function generateIndexesAndUpdatableFieldsNames(
     
     $UpdatableFieldsNames = array();
     $IndexesNames = array();
-    
-    foreach( $SafetyFields as $TableName => $TableState )
+
+    $ArrayKeys = $SafetyFields->getArrayKeys();
+    foreach( $ArrayKeys as $TableName )
     {
         
         // получаем массив доступных для записи полей в очередной таблице $TableName

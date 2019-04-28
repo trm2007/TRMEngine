@@ -578,6 +578,12 @@ public function setRow($Index, $value)
     $this->MainDataObject->setRow($Index, $value);
 }
 
+public function removeRow($Index)
+{
+    $this->ChildCollectionsArray->removeDataObject($Index);
+}
+
+
 public function keyExists($Index)
 {
     $this->MainDataObject->keyExists($Index);
@@ -601,6 +607,15 @@ public function offsetSet($offset, $value)
 public function offsetUnset($offset)
 {
     unset($this->ChildCollectionsArray[$offset]);
+}
+
+/**
+ * 
+ * @return array - ключи для массива ChildCollectionsArray
+ */
+public function getArrayKeys()
+{
+    return array_keys($this->ChildCollectionsArray);
 }
 
 

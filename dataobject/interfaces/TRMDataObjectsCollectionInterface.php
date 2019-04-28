@@ -40,6 +40,13 @@ public function setDataObject($Index, TRMDataObjectInterface $DataObject);
 public function addDataObject( TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false );
 
 /**
+ * удаляет объект из коллекции
+ * 
+ * @param string $Index - индекс удаляемого объекта
+ */
+public function removeDataObject($Index);
+
+/**
  * проверяет, есть ли в коллекции объект,
  * точнее ссылка на этот объект
  * 

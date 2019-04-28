@@ -34,15 +34,14 @@ public function setAliasForTableName($TableName, $TableAlias)
 /**
  * @param string $TableName - имя таблицы
  * 
- * @return возвращает псевдоним для таблицы $TableName, если он установлен,
+ * @return string возвращает псевдоним для таблицы $TableName, если он установлен,
  * если не задан, то вернет null
  */
 public function getAliasForTableName( $TableName )
 {
+    if( !isset( $this->DataArray[$TableName] ) ) { return null; }
 
-    if( empty( $this->DataArray[$TableName][self::TABLEALIAS_INDEX] ) ) { return null; }
-
-    return  $this->DataArray[$TableName][self::TABLEALIAS_INDEX];
+    return  $this->DataArray[$TableName]->Alias;
 }
 
 /**
@@ -63,11 +62,10 @@ public function completeSafetyFieldsFromDB($Extends = false)
                 . " Массив DataArray - пустой, "
                 . "необходимо указать хотябы имена таблиц как ключи массива array( TableName => array(...), ... )" );
     }
-    foreach( array_keys($this->DataArray) as $TableName )
+    $ObjectsNames = $this->getArrayKeys();
+    foreach( $ObjectsNames as $TableName )
     {
-        $Status = isset( $this->DataArray[$TableName][TRMDataMapper::STATE_INDEX] ) 
-                        ?  $this->DataArray[$TableName][TRMDataMapper::STATE_INDEX] 
-                        : TRMDataMapper::READ_ONLY_FIELD;
+        $Status = $this->DataArray[$TableName]->State;
         $this->completeSafetyFieldsFromDBFor(
             $TableName, 
             TRMDBObject::getTableColumnsInfo($TableName), 
@@ -78,7 +76,8 @@ public function completeSafetyFieldsFromDB($Extends = false)
 }
 
 /**
- * вспомогательная функция, добавляет параметры полей в массив $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX],
+ * вспомогательная функция, 
+ * добавляет параметры полей в массив $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX],
  * старые значения перезаписываются, только если ключи совпадают,
  * несовпадающие ключи массива остаются нетронутыми
  * 
@@ -117,8 +116,7 @@ private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status
  */
 public function isFieldAutoIncrement($TableName, $FieldName)
 {
-    if( isset($this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX])
-        && $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX] == "auto_increment" )
+    if( $this->DataArray[$TableName][$FieldName]->Extra == "auto_increment" )
     {
         return true;
     }
@@ -137,7 +135,7 @@ public function getIndexFieldsNames( $TableName, $KeyStatus = "PRI" )
 {
     if( $KeyStatus == "*" )
     {
-        return array_keys($this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
+        return $this->DataArray->getArrayKeys();
     }
     return $this->getAllFieldsNamesForCondition( $TableName, TRMDataMapper::KEY_INDEX, $KeyStatus );
 }
@@ -153,7 +151,6 @@ public function getUpdatableFieldsNamesFor( $TableName )
 {
     $FieldsNames1 = $this->getAllFieldsNamesForCondition( $TableName, TRMDataMapper::STATE_INDEX, TRMDataMapper::UPDATABLE_FIELD );
     $FieldsNames2 = $this->getAllFieldsNamesForCondition( $TableName, TRMDataMapper::STATE_INDEX, TRMDataMapper::FULL_ACCESS_FIELD );
-    
     return array_unique( array_merge($FieldsNames1, $FieldsNames2), SORT_REGULAR );
 }
 
@@ -191,7 +188,7 @@ private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $
 {
     if( $StateName === null )
     {
-        return array_keys($this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
+        return $this->DataArray->getArrayKeys();
     }
     /*
      * убираем проверку, на время пока метод приватен, и вызывают его только внутренние функции с верными аргументами...
@@ -203,9 +200,9 @@ private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $
      */
     
     $FieldsNames = array();
-    foreach ( $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FileldState )
+    foreach ( $this->DataArray[$TableName] as $FieldName => $Fileld )
     {
-        if( isset($FileldState[$StateName]) && $FileldState[$StateName] == $Value )
+        if( $Fileld->$StateName == $Value )
         {
             $FieldsNames[] = $FieldName;
         }

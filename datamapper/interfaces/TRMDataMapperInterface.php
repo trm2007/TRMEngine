@@ -119,6 +119,12 @@ public function getBackRelationFor($LookingObjectName, $LookingFieldName);
  * что бы ссылающиеся объекты располагались дальше, чем те, на которые они ссылаются
  */
 public function sortObjectsForRelationOrder();
+/**
+ * сортирует порядок объектов в массиве $this->DataArray,
+ * таким образом, что бы ссылающиеся объекты располагались раньше, чем те, на которые они ссылаются,
+ * обратная сортировка функции sortObjectsForRelationOrder
+ */
+public function sortObjectsForReverseRelationOrder();
 
 /**
  * Как правило в объекте данных один внутренний объект (таблица для случая с БД) играет роль главного,

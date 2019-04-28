@@ -79,6 +79,19 @@ public function getRow( $Index );
 public function addRow( array $Data );
 
 /**
+ * убирает данные с индексом $Index из массива DataArray,
+ * если они установлены
+ *
+ * @param string $Index - индекс, который нужно исключить
+ */
+public function removeRow( $Index );
+
+/**
+ * @return array - массив с именами ключей в массиве DataArray
+ */
+public function getArrayKeys();
+
+/**
  * очистка массива данных
  */
 public function clear();

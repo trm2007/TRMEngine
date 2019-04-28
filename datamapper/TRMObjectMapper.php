@@ -1,6 +1,6 @@
 <?php
 
-namespace TRMEngine\TRMDataMapper;
+namespace TRMEngine\DataMapper;
 
 use TRMEngine\DataArray\TRMDataArray;
 use TRMEngine\DataMapper\TRMDataMapper;
@@ -11,7 +11,7 @@ use TRMEngine\DataMapper\TRMDataMapper;
  * содержит $State - состояние (возмоность записи чтения для всего объект),
  * и массив $Fields - с объектами полей для данного объекта-таблицы
  */
-class TRMObject extends TRMDataArray
+class TRMObjectMapper extends TRMDataArray
 {
 /**
  * статус объекта - доступен только для чтения
@@ -38,11 +38,6 @@ public $Alias = "";
 public $State = self::TRM_OBJECT_STATE_READ_ONLY;
 
 /**
- * @var array - массив $Fields - с объектами полей TRMField для данного объекта-таблицы
- */
-public $Fields = array();
-
-/**
  * @return int - состояние - возмоность записи или только чтения для всего объект
  */
 public function getState()
@@ -64,7 +59,7 @@ public function setState($State)
  * 
  * @param string $FieldName - имя поля
  * 
- * @return TRMField $Field - объект с информацией о поле
+ * @return TRMFieldMapper $Field - объект с информацией о поле
  */
 public function getField( $FieldName )
 {
@@ -79,9 +74,9 @@ public function getField( $FieldName )
  * устанавливает объект поля с именем $Field->Name,
  * если ранее было установлено поле с таким именем, то оно перезапищется
  * 
- * @param TRMField $Field - объект с информацией о поле
+ * @param TRMFieldMapper $Field - объект с информацией о поле
  */
-public function setField( TRMField $Field )
+public function setField( TRMFieldMapper $Field )
 {
     $this->DataArray[$Field->Name] = $Field;
 }
@@ -99,12 +94,31 @@ public function getFields()
  * устанавливает объекты полей из массива $Fields,
  * существующие данные удаляются
  * 
- * @param array(TRMField) $Fields - объект с информацией о поле
+ * @param array(TRMField) $Fields - массив объектов TRMField с информацией о поле
  */
 public function setFields( array $Fields )
 {
     $this->DataArray = array();
     $this->addFields($Fields);
+}
+
+/**
+ * устанавливает объекты полей из массива $Fields,
+ * существующие данные удаляются
+ * 
+ * @param array $Fields - массив с массивами с информацией о поле
+ */
+public function setFieldsArray( array $Fields )
+{
+    $this->DataArray = array();
+    foreach( $Fields as $FieldName => $Field )
+    {
+        $FieldObject = new TRMFieldMapper();
+        $FieldObject->Name = $FieldName;
+        
+        $FieldObject->initializeFromArray($Field);
+        $this->setField($FieldObject);
+    }
 }
 
 /**
@@ -128,11 +142,19 @@ public function addFields( array $Fields )
  */
 public function removeField( $FieldName )
 {
-    if( isset($this->Fields[$FieldName]) )
-    {
-        unset($this->Fields[$FieldName]);
-    }
+    $this->removeRow($FieldName);
 }
+
+/**
+ * убираеТ поле из массива $Fields
+ *
+ * @param string $FieldName - имя поля, которое нужно исключить
+ */
+public function hasField( $FieldName )
+{
+    return $this->keyExists($FieldName);
+}
+
 
 /**
  * @param string $StateName - имя проверяемого статуса поля
@@ -185,14 +207,14 @@ private function getAllFieldsNamesForCondition( $StateName = null, $Value = null
 }
 
 
-} // TRMObject
+} // TRMObjectMapper
 
 
 /**
- * расширяет класс TRMObject для применения к таблицам SQL,
+ * расширяет класс TRMObjectMapper для применения к таблицам SQL,
  * может сам генерироать строку с именами полей объекта
  */
-class TRMSQLObject extends TRMObject
+class TRMSQLObject extends TRMObjectMapper
 {
 /**
  * формирует часть SQL-запроса со списком полей, которые выбираются из таблиц
@@ -217,7 +239,7 @@ private function generateFieldsString( $AddTableNameFlag = true )
             $FieldStr .= "`" . $TableName . "`.";
         }
 
-        if( $Field->Quote == TRMField::TRM_FIELD_NEED_QUOTE )
+        if( $Field->Quote == TRMFieldMapper::TRM_FIELD_NEED_QUOTE )
         {
             $FieldStr .= "`" . $FieldName . "`";
         }
@@ -233,4 +255,4 @@ private function generateFieldsString( $AddTableNameFlag = true )
 }
 
 
-} // TRMSQLObject
+} // TRMObjectMapper

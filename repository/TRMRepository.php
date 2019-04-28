@@ -305,9 +305,9 @@ protected function getDataObjectFromDataArray( array $DataArray, TRMDataObjectIn
     }
     $k = 0;
     // преобразуем одномерный массив в многомерный согласно DataMapper-у
-    foreach( $this->DataMapper as $TableName => $TableState )
+    foreach( $this->DataMapper as $TableName => $Table )
     {
-        foreach( array_keys($TableState[TRMDataMapper::FIELDS_INDEX]) as $FieldName )
+        foreach( $Table->getArrayKeys() as $FieldName )
         {
             $DataObject->setData( $TableName, $FieldName, $DataArray[$k++]);
         }
@@ -330,11 +330,11 @@ public function getNewObject( TRMDataObjectInterface $DataObject = null )
     {
         $DataObject = new $this->ObjectTypeName;
     }
-    foreach( $this->DataMapper as $TableName => $TableState )
+    foreach( $this->DataMapper as $TableName => $Table )
     {
-        foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
+        foreach( $Table as $FieldName => $Field )
         {
-            $DataObject->setData( $TableName, $FieldName, $FieldState[TRMDataMapper::DEFAULT_INDEX]);
+            $DataObject->setData( $TableName, $FieldName, $Field->Default );
         }
     }
     return $DataObject;
