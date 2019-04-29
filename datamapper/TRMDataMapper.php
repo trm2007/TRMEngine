@@ -180,8 +180,6 @@ protected function validateAndCreateObjectField( $ObjectName, $FieldName, $Defau
         $Field->State = $DefaultState;
         $this->DataArray[$ObjectName]->setField( $Field ) ;
     }
-    
-    return $Field;
 }
 
 /**
