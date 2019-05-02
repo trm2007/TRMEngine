@@ -237,7 +237,7 @@ public function setChildCollection($Index, TRMParentedCollectionInterface $Colle
  * 
  * @param integer $Index - номер объекта в контейнере
  * 
- * @return TRMParentedCollection - коллекция из контейнера
+ * @return TRMParentedCollectionInterface - коллекция из контейнера
  */
 public function getChildCollection($Index)
 {
