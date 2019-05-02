@@ -369,7 +369,7 @@ public function insert(TRMDataObjectInterface $Container)
                 ->insertCollection( $DataObjectsCollection );
     }
 
-    $this->CollectionToInsert->addDataObject($DataObject);
+    $this->CollectionToInsert->addDataObject($Container);
 }
 
 public function insertCollection(TRMDataObjectsCollectionInterface $Collection)
@@ -508,6 +508,8 @@ public function doInsert( $ClearCollectionFlag = true )
 
     foreach( $this->CollectionToInsert as $Container )
     {
+        $this->getMainRepositoryFor($Container)->doInsert( $ClearCollectionFlag );
+
         foreach( $Container as $DataObjectsCollection )
         {
             // перед обновлением коллекции устанавдиаем для нее родительский элемент,
@@ -519,8 +521,6 @@ public function doInsert( $ClearCollectionFlag = true )
                     ->getRepository( $DataObjectsCollection->getObjectsType() )
                     ->doInsert( $ClearCollectionFlag );
         }
-
-        $this->getMainRepositoryFor($Container)->doInsert( $ClearCollectionFlag );
     }
     if( $ClearCollectionFlag ) { $this->CollectionToInsert->clearCollection(); }
 }

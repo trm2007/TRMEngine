@@ -99,16 +99,16 @@ public function setParentFor( TRMTypedCollectionInterface $Collection, TRMIdData
  * сохраняется только ссылка, объекты не клонируются!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMTypedCollectionInterface $Collection - добавляемый объект-коллекция
+ * @param TRMParentedCollectionInterface $Collection - добавляемый объект-коллекция
  */
-public function setChildCollection($Index, TRMTypedCollectionInterface $Collection);
+public function setChildCollection($Index, TRMParentedCollectionInterface $Collection);
 
 /**
  * возвращает объект из контейнера под номером $Index
  * 
  * @param integer $Index - номер объекта в контейнере
  * 
- * @return TRMDataObjectInterface - объект из контейнера
+ * @return TRMParentedCollectionInterface - объект из контейнера
  */
 public function getChildCollection($Index);
 

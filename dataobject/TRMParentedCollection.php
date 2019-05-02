@@ -68,10 +68,10 @@ public function getParentDataObject()
 public function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject)
 {
     $this->ParentDataObject = $ParentDataObject;
-
-    $ParentIdFieldName = static::getParentIdFieldName();
-    // устанавливаем значение родительского поля в Id нового родителя
-    $this->changeAllValuesFor( $ParentIdFieldName[0], $ParentIdFieldName[1], $ParentDataObject->getId() );
+    foreach( $this->DataArray as $Object )
+    {
+        $Object->setParentDataObject( $ParentDataObject );
+    }
 }
 
 /**
@@ -84,8 +84,7 @@ public function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject)
  */
 public function setDataObject($Index, TRMDataObjectInterface $DataObject)
 {
-    $ParentIdFieldName = static::getParentIdFieldName();
-    $DataObject->setData($ParentIdFieldName[0], $ParentIdFieldName[1], $this->ParentDataObject->getId());
+    $DataObject->setParentDataObject($this->ParentDataObject);
     parent::setDataObject($Index, $DataObject);
 }
 
@@ -103,8 +102,7 @@ public function setDataObject($Index, TRMDataObjectInterface $DataObject)
  */
 public function addDataObject(TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false)
 {
-    $ParentIdFieldName = static::getParentIdFieldName();
-    $DataObject->setData($ParentIdFieldName[0], $ParentIdFieldName[1], $this->ParentDataObject->getId());
+    $DataObject->setParentDataObject($this->ParentDataObject);
     return parent::addDataObject($DataObject, $AddDuplicateFlag);
 }
 

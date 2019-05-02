@@ -30,7 +30,7 @@ public function setDataObject($Index, TRMDataObjectInterface $DataObject);
 
 /**
  * @param TRMDataObjectInterface $DataObject - добавит это объект в коллекцию
- * @param bool $AddDuplicateFlag - если этот флаг установден в false, то в коллекцию не добавятся дубликаты объектов,
+ * @param bool $AddDuplicateFlag - если этот флаг установлен в false, то в коллекцию не добавятся дубликаты объектов,
  * если утсановить в TRUE, то объект добавится как новый,
  * даже если он дублирует уже присутсвующий,
  * по умолчанию - false (дубли не добавляются)

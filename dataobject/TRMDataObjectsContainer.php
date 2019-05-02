@@ -6,9 +6,9 @@ use TRMEngine\DataObject\Exceptions\TRMDataObjectContainerNoMainException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongDependenceObjectException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongDependenceTypeException;
 use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongIndexException;
-use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
+use TRMEngine\DataObject\Interfaces\TRMParentedCollectionInterface;
 use TRMEngine\DataObject\Interfaces\TRMTypedCollectionInterface;
 
 /**
@@ -224,9 +224,9 @@ public function setParentFor(TRMTypedCollectionInterface $Collection, TRMIdDataO
  * сохраняется только ссылка, объекты не клонируются!!!
  * 
  * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMTypedCollectionInterface $Collection - добавляемый объект-коллекция
+ * @param TRMParentedCollectionInterface $Collection - добавляемый объект-коллекция
  */
-public function setChildCollection($Index, TRMTypedCollectionInterface $Collection) // был TRMParentedDataObject, но позже сделал для все объектов данных
+public function setChildCollection($Index, TRMParentedCollectionInterface $Collection) // был TRMParentedDataObject, но позже сделал для все объектов данных
 {
     $this->ChildCollectionsArray[$Index] = $Collection;
     $this->setParentFor($Collection, $this);
@@ -237,7 +237,7 @@ public function setChildCollection($Index, TRMTypedCollectionInterface $Collecti
  * 
  * @param integer $Index - номер объекта в контейнере
  * 
- * @return TRMDataObjectInterface - объект из контейнера
+ * @return TRMParentedCollection - коллекция из контейнера
  */
 public function getChildCollection($Index)
 {
