@@ -17,9 +17,7 @@ use TRMEngine\Helpers\TRMState;
 
 /**
  * общий для всех классов обработки записей из таблиц БД MySQL,
- * принимает в качестве зависимости объет DataMapper,
- * для работы с БД использует статический объект TRMDBObject,
- * который работает через MySQLi
+ * принимает в качестве зависимости объет MySQLi,
  */
 class TRMSqlDataSource extends TRMState implements TRMDataSourceInterface
 {
@@ -76,6 +74,11 @@ protected $OrderFields = array();
  * @var array - массив полей для группировки - array( fieldname1 => "" ) для GROUP BY
  */
 protected $GroupFields = array();
+/**
+ * @var array - массив полей и значений $HavingParams[FieldName] = array( FieldValue, Operator, AndOr... ),
+ * значения которых будут использоваться при запросе SELECT в секции HAVING
+ */
+protected $HavingParams = array();
 
 /**
  * @var \mysqli - объект MySQLi для работы с БД MySQL, внедряется как зависимость через конструктор
@@ -156,6 +159,56 @@ public function addOrder( array $orderfields )
         }
     }
 }
+
+/**
+ * Добавляет поле, по которому будет произведена группировка
+ * @param string $GroupFieldName
+ */
+public function setGroupField($GroupFieldName)
+{
+    $this->GroupFields[$GroupFieldName]="";
+}
+
+/**
+ * очистка параметров WHERE запроса, порядок сортировки
+ * и строк запросов SELECT, UPDATE/INSERT, DELETE
+ */
+public function clear()
+{
+    $this->QueryString = "";
+    $this->UpdateQueryString = "";
+    $this->DeleteQueryString = "";
+    $this->clearParams();
+    $this->clearOrder();
+    $this->clearLimit();
+    $this->clearHavingParams();
+    $this->clearGroup();
+}
+
+/**
+ * очищает ограничение выборки (на количество получаемых записей)
+ */
+public function clearLimit()
+{
+    $this->Count = null;
+    $this->StartPosition = null;
+}
+
+/**
+ * очистка параметров для WHERE-условий в SQL-запросе
+ */
+public function clearParams()
+{
+    $this->Params = array();
+}
+/**
+ * очистка параметров для HAVING-условий в SQL-запросе
+ */
+public function clearHavingParams()
+{
+    $this->HavingParams = array();
+}
+
 /**
  * очищает порядок сортировки
  */
@@ -164,6 +217,13 @@ public function clearOrder()
     $this->OrderFields = array();
 }
 
+/**
+ * очищает список полей для группировки
+ */
+public function clearGroup()
+{
+    $this->GroupFields = array();
+}
 /**
  * получает, проверяет и возвращает верный SQL-оператор
  * 
@@ -214,37 +274,6 @@ public static function makeValidJoinOperator($join, $default = TRMSqlDataSource:
         case "OUTER": return $join;
     }
     return $default;
-}
-
-/**
- * очистка параметров WHERE запроса, порядок сортировки
- * и строк запросов SELECT, UPDATE/INSERT, DELETE
- */
-public function clear()
-{
-    $this->QueryString = "";
-    $this->UpdateQueryString = "";
-    $this->DeleteQueryString = "";
-    $this->clearParams();
-    $this->clearOrder();
-    $this->clearLimit();
-}
-
-/**
- * очищает ограничение выборки (на количество получаемых записей)
- */
-public function clearLimit()
-{
-    $this->Count = null;
-    $this->StartPosition = null;
-}
-
-/**
- * очистка параметров для WHERE-условий в SQL-запросе
- */
-public function clearParams()
-{
-    $this->Params = array();
 }
 
 /**
@@ -407,14 +436,37 @@ public function generateJoinStringForTable($TableName, array &$TableState)
 }
 
 /**
+ * формирует часть запроса связанную с условиями HAVING
+ *
+ * @return string - строка с HAVING-частью запроса
+ */
+private function generateHavingString()
+{
+    return $this->generateConditionString($this->HavingParams);
+}
+
+/**
  * формирует часть запроса связанную с условиями WHERE
  *
  * @return string - строка с WHERE-частью запроса
  */
 private function generateWhereString()
 {
+    return $this->generateConditionString($this->Params);
+}
+
+/**
+ * формирует часть запроса связанную с условиями WHERE или HAVING
+ * 
+ * @param array $Params - массив с параметрами, 
+ * на основании которого будет сформирована часть строки запроса
+ * 
+ * @return string - строка с WHERE или HAVING-частью запроса
+ */
+protected function generateConditionString(array &$Params)
+{
     $wherestr = "";
-    foreach( $this->Params as $TableName => $TableParams )
+    foreach( $Params as $TableName => $TableParams )
     {
         foreach( $TableParams as $param )
         {
@@ -451,6 +503,7 @@ private function generateFromStr( TRMSafetyFields $SafetyFields )
     $fromstr="";
     foreach($MainTables as $TableName)
     {
+        if(empty($TableName)) { continue; }
         $fromstr .= "`{$TableName}`";
         $alias = $SafetyFields->getAliasForTableName($TableName);
         if( $alias )
@@ -501,9 +554,14 @@ public function makeSelectQuery( TRMSafetyFields $SafetyFields )
         $this->QueryString .= " GROUP BY ";
         foreach( $this->GroupFields as $field => $group )
         {
-                $this->QueryString .= " {$field},";
+            $this->QueryString .= " " . $this->prepareKey($field) . ",";
         }
         $this->QueryString = rtrim($this->QueryString, ",") . " ";
+        
+        if(!empty($this->HavingParams))
+        {
+            $this->QueryString .= " HAVING " . $this->generateHavingString() . " ";
+        }
     }
 
     // часть запроса для сортировки
@@ -574,7 +632,7 @@ public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $a
  * добавляет условие в секцию WHERE-запроса
  * 
  * @param string $tablename - имя объекта для которого устанавливается поле
- * @param array $params - массив с параметрами следующего формата<br>
+ * @param array $param - массив с параметрами следующего формата<br>
  * array(
  * "key" => $fieldname,<br>
  * "value" => $data,<br>
@@ -586,22 +644,97 @@ public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $a
  * 
  * @return $this
  */
-public function addWhereParamFromArray($tablename, array $params)
+public function addWhereParamFromArray($tablename, array $param)
+{
+    $this->generateParamsFromArrayFor($tablename, $param, $this->Params);
+    return $this;
+}
+
+
+/**
+ * добавляет параметр для условия WHERE в запросе
+ * 
+ * @param string $tablename - имя таблицы для поля, которое добавляется к условию
+ * @param string $fieldname - имя поля для сравнения
+ * @param string|numeric|boolean $data - данные для сравнения
+ * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
+ * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
+ * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::NEED_QUOTE
+ * @param string $alias - альяс для таблицы из которой сравнивается поле, если не задан, то будет совпадать с альясом главной таблицы
+ * @param integer $dataquote - если нужно оставить сравниваемое выражение без кавычек, 
+ * то этот аргумент доложен быть - TRMSqlDataSource::NOQUOTE
+ * 
+ * @return $this
+ */
+public function addHavingParam($tablename, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE)
+{
+    $value = array(
+            "key" => $fieldname,
+            "value" => $data,
+            "operator" => $operator,
+            "andor" => $andor,
+            "quote" => $quote,
+            "alias" => $alias, //($alias!== null) ? $alias : $this->AliasName,
+            "dataquote" => $dataquote,
+            );
+    return $this->addHavingParamFromArray( $tablename, $value );
+}
+
+/**
+ * добавляет условие в секцию WHERE-запроса
+ * 
+ * @param string $tablename - имя объекта для которого устанавливается поле
+ * @param array $param - массив с параметрами следующего формата<br>
+ * array(
+ * "key" => $fieldname,<br>
+ * "value" => $data,<br>
+ * "operator" => $operator,<br>
+ * "andor" => $andor,<br>
+ * "quote" => $quote,<br>
+ * "alias" => $alias,<br>
+ * "dataquote" => $dataquote );
+ * 
+ * @return $this
+ */
+public function addHavingParamFromArray($tablename, array $param)
+{
+    $this->generateParamsFromArrayFor($tablename, $param, $this->HavingParams);
+    return $this;
+}
+
+/**
+ * добавляет условие в секцию WHERE или HAVING-запроса
+ * 
+ * @param string $tablename - имя объекта для которого устанавливается поле
+ * @param array $param - массив с параметрами следующего формата<br>
+ * array(
+ * "key" => $fieldname,<br>
+ * "value" => $data,<br>
+ * "operator" => $operator,<br>
+ * "andor" => $andor,<br>
+ * "quote" => $quote,<br>
+ * "alias" => $alias,<br>
+ * "dataquote" => $dataquote );
+ * @param array &$ResParams - массив, в который будет добавлен результат
+ * 
+ * @return $this
+ */
+protected function generateParamsFromArrayFor($tablename, array $param, array &$ResParams)
 {
     $value = array();
 
-    $value["key"] = $params["key"];
-    $value["value"] = $params["value"];
+    $value["key"] = $param["key"];
+    $value["value"] = $param["value"];
     $value["operator"] = "=";
     $value["andor"] = "AND";
     $value["quote"] = TRMSqlDataSource::NEED_QUOTE;
-    $value["alias"] = isset( $params["alias"] ) ? $params["alias"] : null; // $this->AliasName;
+    $value["alias"] = isset( $param["alias"] ) ? $param["alias"] : null; // $this->AliasName;
     $value["dataquote"] = TRMSqlDataSource::NEED_QUOTE;
     
     // проверяем, есть ли уже такое условие, что бы не добавлять второй раз дубликат
-    if( isset($this->Params[$tablename]) )
+    if( isset($ResParams[$tablename]) )
     {
-        foreach( $this->Params[$tablename] as $checkedparams )
+        foreach( $ResParams[$tablename] as $checkedparams )
         {
             if( $checkedparams["key"] === $value["key"] &&
                 $checkedparams["value"] === $value["value"] &&
@@ -628,15 +761,15 @@ public function addWhereParamFromArray($tablename, array $params)
     }
     
     /* OPERATOR - для простого value это может быть = или НЕ = */
-    if( isset($params["operator"]) )
+    if( isset($param["operator"]) )
     {
-        $value["operator"] = self::makeValidSQLOperator($params["operator"]);
+        $value["operator"] = self::makeValidSQLOperator($param["operator"]);
     }
 
     /* AND OR */
-    if( isset($params["andor"]) )
+    if( isset($param["andor"]) )
     {
-        $value["andor"] = trim(strtoupper($params["andor"]));
+        $value["andor"] = trim(strtoupper($param["andor"]));
         if( !($value["andor"] == "AND") && !($value["andor"] == "OR") )
         {
             $value["andor"] = "AND";
@@ -645,18 +778,16 @@ public function addWhereParamFromArray($tablename, array $params)
 
     /* QUOTE */
     // по умолчанию все имена полей берутся в апострофы, этой опцией можно убрать, например для вычисляемых полей */
-    if( isset($params["quote"]) && $params["quote"] == TRMSqlDataSource::NOQUOTE )
+    if( isset($param["quote"]) && $param["quote"] == TRMSqlDataSource::NOQUOTE )
     {
         $value["quote"] = TRMSqlDataSource::NOQUOTE;
     }
-    if( isset($params["dataquote"]) && $params["dataquote"] == TRMSqlDataSource::NOQUOTE )
+    if( isset($param["dataquote"]) && $param["dataquote"] == TRMSqlDataSource::NOQUOTE )
     {
         $value["dataquote"] = TRMSqlDataSource::NOQUOTE;
     }
 
-    $this->Params[$tablename][] = $value;
-
-    return $this;
+    $ResParams[$tablename][] = $value;
 }
 
 /**

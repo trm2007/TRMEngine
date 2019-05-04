@@ -44,9 +44,18 @@ public function setOrderField( $OrderFieldName, $AscFlag = true, $FieldQuoteFlag
  */
 public function addOrder( array $orderfields );
 /**
+ * Добавляет поле, по которому будет произведена группировка
+ * @param string $GroupFieldName
+ */
+public function setGroupField($GroupFieldName);
+/**
  * очищает порядок сортировки
  */
 public function clearOrder();
+/**
+ * очищает список полей для группировки
+ */
+public function clearGroup();
 /**
  * очистка параметров WHERE запроса, порядок сортировки
  * и строк запросов SELECT, UPDATE/INSERT, DELETE
@@ -60,6 +69,10 @@ public function clearLimit();
  * очистка параметров для WHERE-условий в SQL-запросе
  */
 public function clearParams();
+/**
+ * очистка параметров для HAVING-условий в SQL-запросе
+ */
+public function clearHavingParams();
 /**
  * добавляет параметр для условия WHERE в запросе
  * 
@@ -81,7 +94,7 @@ public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $a
  * добавляет условие в секцию WHERE-запроса
  * 
  * @param string $tablename - имя таблицы для поля, которое добавляется к условию
- * @param array $params - массив с параметрами следующего формата<br>
+ * @param array $param - массив с параметрами следующего формата<br>
  * array(
  * "key" => $fieldname,<br>
  * "value" => $data,<br>
@@ -93,12 +106,45 @@ public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $a
  * 
  * @return $this
  */
-public function addWhereParamFromArray($tablename, array $params);
+public function addWhereParamFromArray($tablename, array $param);
+/**
+ * добавляет параметр для условия WHERE в запросе
+ * 
+ * @param string $tablename - имя таблицы для поля, которое добавляется к условию
+ * @param string $fieldname - имя поля для сравнения
+ * @param string|numeric|boolean $data - данные для сравнения
+ * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
+ * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
+ * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::NEED_QUOTE
+ * @param string $alias - альяс для таблицы из которой сравнивается поле, если не задан, то будет совпадать с альясом главной таблицы
+ * @param integer $dataquote - если нужно оставить сравниваемое выражение без кавычек, 
+ * то этот аргумент доложен быть - TRMSqlDataSource::NOQUOTE
+ * 
+ * @return $this
+ */
+public function addHavingParam($tablename, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE);
+/**
+ * добавляет условие в секцию WHERE-запроса
+ * 
+ * @param string $tablename - имя объекта для которого устанавливается поле
+ * @param array $param - массив с параметрами следующего формата<br>
+ * array(
+ * "key" => $fieldname,<br>
+ * "value" => $data,<br>
+ * "operator" => $operator,<br>
+ * "andor" => $andor,<br>
+ * "quote" => $quote,<br>
+ * "alias" => $alias,<br>
+ * "dataquote" => $dataquote );
+ * 
+ * @return $this
+ */
+public function addHavingParamFromArray($tablename, array $param);
 /**
  * добавляет массив параметров к уже установленному
  *
  * @param string $tablename - имя объекта для которого устанавливаются параметры
- * @param array - параметры, используемые в запросе, как правило сюда передается ID-записи 
+ * @param array $params- параметры, используемые в запросе, как правило сюда передается ID-записи 
  * все должно передаваться в массиве array( $fieldname => array(value, operator, andor, quote, alias, dataquote), ...)
  * обязательными являются array(..., $fieldname => array(value), ...)
  */
