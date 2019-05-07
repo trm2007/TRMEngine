@@ -1560,11 +1560,16 @@ public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
  * @param string $querystring - строка SQL-запроса
  * @throws TRMSqlQueryException - в случае неудачного запроса выбрасывается исключение!
  */
-private function completeMultiQuery($querystring)
+public function completeMultiQuery($querystring)
 {
     if( !$this->MySQLiObject->multi_query($querystring) )
     {
-        throw new TRMSqlQueryException( __METHOD__ . " Запрос выполнить не удалось [{$querystring}] - Ошибка #(" . $this->MySQLiObject->sqlstate . "): " . $this->MySQLiObject->error );
+        throw new TRMSqlQueryException( 
+                __METHOD__ 
+                . " Запрос выполнить не удалось [{$querystring}] - Ошибка #(" 
+                . $this->MySQLiObject->sqlstate . "): " 
+                . $this->MySQLiObject->error 
+            );
     }
     if( $this->MySQLiObject->insert_id ) { $this->LastId = $this->MySQLiObject->insert_id; }
 

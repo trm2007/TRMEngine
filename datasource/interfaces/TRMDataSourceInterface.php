@@ -212,5 +212,14 @@ public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection 
  * @return boolean - возвращает результат запроса DELETE
  */
 public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection);
+/**
+ * выполняет запрос из нескольких (или одного) SQL-выражений
+ * и завершает выполнение, очищает буфер для возможности выполнения следующих запросов, 
+ * перебирает все результаты
+ * 
+ * @param string $querystring - строка SQL-запроса
+ * @throws TRMSqlQueryException - в случае неудачного запроса выбрасывается исключение!
+ */
+public function completeMultiQuery($querystring);
 
 } // TRMDataSourceInterface
