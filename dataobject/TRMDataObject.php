@@ -89,7 +89,10 @@ public function presentDataIn( $objectname, array &$fieldnames )
     foreach( $fieldnames as $field )
     {
         if( !array_key_exists($field, $this->DataArray[$objectname]) ||
-            empty( $this->DataArray[$objectname][$field] ) )
+            $this->DataArray[$objectname][$field] === "" ||
+            $this->DataArray[$objectname][$field] === array() ||
+            $this->DataArray[$objectname][$field] === null )
+//            empty( $this->DataArray[$objectname][$field] ) )
         {
             return false;
         }
