@@ -13,7 +13,7 @@ class TRMStringsFile extends TRMFile
 /**
  * @var array - если вызван метод 
  */
-protected $ArrayBuffer = "";
+protected $ArrayBuffer = array();
 
 
 /**
