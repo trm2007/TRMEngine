@@ -597,4 +597,14 @@ public function getNewObject( TRMDataObjectInterface $DataContainer = null )
     return $DataContainer;
 }
 
+public function clearOrder()
+{
+    $this->MainDataObjectRepository->clearOrder();
+}
+
+public function setOrderField($OrderFieldName, $AscFlag = true, $FieldQuoteFlag = TRMSqlDataSource::NEED_QUOTE)
+{
+    $this->MainDataObjectRepository->setOrderField($OrderFieldName, $AscFlag, $FieldQuoteFlag);
+}
+
 } // TRMRepositoiesContainer

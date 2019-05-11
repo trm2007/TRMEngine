@@ -141,6 +141,25 @@ public function addCondition($objectname, $fieldname, $data, $operator = "=", $a
     return $this;
 }
 /**
+ * Устанавливает тип сортировки для поле при запросе
+ *
+ * @param string $OrderFieldName - имя поля , по которому устанавливается сортировка
+ * @param boolean $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
+ * @param int $FieldQuoteFlag - если установлен в значение TRMSqlDataSource::NEED_QUOTE,
+ * то имя поля будет браться в апострофы `FieldName` ASC
+ */
+public function setOrderField( $OrderFieldName, $AscFlag = true, $FieldQuoteFlag = TRMSqlDataSource::NEED_QUOTE )
+{
+    $this->DataSource->setOrderField($OrderFieldName, $AscFlag, $FieldQuoteFlag);
+}
+/**
+ * очищает порядок сортировки
+ */
+public function clearOrder()
+{
+    $this->DataSource->clearOrder();
+}
+/**
  * очищает условия для выборки (в SQL-запросах секция WHERE)
  */
 public function clearCondition()

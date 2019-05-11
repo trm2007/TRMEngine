@@ -47,6 +47,19 @@ public function addCondition(
         $alias = null, 
         $dataquote = TRMSqlDataSource::NEED_QUOTE );
 /**
+ * Устанавливает тип сортировки для поле при запросе
+ *
+ * @param string $OrderFieldName - имя поля , по которому устанавливается сортировка
+ * @param boolean $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
+ * @param int $FieldQuoteFlag - если установлен в значение TRMSqlDataSource::NEED_QUOTE,
+ * то имя поля будет браться в апострофы `FieldName` ASC
+ */
+public function setOrderField( $OrderFieldName, $AscFlag = true, $FieldQuoteFlag = TRMSqlDataSource::NEED_QUOTE );
+/**
+ * очищает порядок сортировки
+ */
+public function clearOrder();
+/**
  * очищает условия для выборки (в SQL-запросах секция WHERE)
  */
 public function clearCondition();
