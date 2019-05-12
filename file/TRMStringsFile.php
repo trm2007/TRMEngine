@@ -68,39 +68,47 @@ public function clearArray()
  * 
  * @return boolean
  */
-public function getEveryStringToArrayFrom($filename, $option = FILE_SKIP_EMPTY_LINES)
+public function getEveryStringToArrayFrom($filename = "", $option = FILE_SKIP_EMPTY_LINES)
 {
-    if( !is_file($filename) ) { echo "[Имя файла не верно {$filename}]"; return false; }
+    if( empty($filename) ) { $filename = $this->getFullPath(); }
+    if( !is_file($filename) ) { $this->StateString = "имя файла задано не верно {$filename}"; return false; }
     $this->ArrayBuffer = array();
     $this->ArrayBuffer = file($filename, $option);
-    if( !$this->ArrayBuffer ){ $this->ArrayBuffer = array(); return false; }
-    
+    if( $this->ArrayBuffer === false )
+    {
+        $this->StateString = "не удалось прочитать данные из файла {$filename}"; 
+        $this->ArrayBuffer = array();
+        return false;
+    }
+    $this->StateString = "";
     return true;
 }
 
 /**
  * получает очередную строку из открытого файла и помещает ее в массив
- * можно указать количество считываемых байт, по умолчанию читает всю строкустроку, 
- * либо 4096 байта если она длиннее, либо до конца файла
+ * можно указать количество считываемых байт, 
+ * по умолчанию читает всю строку, 
+ * либо 4096 байта если строка окажется длиннее, 
+ * либо до конца файла, если он окажется короче 4096 байт
  * 
  * @param int $length
  * @return boolean
  */
 public function getStringToArrayFrom($length = 4096)
 {
-    if( !$this->Handle ){ return false; }
+    if( !$this->Handle ) { $this->StateString = "файл для чтения не открыт"; return false; }
 
     $str = fgets($this->Handle, $length);
-    if(!$str)
-    {
-        return false;
-    }
+    if($str === false) { $this->StateString = "не удалось прочитать данные из файла {$this->FullPath}"; return false; }
+
     $this->addToBuffer($str);
+    $this->StateString = "";
     return true;
 }
 
 /**
- * записывает каждую строку из массива в файл, каждая строка будет заказнчиваться EOL .
+ * записывает каждую строку из массива в файл, 
+ * каждая строка будет заканчиваться EOL.
  * если файл не открыт, то пытаестя открыть его в режиме $mod - поумолчанию перезапись всего содержимого...
  * возвращается количество записанных байт, 0 - если буфер пуст и false в случае ошибки
  * 
@@ -109,20 +117,25 @@ public function getStringToArrayFrom($length = 4096)
  */
 public function putStringsArrayTo($mod = "w", $AddEolflag = true)
 {
-    if( empty($this->ArrayBuffer) ) { return 0; }
+    if( empty($this->ArrayBuffer) ) { $this->StateString = ""; return 0; }
     if( !$this->Handle )
     {
-        if( !$this->FullPath ) { return false; }
+        if( !$this->FullPath ) { $this->StateString = "файл для записи не открыт, имя не задано"; return false; }
         if( !$this->openFile( $this->FullPath, $mod ) ) { return false; }
     }
     $count = 0;
+    $length = 0;
+    $this->StateString = "";
     foreach( $this->ArrayBuffer as $str )
     {
-        $str .= PHP_EOL;
-        $count += strlen($str);
-        if($AddEolflag) { self::fwrite_stream($this->Handle, $str ); }
-        else { self::fwrite_stream($this->Handle, $str); }// fwrite( $this->Handle, $str ); }
+        if($AddEolflag) { $str .= PHP_EOL; }
+        $length = strlen($str);
+        $count += $length;
+        
+        $writen = self::fwrite_stream($this->Handle, $str); // fwrite( $this->Handle, $str ); }
+        if(strlen($str) > $writen) {$this->StateString .= "строка [{$str}] не полностью записана ({$writen} байт из {$length});";  }
     }
+    
     return $count;
 }
 

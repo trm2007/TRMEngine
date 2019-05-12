@@ -50,7 +50,6 @@ protected $ErrorString="";
 public function __construct($fullpath = null)
 {
     if( isset($fullpath) ) { $this->setFullPath($fullpath); }
-    $this->Handle = null;
 }
 
 public function __destruct()
@@ -134,7 +133,7 @@ public function getFullPath()
 }
 
 /**
- * помещаем данные в бувер, приводятся к строке
+ * помещаем данные в буфер, приводятся к строке
  * 
  * @param strin $buffer - помещаемые в буфер данные
  */
@@ -193,10 +192,10 @@ public function clearBuffer()
  * 
  * @return boolean
  */
-public function openFile($filename = null, $mod = 'r')
+public function openFile($filename = "", $mod = 'r')
 {
     // setFullPath меняет значение $this->StateString
-    if( isset($filename) ) { if( !$this->setFullPath($filename) ) { return false; } }
+    if( !empty($filename) ) { if( !$this->setFullPath($filename) ) { return false; } }
 
     if( !$this->FullPath ) { $this->StateString = "FullPath не задан"; return false; }
 
@@ -226,15 +225,18 @@ public function closeFile()
  * заполняем буфер содержимым из файла $filename,
  * получает содержимое, даже если файл не был открыт ранее,
  * 
- * @param string $filename - имя файла, которое нужно прочитать
+ * @param string $filename - имя файла, которое нужно прочитать, если не указано,
+ * будет произведена попытка получит содержимое файла заданного в FullPath данного объекта TRMFile
+ * 
  * @return boolean
  */
-public function getAllFileToBuffer($filename)
+public function getAllFileToBuffer($filename = "")
 {
-    if( !is_file($filename) ) { $this->StateString = "Имя файла указано верно {$filename}"; return false; }
+    if( empty($filename) ) { $filename = $this->getFullPath(); }
+    if( !is_file($filename) ) { $this->StateString = "Имя файла указано не верно {$filename}"; return false; }
     $this->clearBuffer();
-    $this->Buffer = file_get_contents ($filename);
-    if( !$this->Buffer ){ return false; }
+    $this->Buffer = file_get_contents($filename);
+    if( $this->Buffer === false ){ $this->StateString = "Не удалось прочитать содержимое файла {$filename}"; return false; }
     
     $this->StateString = "";
     return true;
@@ -297,7 +299,7 @@ public function putBufferTo()
 /**
  * записывает содержимое буфера в файл.
  * если он не открыт, то пытаестя открыть его для добавления данных в конец файла!
- * возвращается количество записаггых байт, 0 - если буфер пуст и false в случае ошибки
+ * возвращается количество записанных байт, 0 - если буфер пуст и false в случае ошибки
  * 
  * @return boolean|int
  */
@@ -309,16 +311,11 @@ public function addBufferTo()
 /**
  * записывает содержимое буфера в открытый файл
  * 
- * @param &string $string - чтобы не дублировать данные, передаем указатель на строчку
+ * @param &string $string - чтобы не дублировать данные, передаем указатель на строку
  * @param string $mod - режим: "a" добавления в файл, или "w" перезаписи всего содержимого
  * 
- * @return int|false - количество записанных байт, или false в случае ошибки, для проверки результата нужно использовать "==="
- */
-/**
- * 
- * @param type $string
- * @param type $mod
- * @return boolean|int
+ * @return int|false - количество записанных байт, или false в случае ошибки, 
+ * для проверки результата нужно использовать "==="
  */
 private function writeStringTo(&$string, $mod)
 {
@@ -344,7 +341,8 @@ private function writeStringTo(&$string, $mod)
 /**
  * Запись в сетевой поток может прекратиться до того, как будут записаны все данные.
  * Это можно контролировать с помощью проверки возвращаемого значения функции fwrite().
- * Данная вункция пытается записать данные снова м снова, если они не записаны с превого раза,
+ * Данная функция - fwrite_stream 
+ * пытается записать данные снова и снова, если они не записаны с превого раза,
  * кол-во попыток ограничено $count
  * 
  * @param resource $fp - Указатель (resource) на файл, обычно создаваемый с помощью функции fopen().
@@ -378,12 +376,31 @@ public function getFileSize()
 {
     $this->StateString = "";
     if($this->FullPath) { return filesize($this->FullPath); }
-    $this->StateString = "имя файоа не задано";
+    $this->StateString = "имя файла не установлено";
     return 0;
 }
 
 /**
- * проверяет достигнут ли конец файла, если дескриптор Handle не свзан с фалом (файл фактически не открыт), то так же вернется TRUE
+ * проверяет наличие файла,
+ * 
+ * @param string $filename - имя файла, если $filename не установлено, 
+ * то проверяется наличие файла с установленным ранее FullPath для этого объекта 
+ * 
+ * @return boolean
+ */
+public function existFile($filename = "")
+{
+    if( empty($filename) ) { $filename = $this->getFullPath(); }
+    if( is_file($filename) === false ) { $this->StateString = "файл не найден {$filename}"; return false; }
+    
+    $this->StateString = "";
+    return true;
+}
+
+/**
+ * проверяет достигнут ли конец файла, 
+ * если дескриптор Handle не свзан с фалом (файл фактически не открыт), 
+ * то так же вернется TRUE
  * 
  * @return boolean - TRUE - если указатель файла находится вконце, либо файл не открыт, FALSE если указатель файла еще не достиг конца
  */

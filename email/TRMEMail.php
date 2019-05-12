@@ -126,7 +126,8 @@ protected function getUniq()
 /**
  * отправляет сообщение в HTML-формате с вложениями
  * 
- * @return boolean
+ * @return boolean - в случае успеха true, иначе исключение
+ * @throws TRMEMailSendingExceptions
  */
 public function sendEmail()
 {
@@ -734,7 +735,19 @@ public function setConfig( $filename )
     {
         throw new TRMEMailExceptions( __METHOD__ . " Файл с настройками получить на удалось [{$filename}]!" );
     }
-    $this->config = include($filename);
+    return $this->setConfigArray( require_once($filename) );
+}
+/**
+ * устанавливает настройки E-Mail из массива
+ * 
+ * @param array $ConfigArray - массив, который содержит настройки
+ * @return boolean
+ * @throws TRMEMailExceptions
+ */
+
+public function setConfigArray( array $ConfigArray )
+{
+    $this->config = $ConfigArray;
 
     if( !is_array($this->config) || empty($this->config) )
     {
@@ -757,7 +770,7 @@ public function setConfig( $filename )
 /**
  * Отправка письма через SMTP
  * 
- * @param string $mailTo - получатель письма - только почта вида - name$mail.com
+ * @param string $mailTo - получатель письма - только почта вида - name@mail.com
  * @param string $subject - тема письма - в правильной кодировке для отправления
  * @param string $message - тело письма - в правильной кодировке для отправления
  * @param string $headers - заголовки письма - в правильной кодировке для отправления
