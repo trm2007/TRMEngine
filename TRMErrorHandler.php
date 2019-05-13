@@ -130,7 +130,7 @@ protected function displayError($errno,$errstr,$errfile,$errline,$rescode=503)
         error_log("[".date("Y-m-d H:i:s")."] Ошибка - (".$errno.") : ".$errstr."   в файле: ".$errfile."  в строке: ".$errline."\n******************************************\n",3, $this->Config["errorreporfilename"]);
     }
 
-    $this->makeHeader( intval($rescode) );
+    $this->makeHeader( $errno,$errstr,$errfile,$errline,intval($rescode) );
     if( isset($this->Config[$rescode]) && is_file($this->Config[$rescode]) )
     {
         require( $this->Config[$rescode] );
@@ -168,14 +168,25 @@ static public function printErrorDebug($errno,$errstr,$errfile,$errline,$rescode
 /**
  * формирует заголовок ответа с заданным кодом $rescode
  * 
+ * @param integer $errno - номер ошибки
+ * @param string $errstr - описание ошибки
+ * @param string $errfile - файл, в котором произолша ошибка
+ * @param string $errline - строка, на которой произошла ошибка
  * @param integer $rescode - код ответа сервера
  */
-protected function makeHeader($rescode)
+protected function makeHeader($errno,$errstr,$errfile,$errline,$rescode)
 {
     if( !empty($argc) || 
         ( "cli" == php_sapi_name() ) ||
         ( !isset($_SERVER['DOCUMENT_ROOT']) && !isset($_SERVER['REQUEST_URI']) ) )
-    { echo "Ошибка при запуске из командной строки<br>\n"; return; }
+    {
+        echo "Номер ошибки: {$errno}\n";
+        echo "Описание ошибки: {$errstr}\n";
+        echo "Файл: {$errfile}\n";
+        echo "Строка: {$errline}\n";
+        echo "Ошибка при запуске из командной строки, код ответа сервера: {$rescode}\n";
+        return;
+    }
 
     if( !headers_sent($filename, $linenum) )
     {

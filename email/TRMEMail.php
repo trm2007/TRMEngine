@@ -807,7 +807,7 @@ protected function sendSMTP($mailTo, $subject, $message, $headers)
     }
 
     $server_name = filter_input(INPUT_SERVER, "SERVER_NAME", FILTER_SANITIZE_STRING); //$_SERVER["SERVER_NAME"];
-    fputs($socket, "HELO $server_name\r\n");
+    fputs($socket, "HELO TRMEngine\r\n");
     if (!$this->_parseServer($socket, "250"))
     {
         fclose($socket);
