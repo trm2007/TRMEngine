@@ -191,7 +191,7 @@ public function setStrCharset($str)
     // если кодировки не совпадают, то преобразуем 
     if($this->coding != TRMEMail::SendCoding )
     {
-        $newstr = iconv($this->coding, TRMEMail::SendCoding, $str); // TRMLib::conv($str, $currentdatacharset, GlobalConfig::$ConfigArray["Charset"]);
+        $newstr = iconv($this->coding, TRMEMail::SendCoding, $str);
     }
     return $newstr;
 }
