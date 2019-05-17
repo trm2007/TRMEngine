@@ -986,7 +986,7 @@ private function generateIndexesAndUpdatableFieldsNames(
         if( empty($IndexesNames[$TableName]) )
         {
             //$UpdatableFieldsNames[$TableName] = array();
-            unset($UpdatableFieldsNames[$TableName]);
+            //unset($UpdatableFieldsNames[$TableName]);
             unset($IndexesNames[$TableName]);
         }
     }
@@ -1028,7 +1028,7 @@ protected function generateUpdateQueryString(
         // если проверяемые данные для очередной таблицы должны быть в первичном ключе,
         // но они там отсутсвуют, значит это новая запись,
         // добавляем ее и переходим к следующей
-        if( $CurrentKeyFlag[$TableName] == "PRI" && !$DataObject->presentDataIn($TableName, $IndexesNames[$TableName] ) )
+        if( isset($CurrentKeyFlag[$TableName]) && $CurrentKeyFlag[$TableName] == "PRI" && !$DataObject->presentDataIn($TableName, $IndexesNames[$TableName] ) )
         {
             // в функцию добавления
             // передаем сами данные, номер строки в объекте данных из которой вставляются данные,
@@ -1289,7 +1289,7 @@ protected function generateInsertQueryString(
         // если в таблице есть первичный ключ,
         // значит добавляем запись сразу и 
         // проверяем на обновление автоинкрементных полей!
-        if( $CurrentKeyFlag[$TableName] == "PRI" )
+        if( isset($CurrentKeyFlag[$TableName]) && $CurrentKeyFlag[$TableName] == "PRI" )
         {
             $CurrentInsertId = null;
             if(!$ODKUFlag)
