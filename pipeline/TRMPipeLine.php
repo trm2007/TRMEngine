@@ -22,7 +22,9 @@ class TRMPipeLine implements RequestHandlerInterface, MiddlewareInterface
 protected $PipeLine;
 /**
  * послдений Action-Middleware,
- * который будет вызван, если очередь уже пуста, можно передавать заглушку, с обработчиком страницы 404
+ * который будет вызван, если очередь уже пуста, 
+ * можно передавать заглушку, с обработчиком страницы 404
+ * 
  * @var RequestHandlerInterface
  */
 private $LastAction;

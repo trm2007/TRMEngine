@@ -145,7 +145,8 @@ return array(
 "TRMEngine\PipeLine\TRMRequestHandlerMiddleware" => TRMEngine\TRMAutoLoader::$TRMENGINE_PATH . "/pipeline/TRMRequestHandlerMiddleware.php",
 "TRMEngine\PipeLine\TRMCallableMiddleware" => TRMEngine\TRMAutoLoader::$TRMENGINE_PATH . "/pipeline/TRMCallableMiddleware.php",
 "TRMEngine\PipeLine\TRMPathMiddlewareDecorator" => TRMEngine\TRMAutoLoader::$TRMENGINE_PATH . "/pipeline/TRMPathMiddlewareDecorator.php",
-
+"TRMEngine\PipeLine\TRMNoPathMiddlewareDecorator" => TRMEngine\TRMAutoLoader::$TRMENGINE_PATH . "/pipeline/TRMNoPathMiddlewareDecorator.php",
+    
 "TRMEngine\PipeLine\Exceptions\TRMMiddlewareBadResponseException" => TRMEngine\TRMAutoLoader::$TRMENGINE_PATH . "/pipeline/exceptions/TRMPipeLineExceptions.php",
 
 

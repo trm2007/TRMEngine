@@ -1,15 +1,15 @@
 <?php
-
 /**
  * в этом фале содержатся стандартные интерфейсы PSR-15,
  * но для подключения PSR через Composer нужен PHP > 7.0,
- * поэтому приходится создавать интерфейсы вручную для совместимости
+ * поэтому приходится создавать интерфейсы вручную для совместимости с PHP 5.6
  */
 
 namespace TRMEngine\PipeLine\Interfaces;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
  * Handles a server request and produces a response.

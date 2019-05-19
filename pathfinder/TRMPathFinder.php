@@ -91,7 +91,7 @@ public function process( Request $Request, RequestHandlerInterface $Handler )
     }
     catch(ResourceNotFoundException $e)
     {
-        throw new TRMPathNotFoundedException( $Request->getUri() );
+        throw new TRMPathNotFoundedException( $Request->getPathInfo() );
     }
     
     $this->generateCurrentPathFromParameters($parameters);
