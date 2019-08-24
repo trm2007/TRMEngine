@@ -25,12 +25,12 @@ public function setMainDataObject(TRMIdDataObjectInterface $do);
  * сохраняется только ссылка, объект не клонируется!!!
  * 
  * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMIdDataObjectInterface $do - добавляемая коллекция, как дочерняя
+ * @param string $dotype - тип объекта-зависимости, который будет установлен для данного объекта
  * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
  * @param string $FieldName - имя поля основного суб-объекта в главном объекте, 
  * по которому установлена связь зависимостью
  */
-public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName );
+public function setDependence($Index, $dotype, $ObjectName, $FieldName );
 
 /**
  * помещает объект в массив-контейнер зависимостей,
