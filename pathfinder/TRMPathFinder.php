@@ -28,7 +28,8 @@ const DefaultControllerName = "Main";
  */
 const DefaultActionName = "Index";
 /**
- * @var array - текущий путь разобранный на $CurrentPath["controller"] = string, $CurrentPath["action"] = string, возможно $CurrentPath["param"] = array
+ * @var array - текущий путь разобранный на $CurrentPath["controller"] = string, $CurrentPath["action"] = string, 
+ * возможно $CurrentPath["param"] и другие параметры из Route
  */
 public static $CurrentPath = array();
 /**
@@ -39,7 +40,6 @@ public $Request;
 
 /**
  * 
- * @param Request $Request
  * @param RouteCollection $Routes
  */
 public function __construct( RouteCollection $Routes )
@@ -48,7 +48,7 @@ public function __construct( RouteCollection $Routes )
 }
 
 /**
- * вощвращает текущий (подобранный) маршрут для данного URL
+ * возвращает текущий (подобранный) маршрут для данного URL
  * 
  * @return array
  */
@@ -58,7 +58,7 @@ static public function getCurrentPath()
 }
 
 /**
- * Преобразует часть URL в CamelCase, заменяя дефисы
+ * Преобразует часть URL в CamelCase, убирая дефисы
  * 
  * @param string $Name - имя для преобразования
  * @return string - преобразованная и очищенная от нежелательных символов строка
@@ -96,27 +96,44 @@ public function process( Request $Request, RequestHandlerInterface $Handler )
     
     $this->generateCurrentPathFromParameters($parameters);
 
-    $Request->attributes->set( "controller", self::$CurrentPath['controller'] );
-    $Request->attributes->set( "action", self::$CurrentPath['action'] );
-    $Request->attributes->set( "param", self::$CurrentPath['param'] );
-//    $this->runAction();
+    foreach( self::$CurrentPath as $key => $val )
+    {
+        $Request->attributes->set( $key, $val );
+    }
+
     return $Handler->handle($Request);
 }
 
+/**
+ * все параметры из найденного Route сохранет в локальном self::$CurrentPath,
+ * имя контроллера сохраняется под индексом controller, вместо _controller
+ * 
+ * @param array $parameters
+ */
 protected function generateCurrentPathFromParameters( array $parameters )
 {
     self::$CurrentPath['controller'] = self::sanitizeName( $parameters["_controller"] );
-
     self::$CurrentPath['action'] = self::DefaultActionName;
-    if( isset($parameters["action"]) )
-    {
-        self::$CurrentPath['action'] = self::sanitizeName( $parameters["action"] );
-    }
-    
     self::$CurrentPath['param'] = "";
-    if( isset($parameters["param"]) )
+    
+    foreach( $parameters as $key => $val )
     {
-        self::$CurrentPath['param'] = $parameters["param"]; // для совместимости со старой версией
+        if( $key === "_controller" )
+        {
+            continue;
+        }
+        else if( $key === "action" )
+        {
+            self::$CurrentPath['action'] = self::sanitizeName( $parameters["action"] );
+        }
+        else if( $key === "param" )
+        {
+            self::$CurrentPath['param'] = $parameters["param"]; // для совместимости со старой версией
+        }
+        else
+        {
+            self::$CurrentPath[$key] = $val;
+        }
     }
 }
 
