@@ -26,9 +26,24 @@ private $CurrentRootDirectory;
  * @param string $CurrentRootDirectory - текущая корневая папка для всего проекта (сайта), 
  * относительно которой будут задаваться маршруты к php-файлам
  */
-public function __construct()
+public function __construct( $CurrentRootDirectory = "")
 {
-    $this->CurrentRootDirectory = rtrim(getcwd(), "/\\");
+    if( empty($CurrentRootDirectory) )
+    {
+        if( key_exists("DOCUMENT_ROOT", $_SERVER) && !empty($_SERVER["DOCUMENT_ROOT"]) )
+        {
+            $this->CurrentRootDirectory = filter_var($_SERVER["DOCUMENT_ROOT"], FILTER_SANITIZE_URL);
+        }
+        else
+        {
+            $this->CurrentRootDirectory = getcwd();
+        }
+    }
+    else
+    {
+        $this->CurrentRootDirectory = $CurrentRootDirectory;
+    }
+    $this->CurrentRootDirectory = rtrim($this->CurrentRootDirectory, "/\\");
     self::$TRMENGINE_PATH = str_replace($this->CurrentRootDirectory, "", __DIR__);
 
     // общие классы для работы TRMEngine
