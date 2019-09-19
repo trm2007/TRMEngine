@@ -259,7 +259,7 @@ public function saveDestImageToFile($filename)
     
     $this->DestFileName = $filename;
     
-    $FullPath = trim($this->DestCatalog, "/") . "/" . $this->DestNamePrefix . $filename . $this->DestNamePostfix;
+    $FullPath = rtrim($this->DestCatalog, "/") . "/" . $this->DestNamePrefix . $filename . $this->DestNamePostfix;
     
     switch($this->DestImageType)
     {
