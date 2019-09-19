@@ -273,7 +273,7 @@ public function saveDestImageToFile($filename)
             break;
         case IMAGETYPE_PNG:  
             if( !$this->DestImageQuality ) { $this->DestImageQuality = 7; }
-            if( !imagepng($this->DestImage, $FullPath.".png") ) 
+            if( !imagepng($this->DestImage, $FullPath.".png", $this->DestImageQuality) ) 
             { throw new TRMImageWrongPNGException( __METHOD__ . " - " . $FullPath ); } 
             break;
         case IMAGETYPE_WBMP: 
@@ -283,7 +283,7 @@ public function saveDestImageToFile($filename)
 //        case IMAGETYPE_JPEG: if(!imagejpeg($this->DestImage, $FullPath.".jpg")) TRMLib::dp( __METHOD__ . " не могу сформировать JPEG-картинку {$FullPath}."); break;
         default : 
             if( !$this->DestImageQuality ) { $this->DestImageQuality = 90; }
-            if( !imagejpeg($this->DestImage, $FullPath.".jpg") ) 
+            if( !imagejpeg($this->DestImage, $FullPath.".jpg", $this->DestImageQuality) ) 
             { throw new TRMImageWrongJPEGException( __METHOD__ . " - " . $FullPath ); } 
     }
     return true;
