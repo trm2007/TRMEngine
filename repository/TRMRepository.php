@@ -297,14 +297,19 @@ public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
         $this->clearQueryParams();
     }
 
-    // если в апросе нет данных, возвращается путсая коллекция
-    if( !$result->num_rows ) { return null; }
-
-    // из каждой строки вернувшегося результата создается объект данных
-    while( $Row = $result->fetch_row() )
+    // если в запросе нет данных, возвращается путсая коллекция
+    if( !$result->num_rows )
     {
-        // в коллекцию всегда добавляется новый объект
-        $NewGetCollection->addDataObject( $this->getDataObjectFromDataArray($Row) );
+        $NewGetCollection->clearCollection();
+    }
+    else
+    {
+        // из каждой строки вернувшегося результата создается объект данных
+        while( $Row = $result->fetch_row() )
+        {
+            // в коллекцию всегда добавляется новый объект
+            $NewGetCollection->addDataObject( $this->getDataObjectFromDataArray($Row) );
+        }
     }
 
     return $NewGetCollection;
