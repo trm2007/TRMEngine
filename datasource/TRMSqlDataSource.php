@@ -1512,12 +1512,13 @@ protected function generateDeleteQueryString(
  * удаляет записи коллекции из таблиц БД,
  * из основной таблицы удаляются записи, которые удовлетворяют значению сохраненного ID-поля,
  * если такого нет, то сравниваются на совпадение значения из всех полей 
- * (доступных для записи, которые имют флаг UPDATABLE_FIELD) и найденная запись удаляется,
+ * (доступных для записи, которые имеют флаг UPDATABLE_FIELD) и найденная запись удаляется,
  * так же удалются записи из дочерних таблиц, 
  * если у них стоит хотя бы одно поле доступное для редактирования - UPDATABLE_FIELD
  * 
  * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
+ * 
  * @return boolean - возвращает результат запроса DELETE
  */
 public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection)

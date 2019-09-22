@@ -499,7 +499,9 @@ public function doDelete( $ClearCollectionFlag = true )
 
 /**
  * {@inheritDoc}
- * @param type $ClearCollectionFlag
+ * @param boolean $ClearCollectionFlag - флаг, указывающий нужно ли очищать коллекцию
+ * объектов CollectionToInsert после вставки
+ * 
  * @return void
  */
 public function doInsert( $ClearCollectionFlag = true )
@@ -526,7 +528,9 @@ public function doInsert( $ClearCollectionFlag = true )
 }
 /**
  * {@inheritDoc}
- * @param type $ClearCollectionFlag
+ * @param boolean $ClearCollectionFlag - флаг, указывающий нужно ли очищать коллекцию
+ * объектов CollectionToUpdate после обновления
+ * 
  * @return void
  */
 public function doUpdate( $ClearCollectionFlag = true )
