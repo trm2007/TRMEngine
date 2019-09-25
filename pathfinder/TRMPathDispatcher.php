@@ -52,7 +52,14 @@ public function handle( Request $Request )
     }
 
     ob_start();
-    $TRMObject->$Action();
+    $Res = $TRMObject->$Action();
+    // методы могут возвращать готовый объект Response
+    if( is_a($Res, Response::class) )
+    {
+        ob_get_clean();
+        return $Res;
+    }
+    // либо выводить html-код напрямую 
     return new Response( ob_get_clean() );
 }
 
