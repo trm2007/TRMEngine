@@ -34,7 +34,7 @@ protected $page = 1;
 /**
  * @var string - имя текущего Action
  */
-protected $CurrentAction = '';
+protected $CurrentActionName = '';
 /**
  * @var string - имя текущего Controller
  */
