@@ -67,7 +67,9 @@ public function getCache($key)
     // проверяем существует ли файл, если да, то время созднания файла должно отдичаться не более чем на 120 секунд от текущего
     // тогда читаем информацию из файла
     if( !file_exists($this->CacheFileName) 
-        || ( $this->CacheRewriteTime > 0 && (time() - filemtime($this->CacheFileName)) > $this->CacheRewriteTime ) )
+        || ( $this->CacheRewriteTime > 0 
+            && (time() - filemtime($this->CacheFileName)) > $this->CacheRewriteTime ) 
+    )
     {
         return null;
     }
@@ -89,6 +91,20 @@ public function setCache($key, $data)
     $this->DataToCache = $data;
     $this->makeFilePath($key);
     return file_put_contents($this->CacheFileName, $this->DataToCache);	
+}
+
+/**
+ * очищает кэш для ключа (удаляет файл с данными)
+ * 
+ * @param string $key - ключ - наименование данных
+ */
+public function clearCache($key)
+{
+    $this->makeFilePath($key);
+    if(file_exists($this->CacheFileName))
+    {
+        unlink($this->CacheFileName);
+    }
 }
 
 /**
