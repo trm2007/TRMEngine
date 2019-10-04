@@ -33,35 +33,119 @@ static public $DebugBlocksCounter = 0;
  * выводит отладочную тнформацию в виде таблицы стека вызовов
  * 
  * @param array $arr - должен передаваться массив возвращаемый debug_backtrace()
+ * @param boolean $CLIFlag - если установлен в TRUE, 
+ * то будет производится вывод для Command Line интерфеса,
+ * без HTML оформления
  */
-protected static function printDebugTrace( array $arr )
+protected static function printDebugTrace( array $arr, $CLIFlag = null )
 {
-    echo "<table border='1' style='border: 1px solid black; border-collapse: collapse;'>";
-    echo "<tr><th>№</th><th>Стек вызова</th><th>Аргументы</th></tr>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag )
+    {
+        echo "<style>";
+        echo "
+.debug_table{
+    display: flex;
+    clear: both;
+}
+.debug_table:nth-child(4n), .debug_table:nth-child(4n-1){
+    background-color: #ddd;
+}
+.debug_table:nth-child(odd) div{
+    overflow: unset !important;
+}
+.debug_table .td1{
+    display: inline-block;
+    float: left;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    width: 20px;
+    box-sizing: border-box;
+}
+.debug_table .td2{
+    display: inline-block;
+    float: left;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    width: calc(50% - 20px);
+    box-sizing: border-box;
+    vertical-align: top;
+    max-height: 300px;
+    overflow: scroll;
+    white-space: break-spaces;
+    word-wrap: anywhere;
+    word-break: break-all;
+}
+.debug_table .td3{
+    display: inline-block;
+    float: left;
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+    width: 50%;
+    box-sizing: border-box;
+    vertical-align: top;
+    max-height: 300px;
+    overflow: scroll;
+    white-space: break-spaces;
+    word-wrap: anywhere;
+    word-break: break-all;
+}
+        ";
+        echo "</style>";
+    }
+    
+//    echo "<div class='debug_table'>";
     foreach ($arr as $num => $item)
     {
-        echo "<tr>";
-        echo "<td>$num</td>";
-        echo "<td style='vertical-align: top;'>";
-        if(array_key_exists("file", $item) ) { self::sp("Имя файла: " . $item["file"]); }
-        if(array_key_exists("line", $item) ) { self::sp("Номер строки: " . $item["line"]); }
-        if(array_key_exists("class", $item) ) { self::sp("Класс: " . $item["class"]); }
-        if(array_key_exists("object", $item) ) { self::sp("Объект:"); self::ip( $item["object"]); }
-        if(array_key_exists("type", $item) ) { self::sp("Тип вызова функции: " . $item["type"]); }
+        if( !$CLIFlag )
+        {
+            echo "<div class='debug_table'>"
+                . "<div class='td1'>№</div>"
+                . "<div class='td2'>Стек вызова</div>"
+                . "<div class='td3'>Аргументы</div>"
+                . "</div>";
+
+            echo "<div class='debug_table'>"
+                . "<div class='td1'>$num</div>"
+                . "<div class='td2'>";
+        }
+        if(array_key_exists("file", $item) ) 
+        { self::sp("Имя файла: " . $item["file"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("line", $item) ) 
+        { self::sp("Номер строки: " . $item["line"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("class", $item) ) 
+        { self::sp("Класс: " . $item["class"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("type", $item) ) 
+        { self::sp("Тип вызова функции: " . $item["type"], self::DefaultStringTextColor, $CLIFlag); }
 //            Если это вызов метода объекта, будет выведено [->].
 //            Если это вызов статического метода класса, то [::].
 //            Если это простой вызов функции, не выводится ничего.
-        if(array_key_exists("function", $item) ) { self::sp("Функция: " . $item["function"]); }
-        echo "</td>";
-
-        echo "<td style='vertical-align: top;'>";
-        // array 	При нахождении внутри функции, будет выведен список аргументов этой функции. Если внутри включаемого файла, будет выведен список включаемых файлов. 
-        if(array_key_exists("args", $item) ) { self::ap($item["args"]); }
-        echo "</td>";
-
-        echo "</tr>";
+        if(array_key_exists("function", $item) ) 
+        { self::sp("Функция: " . $item["function"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("object", $item) ) 
+        {
+            self::sp("Объект:", self::DefaultStringTextColor, $CLIFlag);
+            self::ip( $item["object"], self::DefaultInfoTextColor, $CLIFlag);
+        }
+        if( !$CLIFlag )
+        {
+            echo "</div>";
+            echo "<div class='td3'>";
+        }
+        // array
+        // При нахождении внутри функции, будет выведен список аргументов этой функции. 
+        // Если внутри включаемого файла, будет выведен список включаемых файлов. 
+        if(array_key_exists("args", $item) ) 
+        { self::ap($item["args"], self::DefaultArrayTextColor, $CLIFlag); }
+        if( !$CLIFlag )
+        {
+            echo "</div>";
+            echo "</div>";
+        }
     }
-    echo "</table>";
+//    echo "</div>";
 }
 
 /**
@@ -70,15 +154,27 @@ protected static function printDebugTrace( array $arr )
  * @param string $str - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
  * @param boolean $traceflag - флаг, который указывает выводить или нет информацию из стека вызовов
+ * @param boolean $CLIFlag - если установлен в TRUE, 
+ * то будет производится вывод для Command Line интерфеса,
+ * без HTML оформления
  */
-public static function dp($str, $color = self::DefaultDebugTextColor, $traceflag = false )
+public static function dp($str, $color = self::DefaultDebugTextColor, $traceflag = false, $CLIFlag = null )
 {
     if( defined("DEBUG") )
     {
-        echo "<div class='trm_debug_info_div' style='width: 100%;'><strong>[Debug block(" . self::$DebugBlocksCounter++ . ")]</strong>";
-        self::debugPrint($str, $color);
-        if($traceflag) { self::printDebugTrace( debug_backtrace(), $color); }
-        echo "</div>";
+        if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+        if(!$CLIFlag) 
+        {
+            echo "<div class='trm_debug_info_div' style='max-width: 100%;'"
+            . "<strong>[Debug block(" . self::$DebugBlocksCounter++ . ")]</strong>";
+        }
+        self::debugPrint($str, $color, $CLIFlag);
+        if($traceflag) { self::printDebugTrace( debug_backtrace(), $CLIFlag); }
+        if(!$CLIFlag) 
+        {
+            echo "</div>";
+        }
     }
 }
 
@@ -88,28 +184,40 @@ public static function dp($str, $color = self::DefaultDebugTextColor, $traceflag
  * 
  * @param string $str - строка для вывода
  * @param string $color - цвет текста
+ * @param boolean $CLIFlag - если установлен в TRUE, 
+ * то будет производится вывод для Command Line интерфеса,
+ * без HTML оформления
  */
-public static function debugPrint($str, $color = self::DefaultDebugTextColor )
+public static function debugPrint($str, $color = self::DefaultDebugTextColor, $CLIFlag = null )
 {
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
     if( defined("DEBUG") )
     {
-        echo "<pre style='color: {$color};'>";
+        if(!$CLIFlag) { echo "<pre style='color: {$color};'>"; }
         var_dump( $str );
-        echo "</pre>";
+        if(!$CLIFlag) { echo "</pre>"; }
+        else { echo PHP_EOL; }
     }
 }
 
 /**
- * функция для вывода информации в тегах <pre>
+ * функция для вывода информации var_dump($str) в тегах <pre>,
+ * если только скрипт не выполняется в окружении CommandLine (CLI)
  * 
  * @param mixed $str - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ * @param boolean $CLIFlag - если установлен в TRUE, 
+ * то будет производится вывод для Command Line интерфеса,
+ * без HTML оформления
  */
-public static function ip( $str, $color = self::DefaultInfoTextColor )
+public static function ip( $str, $color = self::DefaultInfoTextColor, $CLIFlag = null )
 {
-    echo "<pre style='color: {$color};'>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag ){ echo "<pre style='color: {$color};'>"; }
     var_dump( $str );
-    echo "</pre>";
+    if( !$CLIFlag ){ echo "</pre>"; }
+    else { echo PHP_EOL; }
 }
 
 /**
@@ -117,12 +225,18 @@ public static function ip( $str, $color = self::DefaultInfoTextColor )
  * 
  * @param array $arr - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ * @param boolean $CLIFlag - если установлен в TRUE, 
+ * то будет производится вывод для Command Line интерфеса,
+ * без HTML оформления
  */
-public static function ap( array $arr, $color = self::DefaultArrayTextColor )
+public static function ap( array $arr, $color = self::DefaultArrayTextColor, $CLIFlag = null )
 {
-    echo "<pre style='color: {$color};'>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag ){ echo "<pre style='color: {$color};'>"; }
     print_r( $arr );
-    echo "</pre>";
+    if( !$CLIFlag ){ echo "</pre>"; }
+    else { echo PHP_EOL; }
 }
 
 /**
@@ -130,10 +244,18 @@ public static function ap( array $arr, $color = self::DefaultArrayTextColor )
  * 
  * @param string $str - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ * @param boolean $CLIFlag - если установлен в TRUE, 
+ * то будет производится вывод для Command Line интерфеса,
+ * без HTML оформления
  */
-public static function sp( $str, $color = self::DefaultStringTextColor )
+public static function sp( $str, $color = self::DefaultStringTextColor, $CLIFlag = null )
 {
-    echo "<pre style='color: {$color};'>{$str}</pre>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag ){ echo "<pre style='color: {$color};'>"; }
+    echo $str;
+    if( !$CLIFlag ){ echo "</pre>"; }
+    else { echo PHP_EOL; }
 }
 
 /**
@@ -365,5 +487,51 @@ public static function array_column($input = null, $columnKey = null, $indexKey 
     return $resultArray;
 }
 
+/**
+ * проверяет выполняется текущий скрип в Command Line
+ * @return boolean
+ */
+public static function isCLI()
+{
+//echo "http_response_code() === false" . PHP_EOL;
+    if( http_response_code() === false ) { return true; }
+//echo "defined('STDIN')" . PHP_EOL;
+    if( defined('STDIN') ) { return true; }
+//echo "php_sapi_name() === 'cli'" . PHP_EOL;
+    if( php_sapi_name() === 'cli' ) { return true; }
+//echo "array_key_exists('SHELL', _ENV)" . PHP_EOL;
+    if( array_key_exists('SHELL', $_ENV) ) { return true; }
+//echo "empty(_SERVER['REMOTE_ADDR']) &&" . PHP_EOL;
+    if( empty($_SERVER['REMOTE_ADDR']) &&
+        !isset($_SERVER['HTTP_USER_AGENT']) && 
+        count($_SERVER['argv']) > 0) { return true; }
+//echo "!array_key_exists('REQUEST_METHOD', _SERVER)" . PHP_EOL;
+    if ( !array_key_exists('REQUEST_METHOD', $_SERVER) ) { return true; }
+
+//echo "Nothing..." . PHP_EOL;
+
+    return false;
+}
+
+/**
+ * @return string - протокол, например, HTTP или HTTPS
+ */
+public static function getServerProtcol()
+{
+    if( isset( $_SERVER["HTTP_X_FORWARDED_PROTO"] ) )
+    {
+        return filter_input(INPUT_SERVER, "HTTP_X_FORWARDED_PROTO");
+    }
+    else if( isset( $_SERVER["HTTP_X_REQUEST_SCHEME"] ) )
+    {
+        return filter_input(INPUT_SERVER, "HTTP_X_REQUEST_SCHEME");
+    }
+    else if( isset( $_SERVER["REQUEST_SCHEME"] ) )
+    {
+        return filter_input(INPUT_SERVER, "REQUEST_SCHEME");
+    }
+
+    return "http";
+}
 
 } // TRMLib

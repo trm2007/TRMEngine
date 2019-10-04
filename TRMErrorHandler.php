@@ -127,9 +127,17 @@ protected function displayError($errno,$errstr,$errfile,$errline,$rescode=503)
 {
     if( isset($this->Config["errorreporfilename"]) )
     {
-        error_log("[".date("Y-m-d H:i:s")."] Ошибка - (".$errno.") : ".$errstr."   в файле: ".$errfile."  в строке: ".$errline."\n******************************************\n",3, $this->Config["errorreporfilename"]);
+        error_log(
+            "[".date("Y-m-d H:i:s")."] Ошибка - (".$errno.") : ".$errstr."   в файле: ".$errfile."  в строке: ".$errline."\n******************************************\n",
+            3, 
+            $this->Config["errorreportfilename"]);
     }
 
+    if( TRMLib::isCLI() ) 
+    {
+        self::printErrorDebugCLI($errno, $errstr, $errfile, $errline, $rescode);
+        exit;
+    }
     $this->makeHeader( $errno,$errstr,$errfile,$errline,intval($rescode) );
     if( isset($this->Config[$rescode]) && is_file($this->Config[$rescode]) )
     {
@@ -143,11 +151,16 @@ protected function displayError($errno,$errstr,$errfile,$errline,$rescode=503)
     {
         static::printErrorDebug($errno, $errstr, $errfile, $errline, $rescode);
     }
-    exit();
+    exit;
 }
 
 static public function printErrorDebug($errno,$errstr,$errfile,$errline,$rescode)
 {
+    if( TRMLib::isCLI() ) 
+    {
+        self::printErrorDebugCLI($errno, $errstr, $errfile, $errline, $rescode);
+        return;
+    }
     echo "<div class='trm_debug_info'>";
     echo "<h1>Режим отладки включен</h1>" . PHP_EOL;
 
@@ -165,6 +178,20 @@ static public function printErrorDebug($errno,$errstr,$errfile,$errline,$rescode
     TRMLib::dp($errstr, TRMLib::DefaultDebugTextColor, true);
 }
 
+static public function printErrorDebugCLI($errno,$errstr,$errfile,$errline,$rescode)
+{
+    echo "Режим отладки включен" . PHP_EOL;
+
+    echo "error_reporting: ".ini_get("error_reporting") . PHP_EOL;
+    echo "display_errors: ".ini_get('display_errors') . PHP_EOL;
+
+    echo "Номер (тип) ошибки: {$errno}" . PHP_EOL;
+    echo "Файл в котором произошла ошибка: {$errfile}" . PHP_EOL;
+    echo "Строка на которой произошла ошибка: {$errline}" . PHP_EOL;
+    echo "Код: {$rescode}" . PHP_EOL;
+    echo "Описание ошибки: {$errstr}" . PHP_EOL;
+}
+
 /**
  * формирует заголовок ответа с заданным кодом $rescode
  * 
@@ -176,25 +203,13 @@ static public function printErrorDebug($errno,$errstr,$errfile,$errline,$rescode
  */
 protected function makeHeader($errno,$errstr,$errfile,$errline,$rescode)
 {
-    if( !empty($argc) || 
-        ( "cli" == php_sapi_name() ) ||
-        ( !isset($_SERVER['DOCUMENT_ROOT']) && !isset($_SERVER['REQUEST_URI']) ) )
-    {
-        echo "Номер ошибки: {$errno}\n";
-        echo "Описание ошибки: {$errstr}\n";
-        echo "Файл: {$errfile}\n";
-        echo "Строка: {$errline}\n";
-        echo "Ошибка при запуске из командной строки, код ответа сервера: {$rescode}\n";
-        return;
-    }
-
     if( !headers_sent($filename, $linenum) )
     {
         header('Cache-Control: no-cache', false, $rescode);
         date_default_timezone_set('UTC');
         header(sprintf('Date: %s GMT', date('D, d M Y H:i:s')), false, $rescode);
 
-        $resstr = sprintf('%s %s', $_SERVER['SERVER_PROTOCOL'], $rescode );
+        $resstr = sprintf('%s %s', TRMLib::getServerProtcol(), $rescode );
         if( isset($this->ErrorCodeArray[$rescode]) ) { $resstr .= " " . $this->ErrorCodeArray[$rescode]; }
         header($resstr, true, $rescode);
     }
