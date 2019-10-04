@@ -499,8 +499,6 @@ public static function isCLI()
     if( defined('STDIN') ) { return true; }
 //echo "php_sapi_name() === 'cli'" . PHP_EOL;
     if( php_sapi_name() === 'cli' ) { return true; }
-//echo "array_key_exists('SHELL', _ENV)" . PHP_EOL;
-    if( array_key_exists('SHELL', $_ENV) ) { return true; }
 //echo "empty(_SERVER['REMOTE_ADDR']) &&" . PHP_EOL;
     if( empty($_SERVER['REMOTE_ADDR']) &&
         !isset($_SERVER['HTTP_USER_AGENT']) && 
@@ -508,7 +506,7 @@ public static function isCLI()
 //echo "!array_key_exists('REQUEST_METHOD', _SERVER)" . PHP_EOL;
     if ( !array_key_exists('REQUEST_METHOD', $_SERVER) ) { return true; }
 
-//echo "Nothing..." . PHP_EOL;
+//echo "Nothing...<br>" . PHP_EOL;
 
     return false;
 }
