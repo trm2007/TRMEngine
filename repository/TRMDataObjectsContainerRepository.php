@@ -129,6 +129,22 @@ public function addCondition(
         $dataquote );
     return $this;
 }
+/**
+ * 
+ * удаляет условие для WHERE секции SQL-запроса при выборке из БД,
+ * 
+ * @param string $objectname - имя объекта, содержащее поле для сравнения
+ * @param string $fieldname - имя поля для сравнения
+ * @param string|numeric|boolean $data - данные для сравнения
+ * @param string $operator - оператор сравнения
+ * 
+ * @return $this
+ */
+public function removeCondition($objectname, $fieldname, $data = null, $operator = null)
+{
+    $this->MainDataObjectRepository->removeCondition($objectname, $fieldname, $data, $operator);
+    return $this;
+}
 
 /**
  * очищает условия для выборки (в SQL-запросах секция WHERE)
@@ -610,5 +626,6 @@ public function setOrderField($OrderFieldName, $AscFlag = true, $FieldQuoteFlag 
 {
     $this->MainDataObjectRepository->setOrderField($OrderFieldName, $AscFlag, $FieldQuoteFlag);
 }
+
 
 } // TRMRepositoiesContainer

@@ -150,6 +150,32 @@ public function addHavingParamFromArray($tablename, array $param);
  */
 public function generateParamsFrom($tablename, array $params);
 /**
+ * убирает условие из секции WHERE-запроса
+ * 
+ * @param string $tablename - имя объекта, для которого удалется условие для поля
+ * @param string $key - имя поля, для которого удаляется условие
+ * @param string $value - значение данных для сравнения, должно передаваться вместе с оператором,
+ * что бы одноначно идентифицировать условие
+ * @param string $operator - оператор сравнения, должен передаваться вместе со сзначением $value,
+ * что бы одноначно идентифицировать условие
+ * 
+ * @return $this
+ */
+public function removeHavingParam( $tablename, $key, $value = null, $operator = null );
+/**
+ * убирает условие из секции WHERE-запроса
+ * 
+ * @param string $tablename - имя объекта, для которого удалется условие для поля
+ * @param string $key - имя поля, для которого удаляется условие
+ * @param string $value - значение данных для сравнения, должно передаваться вместе с оператором,
+ * что бы одноначно идентифицировать условие
+ * @param string $operator - оператор сравнения, должен передаваться вместе со сзначением $value,
+ * что бы одноначно идентифицировать условие
+ * 
+ * @return $this
+ */
+public function removeWhereParam( $tablename, $key, $value = null, $operator = null );
+/**
  * Выполняет запрос переданный в $query
  * 
  * @param string $query - строка SQL-запроса

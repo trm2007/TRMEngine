@@ -47,6 +47,17 @@ public function addCondition(
         $alias = null, 
         $dataquote = TRMSqlDataSource::NEED_QUOTE );
 /**
+ * убирает, установленное ранее, условие из WHERE секции SQL-запроса при выборке из БД
+ * 
+ * @param string $objectname - имя объекта, содержащее поле для сравнения
+ * @param string $fieldname - имя поля для сравнения
+ * @param string|numeric|boolean $data - данные для сравнения, должны передаваться вместе с оператором
+ * @param string $operator - оператор сравнения, должен передаваться вместе с данными
+ * 
+ * @return $this
+ */
+public function removeCondition($objectname, $fieldname, $data = null, $operator = null);
+/**
  * Устанавливает тип сортировки для поле при запросе
  *
  * @param string $OrderFieldName - имя поля , по которому устанавливается сортировка

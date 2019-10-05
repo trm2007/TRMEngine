@@ -703,6 +703,82 @@ public function addHavingParamFromArray($tablename, array $param)
 }
 
 /**
+ * убирает условие из секции WHERE-запроса
+ * 
+ * @param string $tablename - имя объекта, для которого удалется условие для поля
+ * @param string $key - имя поля, для которого удаляется условие
+ * @param string $value - значение данных для сравнения, должно передаваться вместе с оператором,
+ * что бы одноначно идентифицировать условие
+ * @param string $operator - оператор сравнения, должен передаваться вместе со сзначением $value,
+ * что бы одноначно идентифицировать условие
+ * 
+ * @return $this
+ */
+public function removeHavingParam( $tablename, $key, $value = null, $operator = null )
+{
+     $this->removeParam($tablename, $key, $value, $operator, $this->HavingParams);
+     return $this;
+}
+
+/**
+ * убирает условие из секции WHERE-запроса
+ * 
+ * @param string $tablename - имя объекта, для которого удалется условие для поля
+ * @param string $key - имя поля, для которого удаляется условие
+ * @param string $value - значение данных для сравнения, должно передаваться вместе с оператором,
+ * что бы одноначно идентифицировать условие
+ * @param string $operator - оператор сравнения, должен передаваться вместе со сзначением $value,
+ * что бы одноначно идентифицировать условие
+ * 
+ * @return $this
+ */
+public function removeWhereParam( $tablename, $key, $value = null, $operator = null )
+{
+     $this->removeParam($tablename, $key, $value, $operator, $this->Params);
+     return $this;
+}
+
+/**
+ * убирает условие из секции WHERE или HAVING-запроса
+ * 
+ * @param string $tablename - имя объекта, для которого удалется условие для поля
+ * @param string $key - имя поля, для которого удаляется условие
+ * @param string $value - значение данных для сравнения, должно передаваться вместе с оператором,
+ * что бы одноначно идентифицировать условие
+ * @param string $operator - оператор сравнения, должен передаваться вместе со сзначением $value,
+ * что бы одноначно идентифицировать условие
+ * @param array &$ResParams - массив, из которого будет удален результат
+ */
+protected function removeParam( $tablename, $key, $value, $operator, array &$ResParams )
+{
+    // проверяем, есть ли параметры для указанной таблицы
+    if( !isset($ResParams[$tablename]) ) { return; }
+
+    foreach( $ResParams[$tablename] as $Index => $CurrentParam )
+    {
+        if( $CurrentParam["key"] !== $key ) { continue; }
+
+        // если не задано значение вместе с оператором сравнения,
+        // то будут удалены все параметры для ключа $key
+        if( !isset($operator) || !isset($value) )
+        {
+            unset( $ResParams[$tablename][$Index] );
+            continue;
+        }
+        // в противном случае (если заданы значение и оператор),
+        // то проверятся их соответствие, если совпадают,
+        // тогда этот параметр удаляется и завершается выполнение,
+        // так как одинаковых условий не должно быть!
+        if( $CurrentParam["value"] === $value &&
+            $CurrentParam["operator"] === $operator )
+        {
+            unset( $ResParams[$tablename][$Index] );
+            return;
+        }
+    }
+}
+
+/**
  * добавляет условие в секцию WHERE или HAVING-запроса
  * 
  * @param string $tablename - имя объекта для которого устанавливается поле
@@ -717,7 +793,6 @@ public function addHavingParamFromArray($tablename, array $param)
  * "dataquote" => $dataquote );
  * @param array &$ResParams - массив, в который будет добавлен результат
  * 
- * @return $this
  */
 protected function generateParamsFromArrayFor($tablename, array $param, array &$ResParams)
 {
