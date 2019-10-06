@@ -532,4 +532,20 @@ public static function getServerProtcol()
     return "http";
 }
 
+
+public static function isMobile()
+{
+    $TestStr = "/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/";
+    
+    $UserAgent = filter_input(INPUT_SERVER, "HTTP_USER_AGENT");
+    preg_match($TestStr, $UserAgent, $Matches);
+
+    if($Matches && count($Matches))
+    {
+        return $Matches[0];
+    }
+    return null;
+}
+
+
 } // TRMLib
