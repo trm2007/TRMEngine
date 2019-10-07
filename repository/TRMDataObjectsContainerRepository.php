@@ -530,7 +530,7 @@ public function doInsert( $ClearCollectionFlag = true )
 
         foreach( $Container as $DataObjectsCollection )
         {
-            // перед обновлением коллекции устанавдиаем для нее родительский элемент,
+            // перед обновлением коллекции устанавливаем для нее родительский элемент,
             // тем самым будет обновлен Id-родителя во всех дочерних объектах
             $DataObjectsCollection->setParentDataObject($Container);
             // вызываем doInsert из репозитория для объектов
@@ -559,7 +559,7 @@ public function doUpdate( $ClearCollectionFlag = true )
 
         foreach( $Container as $DataObjectsCollection )
         {
-            // перед обновлением коллекции устанавдиаем для нее родительский элемент,
+            // перед обновлением коллекции устанавливаем для нее родительский элемент,
             // тем самым будет обновлен Id-родителя во всех дочерних объектах
             $DataObjectsCollection->setParentDataObject($Container);
             // вызываем doUpdate из репозитория для объектов
