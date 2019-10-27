@@ -57,19 +57,61 @@ public function mergeDataArray( array $Array )
 }
 
 /**
- * проверяет наличие ключа (поля с именем fieldname) у строки с номером rownum
+ * "склеивает" два массива с данными, из текущего объекти и из объекта $DataArrayObject,
+ * проверка на уникальность не проводится,
+ * если в новом массиве встерится уже существующий строковый индекс, 
+ * старые данные перезапишутся
+ *
+ * @param TRMDataArrayInterface $DataArrayObject - объект TRMDataArray  для склеивания
+ */
+public function mergeDataArrayObject( TRMDataArrayInterface $DataArrayObject )
+{
+    $this->DataArray = array_merge( $this->DataArray, $DataArrayObject->DataArray );
+}
+
+/**
+ * проверяет наличие ключа в текущем массиве
  * 
- * @param string $Index - проверяемый индекс массива
+ * @param string $Index - проверяемый индекс-ключ массива
  * 
  * @return boolean - если найден, возвращает true, если ключ отсутствует - false
  */
 public function keyExists( $Index )
 {
-    // Такого поля нет
-    if( !array_key_exists($Index, $this->DataArray) ) { return false; }
+    return array_key_exists($Index, $this->DataArray);
+}
 
-    // найдено !
-    return true;
+/**
+ * проверяет наличие данных в массиве
+ * 
+ * @param mixed $Data - данные для проверки
+ * @param boolean $CheckTypeFlag - если устанлвлен (по умолчанию), то 
+ * проверятся так же соответсвие типов
+ * 
+ * @return boolean - если найдены, возвращает true, если отсутствуют - false
+ */
+public function inArray( $Data, $CheckTypeFlag = true )
+{
+    return in_array($Data, $this->DataArray, $CheckTypeFlag);
+}
+
+/**
+ * Добавляет $Data в конец массива
+ * 
+ * @param mixed $Data
+ */
+public function push($Data)
+{
+    $this->DataArray[] = $Data;
+}
+
+/**
+ * @return mixed - возвращает последний элемент из массива, 
+ * удаляя его из массива, внутренний указатель обнуляется
+ */
+public function pop()
+{
+    return array_pop($this->DataArray) ; 
 }
 
 /**
@@ -201,7 +243,11 @@ public function offsetGet($offset)
 
 public function offsetSet($offset, $value)
 {
-    $this->DataArray[$offset] = $value;
+    if( is_null($offset) )
+    {
+        $this->DataArray[] = $value;
+    }
+    else { $this->DataArray[$offset] = $value; }
 }
 
 public function offsetUnset($offset)

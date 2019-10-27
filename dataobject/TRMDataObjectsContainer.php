@@ -601,7 +601,14 @@ public function offsetGet($offset)
 
 public function offsetSet($offset, $value)
 {
-    $this->ChildCollectionsArray[$offset] = $value;
+    if(is_null($offset) )
+    {
+        $this->ChildCollectionsArray[] = $value;
+    }
+    else
+    {
+        $this->ChildCollectionsArray[$offset] = $value;
+    }
 }
 
 public function offsetUnset($offset)
@@ -616,6 +623,26 @@ public function offsetUnset($offset)
 public function getArrayKeys()
 {
     return array_keys($this->ChildCollectionsArray);
+}
+
+public function inArray($Data, $CheckTypeFlag = true)
+{
+    return in_array($Data, $this->ChildCollectionsArray, $CheckTypeFlag);
+}
+
+public function mergeDataArrayObject(\TRMEngine\DataArray\Interfaces\TRMDataArrayInterface $DataArrayObject)
+{
+    array_merge($this->ChildCollectionsArray, $DataArrayObject);
+}
+
+public function pop()
+{
+    return array_pop($this->ChildCollectionsArray);
+}
+
+public function push($Data)
+{
+    array_push($this->ChildCollectionsArray, $Data);
 }
 
 

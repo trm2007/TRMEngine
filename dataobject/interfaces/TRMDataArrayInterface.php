@@ -46,13 +46,47 @@ public function setDataArray( array $data );
 public function mergeDataArray( array $data );
 
 /**
- * проверяет наличие ключа (поля с именем fieldname) у строки с номером rownum
+ * "склеивает" два массива с данными, из текущего объекти и из объекта $DataArrayObject,
+ * проверка на уникальность не проводится,
+ * если в новом массиве встерится уже существующий строковый индекс, 
+ * старые данные перезапишутся
+ *
+ * @param TRMDataArrayInterface $DataArrayObject - объект TRMDataArray  для склеивания
+ */
+public function mergeDataArrayObject( TRMDataArrayInterface $DataArrayObject );
+
+/**
+ * проверяет наличие ключа в текущем массиве
  * 
- * @param string $Index - проверяемый индекс массива
+ * @param string $Index - проверяемый индекс-ключ массива
  * 
  * @return boolean - если найден, возвращает true, если ключ отсутствует - false
  */
 public function keyExists( $Index );
+
+/**
+ * проверяет наличие данных в массиве
+ * 
+ * @param mixed $Data - данные для проверки
+ * @param boolean $CheckTypeFlag - если устанлвлен (по умолчанию), то 
+ * проверятся так же соответсвие типов
+ * 
+ * @return boolean - если найдены, возвращает true, если отсутствуют - false
+ */
+public function inArray( $Data, $CheckTypeFlag = true );
+
+/**
+ * Добавляет $Data в конец массива
+ * 
+ * @param mixed $Data
+ */
+public function push($Data);
+
+/**
+ * @return mixed - возвращает последний элемент из массива, 
+ * удаляя его из массива, внутренний указатель обнуляется
+ */
+public function pop();
 
 /**
  * записывает данные в конкретную ячейку
