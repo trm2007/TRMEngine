@@ -37,7 +37,7 @@ public $Name;
  */
 public $State = self::TRM_FIELD_STATE_READ_ONLY;
 /**
- * @var string - тип поля в таблице БД применяемы поумолчанию, если не задан явно
+ * @var string - тип поля в таблице БД применяемый по умолчанию, если не задан явно
  */
 public $Type = "varchar(1024)";
 /**
@@ -66,10 +66,10 @@ public $Alias = "";
  * @var int - показвает нужно ли брать имя данного поля в апосторфы, 
  * по умолчанию нужно TRM_FIELD_NEED_QUOTE
  */
-public $Quote = TRMFieldMapper::TRM_FIELD_NEED_QUOTE;
+public $Quote = self::TRM_FIELD_NEED_QUOTE;
 /**
  * @var string - комментарий к полю, фактически название,
- * может использоваться в качестве <label> к Input-полю в форме на клинте
+ * может использоваться в качестве <label> к Input-полю в форме на клиенте
  */
 public $Comment = "";
 /**

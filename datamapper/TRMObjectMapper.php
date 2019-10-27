@@ -18,7 +18,7 @@ class TRMObjectMapper extends TRMDataArray
  */
 const TRM_OBJECT_STATE_READ_ONLY = 512;
 /**
- * статус поля - доступен для записи и чтения
+ * статус объекта - доступен для записи и чтения
  */
 const TRM_OBJECT_STATE_UPDATABLE = 256;
 
