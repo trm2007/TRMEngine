@@ -326,59 +326,6 @@ public static function conv(&$array, $from = "utf-8", $to = "windows-1251")
 }
 
 /**
- * Функция конвертации массива в XML объект.
- * На вход подается мульти-вложенный массив,
- * на выходе получается строка с валидным xml с помощью рекурсии
- *
- * @param array $data
- * @param string $rootNodeName - назвение коневого (или очередного в рекурсии) xml-узла
- * @param SimpleXMLElement $xml - используется рекурсивно
- * 
- * @return string XML - возвращает XML в виде строки
- */
-public static function convertArrayToXml($data, $rootNodeName = 'data', $xml=null)
-{
-    if ($xml == null)
-    {
-        $xml = simplexml_load_string("<?xml version=\"1.0\" encoding=\"utf-8\"?><$rootNodeName />");
-    }
-
-    //цикл перебора массива 
-    foreach($data as $key => $value)
-    {
-        // нельзя применять числовое название полей в XML
-        if (is_numeric($key))
-        {
-            // поэтому делаем их строковыми по образцу unknownNode_123...
-            $key = "unknownNode_{$key}";
-        }
-
-        // удаляем не латинские символы и не цифры
-        $key = preg_replace('/[^a-z0-9]/i', '', $key);
-
-        // если значение массива также является массивом то вызываем себя рекурсивно
-        if (is_array($value))
-        {
-            // добавляет пустой узел XML и возвращает объект SimpleXMLElement (точнее ссылку на него)
-            $node = $xml->addChild($key);
-            // рекурсивный вызов
-            self::convertArraytoXml($value, $rootNodeName, $node);
-        }
-        else
-        {
-            // добавляем один узел, 
-            // преобразуя возможные символы в соответсвующие HTML-коды функцией htmlentities (например кавычки, апострофы и т.д.)
-            $value = htmlentities($value);
-            // добавляет узел XML с данными
-            $xml->addChild($key,$value);
-        }
-
-    }
-
-    return $xml->asXML();
-}
-
-/**
  * ПОЛИФИЛ!!!
  * Returns the values from a single column of the input array, identified by
  * the $columnKey.
