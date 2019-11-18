@@ -76,6 +76,60 @@ public function completeSafetyFieldsFromDB($Extends = false)
 }
 
 /**
+ * Запрашивает полные метаданные из БД только для уже присутсвующих полей в DataMapper
+ * 
+ * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+ * 
+ * @throws TRMDataMapperEmptySafetyFieldsArrayException - если данные о полях таблицы получить не удалось, то выбрасывается исключение
+ */
+public function completeOnlyExistsFieldsFromDB($Extends = false)
+{
+    if( !$this->count() )
+    {
+        throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+            __METHOD__ . " Массив объектов-таблиц пуст! ");
+    }
+    $ObjectsNames = $this->getArrayKeys();
+    foreach( $ObjectsNames as $TableName )
+    {
+        $FieldsNamesArr = $this->DataArray[$TableName]->getAllFieldsNamesForCondition();
+        if( empty($FieldsNamesArr) )
+        {
+            throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+                __METHOD__ . " Нет полей для объекта {$TableName} " );
+        }
+        $FieldsInfo = TRMDBObject::getTableColumnsInfo($TableName);
+        $OnlyFieldsInfo = array();
+        // в зависимости от метода получения мета-данных, 
+        // из расширенного запроса (из схемы таблицы), 
+        // или через SHOW COLUMN, 
+        // указываем под каким ключом хранится имя поля
+        if($Extends) { $COLUMN_NAME_INDEX = "COLUMN_NAME"; }
+        else { $COLUMN_NAME_INDEX = "Field"; }
+        
+        foreach( $FieldsInfo as $Field )
+        {
+            if(in_array($Field[$COLUMN_NAME_INDEX], $FieldsNamesArr) )
+            {
+                $OnlyFieldsInfo[] = $Field;
+            }
+        }
+
+        if( empty($OnlyFieldsInfo) )
+        {
+            throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+                __METHOD__ . " Нет доступных полей для объекта {$TableName} " );
+        }
+        $this->completeSafetyFieldsFromDBFor(
+            $TableName, 
+            $OnlyFieldsInfo, 
+            $this->DataArray[$TableName]->State, 
+            $Extends
+        );
+    }
+}
+
+/**
  * вспомогательная функция, 
  * добавляет параметры полей в массив $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX],
  * старые значения перезаписываются, только если ключи совпадают,

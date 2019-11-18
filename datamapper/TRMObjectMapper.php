@@ -157,13 +157,17 @@ public function hasField( $FieldName )
 
 
 /**
- * @param string $StateName - имя проверяемого статуса поля
- * @param string $Value - искомое значение статуса поля
+ * @param string $StateName - имя проверяемого статуса поля, такое как:
+ * возможность чтения или записи - TRMDataMapper::STATE_INDEX,
+ * имя поля - TRMDataMapper::FIELD_NAME_INDEX,
+ * ключемое или нет - TRMDataMapper::KEY_INDEX 
+ * и др...
+ * @param string $Value - проверяемое значение статуса поля
  * 
  * @return array - возвращает массив с именами полей таблицы $TableName
  *  соответсвуюших условию FieldsState[$StateName] == $Value
  */
-private function getAllFieldsNamesForCondition( $StateName = null, $Value = null )
+public function getAllFieldsNamesForCondition( $StateName = null, $Value = null )
 {
     if( null === $StateName )
     {
@@ -212,7 +216,7 @@ private function getAllFieldsNamesForCondition( $StateName = null, $Value = null
 
 /**
  * расширяет класс TRMObjectMapper для применения к таблицам SQL,
- * может сам генерироать строку с именами полей объекта
+ * может сам генерировать строку с именами полей объекта
  */
 class TRMSQLObject extends TRMObjectMapper
 {
