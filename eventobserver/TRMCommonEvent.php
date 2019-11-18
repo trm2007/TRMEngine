@@ -5,28 +5,28 @@ namespace TRMEngine\EventObserver;
 use TRMEngine\EventObserver\Interfaces\TRMEventInterface;
 
 /**
- * Êëàññ ñîáûòèÿ
+ * ÐšÐ»Ð°ÑÑ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ
  */
 class TRMCommonEvent implements TRMEventInterface
 {
 /**
- * @var IObservable - èíèöèàòîð ñîáûòèÿ
+ * @var IObservable - Ð¸Ð½Ð¸Ñ†Ð¸Ð°Ñ‚Ð¾Ñ€ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ
  */
 protected $EventSender;
 /**
- * @var string - èìÿ òèïà ñîáûòèÿ
+ * @var string - Ð¸Ð¼Ñ Ñ‚Ð¸Ð¿Ð° ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ
  */
 protected $EventName;
 /**
- * @var array - äàííûå, íåîáõîäèìûå äëÿ ïåðåäà÷è â âîçíèêøåì ñîáûòèè
+ * @var array - Ð´Ð°Ð½Ð½Ñ‹Ðµ, Ð½ÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ñ‹Ðµ Ð´Ð»Ñ Ð¿ÐµÑ€ÐµÐ´Ð°Ñ‡Ð¸ Ð² Ð²Ð¾Ð·Ð½Ð¸ÐºÑˆÐµÐ¼ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ð¸
  */
 public $Data;
 
 /**
  * 
- * @param object $Sender - îáúåêò èíèöèàòîð ñîáûòèÿ
- * @param string $EventName - èìÿ ãåíåðèðóåìîãî ñîáûòèÿ
- * @param array $Data - äàííûå, êîòîðûå ïåðåäàþòñÿ âìåñòå ñ îáúåêòîì ñîáûòèÿ
+ * @param object $Sender - Ð¾Ð±ÑŠÐµÐºÑ‚ Ð¸Ð½Ð¸Ñ†Ð¸Ð°Ñ‚Ð¾Ñ€ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ
+ * @param string $EventName - Ð¸Ð¼Ñ Ð³ÐµÐ½ÐµÑ€Ð¸Ñ€ÑƒÐµÐ¼Ð¾Ð³Ð¾ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ
+ * @param array $Data - Ð´Ð°Ð½Ð½Ñ‹Ðµ, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ðµ Ð¿ÐµÑ€ÐµÐ´Ð°ÑŽÑ‚ÑÑ Ð²Ð¼ÐµÑÑ‚Ðµ Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð¼ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ
  */
 public function __construct( $Sender, $EventName, $Data = array() )
 {
@@ -35,7 +35,7 @@ public function __construct( $Sender, $EventName, $Data = array() )
     $this->Data = $Data;
 }
 /**
- * @return object - âîçâðàùàåò èíèöèàòîðà ñîáûòèÿ, êòî åãî ïîñëàë
+ * @return object - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¸Ð½Ð¸Ñ†Ð¸Ð°Ñ‚Ð¾Ñ€Ð° ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ, ÐºÑ‚Ð¾ ÐµÐ³Ð¾ Ð¿Ð¾ÑÐ»Ð°Ð»
  */
 public function getSender()
 {
@@ -43,12 +43,12 @@ public function getSender()
 }
 
 /**
- * @return string - âîçâðàùàåò èìÿ ñîáûòèÿ
+ * @return string - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¸Ð¼Ñ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ñ
  */
 public function getType()
 {
-    // static:: - èñïîëüçóåì ïîçäíåå ñâÿçûâàíèå, áóäåò âîçâðàùåíà $EventName îïðåäåëåííàÿ â êàæäîì äî÷åðíåì êëàññå ñâîÿ
-    // â òî âðåìÿ êàê self:: âîçâðàùàåò ñòàòè÷åñîêå çíà÷åíèå òîëüêî äëÿ äàííîãî TRMCommonEvent êëàññà
+    // static:: - Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÐ¼ Ð¿Ð¾Ð·Ð´Ð½ÐµÐµ ÑÐ²ÑÐ·Ñ‹Ð²Ð°Ð½Ð¸Ðµ, Ð±ÑƒÐ´ÐµÑ‚ Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð° $EventName Ð¾Ð¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð½Ð°Ñ Ð² ÐºÐ°Ð¶Ð´Ð¾Ð¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½ÐµÐ¼ ÐºÐ»Ð°ÑÑÐµ ÑÐ²Ð¾Ñ
+    // Ð² Ñ‚Ð¾ Ð²Ñ€ÐµÐ¼Ñ ÐºÐ°Ðº self:: Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ ÑÑ‚Ð°Ñ‚Ð¸Ñ‡ÐµÑÐ¾ÐºÐµ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð»Ñ Ð´Ð°Ð½Ð½Ð¾Ð³Ð¾ TRMCommonEvent ÐºÐ»Ð°ÑÑÐ°
     //return static::$EventName;
     //------------------------------
     return $this->EventName;

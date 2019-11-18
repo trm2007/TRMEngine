@@ -3,7 +3,7 @@
 namespace TRMEngine\Exceptions;
 
 /**
- * общий класс, от которого наследуются все исключения в TRMEngine
+ * РѕР±С‰РёР№ РєР»Р°СЃСЃ, РѕС‚ РєРѕС‚РѕСЂРѕРіРѕ РЅР°СЃР»РµРґСѓСЋС‚СЃСЏ РІСЃРµ РёСЃРєР»СЋС‡РµРЅРёСЏ РІ TRMEngine
  */
 class TRMException extends \Exception
 {
@@ -14,33 +14,57 @@ class TRMException extends \Exception
      */
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка при выполнении в ядре TRMEngine! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° РїСЂРё РІС‹РїРѕР»РЅРµРЅРёРё РІ СЏРґСЂРµ TRMEngine! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMException
 
 
 /**
- * выбрасывается конструктором, если объект не может быть создан
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРѕРј, РµСЃР»Рё РѕР±СЉРµРєС‚ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ СЃРѕР·РґР°РЅ
  */
 class TRMObjectCreateException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Объект не может быть создан! " . PHP_EOL;
+        $message .= PHP_EOL . " РћР±СЉРµРєС‚ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ СЃРѕР·РґР°РЅ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMObjectCreateException
 
 
 /**
- * выбрасывается при ошибке SQL-запроса
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РїСЂРё РѕС€РёР±РєРµ SQL-Р·Р°РїСЂРѕСЃР°
  */
 class TRMSqlQueryException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка SQL-запроса! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° SQL-Р·Р°РїСЂРѕСЃР°! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
+
+/**
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё РѕР±СЉРµРєС‚ РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ СЃРѕР·РґР°РЅ
+ */
+class TRMConfigFileException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " РћС€РёР±РєР° РїСЂРё СЂР°Р±РѕС‚Рµ СЃ С„Р°Р№Р»РѕРј РєРѕРЅС„РёРіСѓСЂР°С†РёРё! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+} // TRMConfigFileException
+
+/**
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё РѕС€РёР±РєР° РїСЂРё СЂР°Р±РѕС‚Рµ СЃ РјР°СЃСЃРёРІРѕРј РєРѕРЅС„РёРіСѓСЂР°С†РёРё
+ */
+class TRMConfigArrayException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " РћС€РёР±РєР° РїСЂРё СЂР°Р±РѕС‚Рµ СЃ РјР°СЃСЃРёРІРѕРј РЅР°СЃС‚СЂРѕРµРє! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+} // TRMConfigFileException

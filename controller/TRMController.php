@@ -8,35 +8,35 @@ use TRMEngine\Controller\Exceptions\TRMNoControllerException;
 use TRMEngine\View\TRMView;
 
 /**
- * áàçîâûé êëàññ äëÿ âñåõ êîíòðîëëåðîâ
+ * Ð±Ð°Ð·Ð¾Ð²Ñ‹Ð¹ ÐºÐ»Ð°ÑÑ Ð´Ð»Ñ Ð²ÑÐµÑ… ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð»Ð»ÐµÑ€Ð¾Ð²
  */
 abstract class TRMController
 {
 /**
- * @var string - óêàçûâàåò êàêîé àðãóìåíò äîáàâëÿåòñÿ ê çàïðîñó äëÿ óêàçàíèÿ íîìåðà ñòðàíèöû ïðè ïàãèíàöèè
+ * @var string - ÑƒÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÑ‚ ÐºÐ°ÐºÐ¾Ð¹ Ð°Ñ€Ð³ÑƒÐ¼ÐµÐ½Ñ‚ Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÑ‚ÑÑ Ðº Ð·Ð°Ð¿Ñ€Ð¾ÑÑƒ Ð´Ð»Ñ ÑƒÐºÐ°Ð·Ð°Ð½Ð¸Ñ Ð½Ð¾Ð¼ÐµÑ€Ð° ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹ Ð¿Ñ€Ð¸ Ð¿Ð°Ð³Ð¸Ð½Ð°Ñ†Ð¸Ð¸
  */
 static $DefaultPageName = "page";
 
 /**
- * @var Request - îáúåêò çàïðîñà îò êëèåíòà
+ * @var Request - Ð¾Ð±ÑŠÐµÐºÑ‚ Ð·Ð°Ð¿Ñ€Ð¾ÑÐ° Ð¾Ñ‚ ÐºÐ»Ð¸ÐµÐ½Ñ‚Ð°
  */
 protected $Request;
 /**
- * @var TRMView - îáúåêò âèäà äëÿ òåêóùåãî îòîáðàæåíèÿ äàííûõ, 
- * ïî êîíöåïöèè êîíòðîëëåð ðàçáèðàåò çàïðîñ èç àäðåñà URL - ýòî îäíà ñòðàíèöà,
- * è âèä äîëæåí áûòü îäèí, ìîæåò áûòü ñîáðàí èç ðàçíûõ äàííûõ
+ * @var TRMView - Ð¾Ð±ÑŠÐµÐºÑ‚ Ð²Ð¸Ð´Ð° Ð´Ð»Ñ Ñ‚ÐµÐºÑƒÑ‰ÐµÐ³Ð¾ Ð¾Ñ‚Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ Ð´Ð°Ð½Ð½Ñ‹Ñ…, 
+ * Ð¿Ð¾ ÐºÐ¾Ð½Ñ†ÐµÐ¿Ñ†Ð¸Ð¸ ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð»Ð»ÐµÑ€ Ñ€Ð°Ð·Ð±Ð¸Ñ€Ð°ÐµÑ‚ Ð·Ð°Ð¿Ñ€Ð¾Ñ Ð¸Ð· Ð°Ð´Ñ€ÐµÑÐ° URL - ÑÑ‚Ð¾ Ð¾Ð´Ð½Ð° ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ð°,
+ * Ð¸ Ð²Ð¸Ð´ Ð´Ð¾Ð»Ð¶ÐµÐ½ Ð±Ñ‹Ñ‚ÑŒ Ð¾Ð´Ð¸Ð½, Ð¼Ð¾Ð¶ÐµÑ‚ Ð±Ñ‹Ñ‚ÑŒ ÑÐ¾Ð±Ñ€Ð°Ð½ Ð¸Ð· Ñ€Ð°Ð·Ð½Ñ‹Ñ… Ð´Ð°Ð½Ð½Ñ‹Ñ…
  */
 protected $view;
 /**
- * @var integer - íîìåð ñòðàíèöû, åñëè åñòü ïàãèíàöèÿ
+ * @var integer - Ð½Ð¾Ð¼ÐµÑ€ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹, ÐµÑÐ»Ð¸ ÐµÑÑ‚ÑŒ Ð¿Ð°Ð³Ð¸Ð½Ð°Ñ†Ð¸Ñ
  */
 protected $page = 1;
 /**
- * @var string - èìÿ òåêóùåãî Action
+ * @var string - Ð¸Ð¼Ñ Ñ‚ÐµÐºÑƒÑ‰ÐµÐ³Ð¾ Action
  */
-protected $CurrentAction = '';
+protected $CurrentActionName = '';
 /**
- * @var string - èìÿ òåêóùåãî Controller
+ * @var string - Ð¸Ð¼Ñ Ñ‚ÐµÐºÑƒÑ‰ÐµÐ³Ð¾ Controller
  */
 protected $CurrentControllerName = '';
 
@@ -44,20 +44,20 @@ protected $CurrentControllerName = '';
 public function __construct(Request $Request)
 {
     $this->Request = $Request;
-    // äëÿ óäîáñòâà âûäåëÿåì èìÿ Controller â îòäåëüíóþ ïåðåìåííóþ
+    // Ð´Ð»Ñ ÑƒÐ´Ð¾Ð±ÑÑ‚Ð²Ð° Ð²Ñ‹Ð´ÐµÐ»ÑÐµÐ¼ Ð¸Ð¼Ñ Controller Ð² Ð¾Ñ‚Ð´ÐµÐ»ÑŒÐ½ÑƒÑŽ Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½ÑƒÑŽ
     $this->CurrentControllerName = $this->Request->attributes->get("controller");
     if( empty($this->CurrentControllerName) )
     {
-        throw new TRMNoControllerException( __METHOD__ . " Íåïðàâèëüíî ïðîèíèöèàëèçèðîâàí Controller", 404);
+        throw new TRMNoControllerException( __METHOD__ . " ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾ Ð¿Ñ€Ð¾Ð¸Ð½Ð¸Ñ†Ð¸Ð°Ð»Ð¸Ð·Ð¸Ñ€Ð¾Ð²Ð°Ð½ Controller", 404);
     }
-    // äëÿ óäîáñòâà âûäåëÿåì èìÿ Action â îòäåëüíóþ ïåðåìåííóþ
+    // Ð´Ð»Ñ ÑƒÐ´Ð¾Ð±ÑÑ‚Ð²Ð° Ð²Ñ‹Ð´ÐµÐ»ÑÐµÐ¼ Ð¸Ð¼Ñ Action Ð² Ð¾Ñ‚Ð´ÐµÐ»ÑŒÐ½ÑƒÑŽ Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½ÑƒÑŽ
     $this->CurrentActionName = $this->Request->attributes->get("action");
     if( empty($this->CurrentActionName) )
     {
-        throw new TRMNoActionException( __METHOD__ . " Íå óêàçàí Action", 404);
+        throw new TRMNoActionException( __METHOD__ . " ÐÐµ ÑƒÐºÐ°Ð·Ð°Ð½ Action", 404);
     }
 
-    // à òàê æå äëÿ óäîáñòâà âûäåëÿåì íîìåð ñòðàíèöû (äëÿ ïàãèíàöèè) â îòäåëüíóþ ïåðåìåííóþ
+    // Ð° Ñ‚Ð°Ðº Ð¶Ðµ Ð´Ð»Ñ ÑƒÐ´Ð¾Ð±ÑÑ‚Ð²Ð° Ð²Ñ‹Ð´ÐµÐ»ÑÐµÐ¼ Ð½Ð¾Ð¼ÐµÑ€ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹ (Ð´Ð»Ñ Ð¿Ð°Ð³Ð¸Ð½Ð°Ñ†Ð¸Ð¸) Ð² Ð¾Ñ‚Ð´ÐµÐ»ÑŒÐ½ÑƒÑŽ Ð¿ÐµÑ€ÐµÐ¼ÐµÐ½Ð½ÑƒÑŽ
     $this->page = $this->Request->query->getInt( static::$DefaultPageName, 1);
 }
 

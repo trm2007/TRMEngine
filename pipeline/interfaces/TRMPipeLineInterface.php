@@ -1,15 +1,15 @@
 <?php
-
 /**
- * ‚ ˝ÚÓÏ Ù‡ÎÂ ÒÓ‰ÂÊ‡ÚÒˇ ÒÚ‡Ì‰‡ÚÌ˚Â ËÌÚÂÙÂÈÒ˚ PSR-15,
- * ÌÓ ‰Îˇ ÔÓ‰ÍÎ˛˜ÂÌËˇ PSR ˜ÂÂÁ Composer ÌÛÊÂÌ PHP > 7.0,
- * ÔÓ˝ÚÓÏÛ ÔËıÓ‰ËÚÒˇ ÒÓÁ‰‡‚‡Ú¸ ËÌÚÂÙÂÈÒ˚ ‚Û˜ÌÛ˛ ‰Îˇ ÒÓ‚ÏÂÒÚËÏÓÒÚË
+ * –≤ —ç—Ç–æ–º —Ñ–∞–ª–µ —Å–æ–¥–µ—Ä–∂–∞—Ç—Å—è —Å—Ç–∞–Ω–¥–∞—Ä—Ç–Ω—ã–µ –∏–Ω—Ç–µ—Ä—Ñ–µ–π—Å—ã PSR-15,
+ * –Ω–æ –¥–ª—è –ø–æ–¥–∫–ª—é—á–µ–Ω–∏—è PSR —á–µ—Ä–µ–∑ Composer –Ω—É–∂–µ–Ω PHP > 7.0,
+ * –ø–æ—ç—Ç–æ–º—É –ø—Ä–∏—Ö–æ–¥–∏—Ç—Å—è —Å–æ–∑–¥–∞–≤–∞—Ç—å –∏–Ω—Ç–µ—Ä—Ñ–µ–π—Å—ã –≤—Ä—É—á–Ω—É—é –¥–ª—è —Å–æ–≤–º–µ—Å—Ç–∏–º–æ—Å—Ç–∏ —Å PHP 5.6
  */
 
 namespace TRMEngine\PipeLine\Interfaces;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
  * Handles a server request and produces a response.

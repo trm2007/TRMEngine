@@ -5,41 +5,41 @@ namespace TRMEngine\DataMapper\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * выбрасывается, если некорректно задано имя одного их полей
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё РЅРµРєРѕСЂСЂРµРєС‚РЅРѕ Р·Р°РґР°РЅРѕ РёРјСЏ РѕРґРЅРѕРіРѕ РёС… РїРѕР»РµР№
  */
 class TRMDataMapperNotStringFieldNameException extends TRMException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " В качестве имени поля используется не строковое значение! " . PHP_EOL;
+        $message .= PHP_EOL . " Р’ РєР°С‡РµСЃС‚РІРµ РёРјРµРЅРё РїРѕР»СЏ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РЅРµ СЃС‚СЂРѕРєРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * выбрасывается, если DataMapper не заполнен
+ * РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ, РµСЃР»Рё DataMapper РЅРµ Р·Р°РїРѕР»РЅРµРЅ
  */
 class TRMDataMapperEmptySafetyFieldsArrayException extends TRMException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Массив SafetyFieldsArray - пустой, "
-                . "необходимо указать хотябы имена таблиц как ключи массива array( TableName => array(...), ... )" . PHP_EOL;
+        $message .= PHP_EOL . " РњР°СЃСЃРёРІ SafetyFieldsArray - РїСѓСЃС‚РѕР№, "
+                . "РЅРµРѕР±С…РѕРґРёРјРѕ СѓРєР°Р·Р°С‚СЊ С…РѕС‚СЏР±С‹ РёРјРµРЅР° С‚Р°Р±Р»РёС† РєР°Рє РєР»СЋС‡Рё РјР°СЃСЃРёРІР° array( TableName => array(...), ... )" . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * должно выбрасываться, если в DataMapper неверно заданы связи между объектам,
- * должен быть один главный объект, на которого никто не ссылается
+ * РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ, РµСЃР»Рё РІ DataMapper РЅРµРІРµСЂРЅРѕ Р·Р°РґР°РЅС‹ СЃРІСЏР·Рё РјРµР¶РґСѓ РѕР±СЉРµРєС‚Р°Рј,
+ * РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РѕРґРёРЅ РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚, РЅР° РєРѕС‚РѕСЂРѕРіРѕ РЅРёРєС‚Рѕ РЅРµ СЃСЃС‹Р»Р°РµС‚СЃСЏ
  */
 class TRMDataMapperRelationException extends TRMException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " В объекте данных обнаружены циклические связи! Нет внутренних объектов без ссылок на них!" . PHP_EOL;
+        $message .= PHP_EOL . " Р’ РѕР±СЉРµРєС‚Рµ РґР°РЅРЅС‹С… РѕР±РЅР°СЂСѓР¶РµРЅС‹ С†РёРєР»РёС‡РµСЃРєРёРµ СЃРІСЏР·Рё! РќРµС‚ РІРЅСѓС‚СЂРµРЅРЅРёС… РѕР±СЉРµРєС‚РѕРІ Р±РµР· СЃСЃС‹Р»РѕРє РЅР° РЅРёС…!" . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMDataMapperRelationException

@@ -2,44 +2,90 @@
 
 namespace TRMEngine;
 
+use TRMEngine\Exceptions\TRMConfigArrayException;
+use TRMEngine\Exceptions\TRMConfigFileException;
 use TRMEngine\Exceptions\TRMSqlQueryException;
-use TRMEngine\Helpers\TRMLib;
 
 /**
- * базовый класс для работы с БД, создает подключение используя библиотеку MySQLi
+ * Р±Р°Р·РѕРІС‹Р№ РєР»Р°СЃСЃ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ Р‘Р”, СЃРѕР·РґР°РµС‚ РїРѕРґРєР»СЋС‡РµРЅРёРµ РёСЃРїРѕР»СЊР·СѓСЏ Р±РёР±Р»РёРѕС‚РµРєСѓ MySQLi
  *
  * @author TRM
  */
 class TRMDBObject // extends TRMConfigSingleton
 {
 /**
- * кодировка работы с БД по умолчанию, если в настройках не задан параметр "dbcharset"
+ * РєРѕРґРёСЂРѕРІРєР° СЂР°Р±РѕС‚С‹ СЃ Р‘Р” РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РµСЃР»Рё РІ РЅР°СЃС‚СЂРѕР№РєР°С… РЅРµ Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ "dbcharset"
  */
 const TRM_DB_DEFAULT_CHARSET = "utf8";
 /**
- * количество попыток соединиться с сервером
+ * РєРѕР»РёС‡РµСЃС‚РІРѕ РїРѕРїС‹С‚РѕРє СЃРѕРµРґРёРЅРёС‚СЊСЃСЏ СЃ СЃРµСЂРІРµСЂРѕРј
  */
 const TRM_DB_TRY_TO_CONNECT_TIMES = 3;
 /**
- * время паузы между попытками соединиться с сервером в мкросекундах 10^-6
+ * РІСЂРµРјСЏ РїР°СѓР·С‹ РјРµР¶РґСѓ РїРѕРїС‹С‚РєР°РјРё СЃРѕРµРґРёРЅРёС‚СЊСЃСЏ СЃ СЃРµСЂРІРµСЂРѕРј РІ РјРєСЂРѕСЃРµРєСѓРЅРґР°С… 10^-6
  * 500000 - 0.5 sec
  */
 const TRM_DB_TRY_TO_CONNECT_SLEEPTIME = 500000;
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РёРјРµРЅРё Р±Р°Р·С‹ РґР°РЅРЅС‹С…
+ */
+const DB_NAME_INDEX = "dbname";
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РёРјРµРЅРё СЃРµСЂРІРµСЂР°
+ */
+const DB_SERVER_INDEX = "dbserver";
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РЅРѕРјРµСЂР° РїРѕСЂС‚Р°
+ */
+const DB_PORT_INDEX = "dbport";
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РёРјРµРЅРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+ */
+const DB_USER_INDEX = "dbuser";
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РїР°СЂРѕР»СЏ
+ */
+const DB_PASSWORD_INDEX = "dbpassword";
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РѕР±РѕР·РЅР°С‡РµРЅРёСЏ РєРѕРґРёСЂРѕРІРєРё Р‘Р” РЅР° СЃРµСЂРІРµСЂРµ
+ */
+const SERVER_DB_CHARSET_INDEX = "dbcharset";
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РѕР±РѕР·РЅР°С‡РµРЅРёСЏ РєРѕРґРёСЂРѕРІРєРё РІ РєРѕС‚РѕСЂРѕР№ Р±СѓРґСѓС‚ РїРѕСЃС‚СѓРїР°С‚СЊ РґР°РЅРЅС‹Рµ РєР»РёРµРЅС‚Сѓ Рё РѕС‚ РЅРµРіРѕ,
+ * РЅР° СЃС‚РѕСЂРѕРЅРµ СЃРµСЂРІРµСЂР° Р±СѓРґРµС‚ РїСЂРѕРёСЃС…РѕРґРёС‚СЊ РїРµСЂРµРєРѕРґРёСЂРѕРІРєР° РёР· Рё РІ SERVER_DB_CHARSET
+ */
+const CLIENT_CHARSET_INDEX = "clientcharset";
+/**
+ * РёРЅРґРµРєСЃ РґР»СЏ РѕР±РѕР·РЅР°С‡РµРЅРёСЏ РєРѕРґРёСЂРѕРІРєРё РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ РґР°РЅРЅС‹С… РІ С‚Р°Р±Р»РёС†Р°С… Р‘Р” РЅР° СЃРµСЂРІРµСЂРµ
+ */
+const COLLATION_CHARSET_INDEX = "collationcharst";
+
+/**
+ * @var string - РєРѕРґРёСЂРѕРІРєР° Р‘Р” РЅР° СЃРµСЂРІРµСЂРµ
+ */
+protected static $DBCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
+/**
+ * @var string - РєРѕРґРёСЂРѕРІРєР° РєР»РёРµРЅС‚Р°
+ */
+protected static $ClientCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
+/**
+ * @var string - РєРѕРґРёСЂРѕРІРєР° РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ РґР°РЅРЅС‹С… РІ С‚Р°Р±Р»РёС†Р°С… Р‘Р” РЅР° СЃРµСЂРІРµСЂРµ
+ */
+protected static $CollationCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
 
 /*
 	use TRMSingleton;
 	use TRMConfigSingleton;
 */
 
-
 /**
- * @var TRMDBObject - экземпляр данного объекта Singleton
+ * @var TRMDBObject - СЌРєР·РµРјРїР»СЏСЂ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р° Singleton
  */
 protected static $Instance = null;
 
 /**
- * возвращает экземпляр данного класса, если он еще не создан, то создает его
- * @return TRMDBObject - экземпляр данного класса
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ СЌРєР·РµРјРїР»СЏСЂ РґР°РЅРЅРѕРіРѕ РєР»Р°СЃСЃР°, РµСЃР»Рё РѕРЅ РµС‰Рµ РЅРµ СЃРѕР·РґР°РЅ, С‚Рѕ СЃРѕР·РґР°РµС‚ РµРіРѕ
+ * @return TRMDBObject - СЌРєР·РµРјРїР»СЏСЂ РґР°РЅРЅРѕРіРѕ РєР»Р°СЃСЃР°
  */
 public static function getInstance()
 {
@@ -52,47 +98,111 @@ public static function getInstance()
     return static::$Instance;
 }
 /**
- * @var array - конфигурационные данные
+ * @var array - РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ
  */
 protected static $ConfigArray = array();
 
 /**
- * загружает конфигурационные данные из файла $filename - должны возвращаться в виде массива
+ * Р·Р°РіСЂСѓР¶Р°РµС‚ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ РёР· С„Р°Р№Р»Р° $filename - РґРѕР»Р¶РЅС‹ РІРѕР·РІСЂР°С‰Р°С‚СЊСЃСЏ РІ РІРёРґРµ РјР°СЃСЃРёРІР°
  *
- * @param string $filename - имя файла с конфигурацией
+ * @param string $filename - РёРјСЏ С„Р°Р№Р»Р° СЃ РєРѕРЅС„РёРіСѓСЂР°С†РёРµР№
  */
 public static function setConfig( $filename )
 {
-	if( !is_file($filename) )
-	{
-		TRMLib::dp( __METHOD__ . " Файл с настройками получить на удалось [{$filename}]!" );
-		return false;
-	}
-	return self::setConfigArray( require_once($filename) );
+    if( !is_file($filename) )
+    {
+        throw new TRMConfigFileException("Р¤Р°Р№Р» СЃ РЅР°СЃС‚СЂРѕР№РєР°РјРё РїРѕР»СѓС‡РёС‚СЊ РЅР° СѓРґР°Р»РѕСЃСЊ [{$filename}]!");
+    }
+    return self::setConfigArray( require_once($filename) );
 }
 
 /**
- * загружает конфигурационные данные из массива
+ * Р·Р°РіСЂСѓР¶Р°РµС‚ РєРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ РёР· РјР°СЃСЃРёРІР°
  *
- * @param array $arr - массив с конфигурацией
+ * @param array $arr - РјР°СЃСЃРёРІ СЃ РєРѕРЅС„РёРіСѓСЂР°С†РёРµР№
  */
 public static function setConfigArray( array $arr )
 {
-	if( empty($arr) )
-	{
-		TRMLib::dp( __METHOD__ . " Массив конфигурации данных пустой!" );
-		return false;
-	}
+    if( empty($arr) )
+    {
+        throw new TRMConfigArrayException("РњР°СЃСЃРёРІ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РґР°РЅРЅС‹С… РїСѓСЃС‚РѕР№!");
+    }
 
-	static::$ConfigArray = $arr;
+    static::$ConfigArray = $arr;
+    
+    static::setCharSetsFromConfigArray();
 
-	return true;
+    return true;
+}
+/**
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РєРѕРґРёСЂРѕРІРєРё, РµСЃР»Рё РґР°РЅРЅС‹Рµ РїРѕРґ СЃРѕРѕС‚РІРµС‚СЃРІСѓСЋС‰РёРјРё РёРЅРґРµРєСЃР°РјРё РµСЃС‚СЊ РІ РјР°СЃСЃРёРІРµ РЅР°СЃС‚СЂРѕРµРє (РєРѕРЅС„РёРіСѓСЂР°С†РёРё)
+ */
+private static function setCharSetsFromConfigArray()
+{
+    if( empty(static::$ConfigArray) ) { return; }
+    
+    if(array_key_exists(static::SERVER_DB_CHARSET_INDEX, static::$ConfigArray) )
+    {
+        static::setDBCharset( static::$ConfigArray[static::SERVER_DB_CHARSET_INDEX] );
+    }
+    if(array_key_exists(static::CLIENT_CHARSET_INDEX, static::$ConfigArray) )
+    {
+        static::setClientCharset( static::$ConfigArray[static::CLIENT_CHARSET_INDEX] );
+    }
+    if(array_key_exists(static::COLLATION_CHARSET_INDEX, static::$ConfigArray) )
+    {
+        static::setCollationCharset( static::$ConfigArray[static::COLLATION_CHARSET_INDEX] );
+    }
+}
+/**
+ * @param string $charset - СѓРєР°Р·С‹РІР°РµС‚, РІ РєР°РєСѓСЋ РєРѕРґРёСЂРѕРІРєСѓ СЃР»РµРґСѓРµС‚ РїСЂРµРѕР±СЂР°Р·РѕРІР°С‚СЊ РґР°РЅРЅС‹Рµ 
+ * РїРѕР»СѓС‡РµРЅС‹Рµ РѕС‚ РєР»РёРµРЅС‚Р° РїРµСЂРµРґ РІС‹РїРѕР»РЅРµРЅРёРµРј Р·Р°РїСЂРѕСЃР°,
+ */
+public static function setDBCharset( $charset )
+{
+    static::$DBCharset = static::correctCharset($charset);
+}
+/**
+ * @param string $charset - СѓРєР°Р·С‹РІР°РµС‚, РІ РєР°РєРѕР№ РєРѕРґРёСЂРѕРІРєРµ Р±СѓРґСѓС‚ РїРѕСЃС‚СѓРїР°С‚СЊ РґР°РЅРЅС‹Рµ РѕС‚ РєР»РёРµРЅС‚Р°,
+ * Р° С‚Р°Рє Р¶Рµ СѓРєР°Р·С‹РІР°РµС‚ СЃРµСЂРІРµСЂСѓ РЅРµ РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚СЊ РїРµСЂРµРєРѕРґРёСЂРѕРІР°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹ Р·Р°РїСЂРѕСЃР° 
+ * РІ СЌС‚Сѓ РєРѕРґРёСЂРѕРІРєСѓ РїРµСЂРµРґ РІС‹РґР°С‡РµР№ РёС… РєР»РёРµРЅС‚Сѓ
+ */
+public static function setClientCharset( $charset )
+{
+    static::$ClientCharset = static::correctCharset($charset);
+}
+/**
+ * @param string $charset - СѓРєР°Р·С‹РІР°РµС‚, РєР°РєРёРј РѕР±СЂР°Р·РѕРј СЃСЂР°РІРЅРёРІР°С‚СЊ РјРµР¶РґСѓ СЃРѕР±РѕР№ СЃС‚СЂРѕРєРё РІ Р·Р°РїСЂРѕСЃР°
+ */
+public static function setCollationCharset( $charset )
+{
+    static::$CollationCharset = static::correctCharset($charset);
+}
+/**
+ * СѓР±РёСЂР°РµС‚ Р·РЅР°РєРё С‚РёСЂРµ РёР· РєРѕРґРёСЂРѕРІРєРё, С‚Р°Рє РєР°Рє РІ MySQL РѕРЅРё РЅРµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ,
+ * РїСЂР°РІРёР»СЊРЅР°СЏ Р·Р°РїРёСЃСЊ utf8 , РЅРѕ РЅРµ utf-8,
+ * С‚Р°Рє Р¶Рµ РїРµСЂРµРІРѕРґРёС‚ СЃС‚СЂРѕРєСѓ РІ РЅРёР¶РЅРёР№ СЂРµРіРёСЃС‚СЂ
+ * 
+ * @param string $charset - РєРѕРґРёСЂРѕРІРєР° РґР»СЏ РєРѕСЂСЂРµРєС‚РёСЂРѕРІРєРё
+ * 
+ * @return string - РІРѕР·РІСЂР°С‰Р°РµС‚ РёСЃРїСЂР°РІР»РµРЅРЅСѓСЋ СЃС‚СЂРѕРєСѓ СЃ РЅР°Р·РІР°РЅРёРµРј РєРѕРґРёСЂРѕРІРєРё
+ */
+private static function correctCharset( $charset )
+{
+    $charset = strtolower($charset);
+    switch ($charset)
+    {
+        case "windows-1251": return "cp1251";
+        case "utf-8": return "utf8";
+    }
+
+    return str_replace("-", "", $charset );
 }
 
 /**
- * возвращает текущие настройки работы с БД
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ С‚РµРєСѓС‰РёРµ РЅР°СЃС‚СЂРѕР№РєРё СЂР°Р±РѕС‚С‹ СЃ Р‘Р”
  * 
- * @return array - массив с конфигурацией
+ * @return array - РјР°СЃСЃРёРІ СЃ РєРѕРЅС„РёРіСѓСЂР°С†РёРµР№
  */
 public static function getConfigArray()
 {
@@ -101,15 +211,12 @@ public static function getConfigArray()
 
 
 /**
- * @var \mysqli - объект MySQLi - подключение к БД
+ * @var \mysqli - РѕР±СЉРµРєС‚ MySQLi - РїРѕРґРєР»СЋС‡РµРЅРёРµ Рє Р‘Р”
  */
 static public $newlink = null;
 
-static $QB;
-
-
 /**
- * подключение к базе в конструкторе объекта, если соединение уже есть, то оставляем его
+ * РїРѕРґРєР»СЋС‡РµРЅРёРµ Рє Р±Р°Р·Рµ РІ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРµ РѕР±СЉРµРєС‚Р°, РµСЃР»Рё СЃРѕРµРґРёРЅРµРЅРёРµ СѓР¶Рµ РµСЃС‚СЊ, С‚Рѕ РѕСЃС‚Р°РІР»СЏРµРј РµРіРѕ
  */
 protected function __construct()
 {
@@ -117,10 +224,10 @@ protected function __construct()
 }
 
 /**
- * @param string $Query - строка запроса
+ * @param string $Query - СЃС‚СЂРѕРєР° Р·Р°РїСЂРѕСЃР°
  * 
- * @return \mysqli_result - возвращает результат запроса $Query через MySQLi, 
- * либо null, если соединение еще не установлено
+ * @return \mysqli_result - РІРѕР·РІСЂР°С‰Р°РµС‚ СЂРµР·СѓР»СЊС‚Р°С‚ Р·Р°РїСЂРѕСЃР° $Query С‡РµСЂРµР· MySQLi, 
+ * Р»РёР±Рѕ null, РµСЃР»Рё СЃРѕРµРґРёРЅРµРЅРёРµ РµС‰Рµ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ
  */
 public static function query($Query)
 {
@@ -132,10 +239,10 @@ public static function query($Query)
 }
 
 /**
- * подключается к БД используя настройки из массива $ConfigArray
+ * РїРѕРґРєР»СЋС‡Р°РµС‚СЃСЏ Рє Р‘Р” РёСЃРїРѕР»СЊР·СѓСЏ РЅР°СЃС‚СЂРѕР№РєРё РёР· РјР°СЃСЃРёРІР° $ConfigArray
  * 
- * @return boolean - в случае успеха вернет true
- * @throws \Exception - в случае неудачи - исключение
+ * @return boolean - РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС…Р° РІРµСЂРЅРµС‚ true
+ * @throws \Exception - РІ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡Рё - РёСЃРєР»СЋС‡РµРЅРёРµ
  */
 public static function connect()
 {
@@ -145,7 +252,7 @@ public static function connect()
     {
         if( $trycounts == TRMDBObject::TRM_DB_TRY_TO_CONNECT_TIMES )
         {
-            throw new \Exceptions( __METHOD__ . " Не удалось установить начальное соединение с БД " 
+            throw new \Exceptions( __METHOD__ . " РќРµ СѓРґР°Р»РѕСЃСЊ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РЅР°С‡Р°Р»СЊРЅРѕРµ СЃРѕРµРґРёРЅРµРЅРёРµ СЃ Р‘Р” " 
                     . static::$ConfigArray["dbserver"] 
                     . " - " . static::$ConfigArray["dbuser"] );
         }
@@ -161,15 +268,32 @@ public static function connect()
         usleep(TRMDBObject::TRM_DB_TRY_TO_CONNECT_SLEEPTIME);
         $trycounts++;
     }
-    static::$newlink->set_charset( isset(static::$ConfigArray["dbcharset"]) ? static::$ConfigArray["dbcharset"] : static::TRM_DB_DEFAULT_CHARSET );
+    if( static::$ClientCharset == static::$DBCharset )
+    {
+        static::$newlink->set_charset( static::$DBCharset );
+    }
+    else
+    {
+        static::$newlink->set_charset( static::$ClientCharset );
 
+        // СѓРєР°Р·С‹РІР°РµС‚, РІ РєР°РєРѕР№ РєРѕРґРёСЂРѕРІРєРµ Р±СѓРґСѓС‚ РїРѕСЃС‚СѓРїР°С‚СЊ РґР°РЅРЅС‹Рµ РѕС‚ РєР»РёРµРЅС‚Р°
+        static::$newlink->query( "SET character_set_client='" . static::$ClientCharset . "'" );
+        // СѓРєР°Р·С‹РІР°РµС‚, РІ РєР°РєСѓСЋ РєРѕРґРёСЂРѕРІРєСѓ СЃР»РµРґСѓРµС‚ РїСЂРµРѕР±СЂР°Р·РѕРІР°С‚СЊ РґР°РЅРЅС‹Рµ 
+        // РїРѕР»СѓС‡РµРЅС‹Рµ РѕС‚ РєР»РёРµРЅС‚Р° РїРµСЂРµРґ РІС‹РїРѕР»РЅРµРЅРёРµРј Р·Р°РїСЂРѕСЃР°,
+        static::$newlink->query( "SET character_set_connection='" . static::$DBCharset . "'" ); 
+        //  СѓРєР°Р·С‹РІР°РµС‚ СЃРµСЂРІРµСЂСѓ РЅРµ РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚СЊ РїРµСЂРµРєРѕРґРёСЂРѕРІР°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚С‹ Р·Р°РїСЂРѕСЃР° 
+        //  РІ РѕРїСЂРµРґРµР»РµРЅРЅСѓСЋ РєРѕРґРёСЂРѕРІРєСѓ РїРµСЂРµРґ РІС‹РґР°С‡РµР№ РёС… РєР»РёРµРЅС‚Сѓ
+        static::$newlink->query( "SET character_set_results='" . static::$ClientCharset . "'" ); 
+        // СѓРєР°Р·С‹РІР°РµС‚, РєР°РєРёРј РѕР±СЂР°Р·РѕРј СЃСЂР°РІРЅРёРІР°С‚СЊ РјРµР¶РґСѓ СЃРѕР±РѕР№ СЃС‚СЂРѕРєРё РІ Р·Р°РїСЂРѕСЃР°С…
+        static::$newlink->query( "SET collation_connection='" . static::$CollationCharset . "'" );
+    }
     return true;
 }
 
 /**
- * переподключается к БД, если соединение активно, закрывет его и соединяется вновь
+ * РїРµСЂРµРїРѕРґРєР»СЋС‡Р°РµС‚СЃСЏ Рє Р‘Р”, РµСЃР»Рё СЃРѕРµРґРёРЅРµРЅРёРµ Р°РєС‚РёРІРЅРѕ, Р·Р°РєСЂС‹РІРµС‚ РµРіРѕ Рё СЃРѕРµРґРёРЅСЏРµС‚СЃСЏ РІРЅРѕРІСЊ
  * 
- * @return boolean - true в случае успешного соединения с БД , иначе функциЯ connect выбрасывает исключение \Exception
+ * @return boolean - true РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС€РЅРѕРіРѕ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ Р‘Р” , РёРЅР°С‡Рµ С„СѓРЅРєС†РёРЇ connect РІС‹Р±СЂР°СЃС‹РІР°РµС‚ РёСЃРєР»СЋС‡РµРЅРёРµ \Exception
  */
 public static function reconnect()
 {
@@ -183,9 +307,9 @@ public static function reconnect()
 
 
 /**
- * делает запрос к БД. если вернулась ошибка 2006 (server has gone away), то пытается подключиться заново
+ * РґРµР»Р°РµС‚ Р·Р°РїСЂРѕСЃ Рє Р‘Р”. РµСЃР»Рё РІРµСЂРЅСѓР»Р°СЃСЊ РѕС€РёР±РєР° 2006 (server has gone away), С‚Рѕ РїС‹С‚Р°РµС‚СЃСЏ РїРѕРґРєР»СЋС‡РёС‚СЊСЃСЏ Р·Р°РЅРѕРІРѕ
  *  
- * @return boolean - true в случае успешного соединения с БД , иначе функции connect и reconnect выбрасывают исключение \Exception
+ * @return boolean - true РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС€РЅРѕРіРѕ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ Р‘Р” , РёРЅР°С‡Рµ С„СѓРЅРєС†РёРё connect Рё reconnect РІС‹Р±СЂР°СЃС‹РІР°СЋС‚ РёСЃРєР»СЋС‡РµРЅРёРµ \Exception
  */
 public static function ping()
 {
@@ -206,7 +330,7 @@ public static function ping()
 }
 
 /**
- * принудительное отключение, закрывает подключение к БД
+ * РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРµ РѕС‚РєР»СЋС‡РµРЅРёРµ, Р·Р°РєСЂС‹РІР°РµС‚ РїРѕРґРєР»СЋС‡РµРЅРёРµ Рє Р‘Р”
  */
 public static function close()
 {
@@ -214,13 +338,13 @@ public static function close()
 }
 
 /**
- * @param string $TableName - имя таблицы, для которой нужно получить параметры колонок-полей из БД
- * @param type $ExtendFlag - если установлен в true, то данные будут получены через схему для таблицы из БД,
- * если в false, то запросом SHOW COLUMNS FROM 
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РґР»СЏ РєРѕС‚РѕСЂРѕР№ РЅСѓР¶РЅРѕ РїРѕР»СѓС‡РёС‚СЊ РїР°СЂР°РјРµС‚СЂС‹ РєРѕР»РѕРЅРѕРє-РїРѕР»РµР№ РёР· Р‘Р”
+ * @param type $ExtendFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ true, С‚Рѕ РґР°РЅРЅС‹Рµ Р±СѓРґСѓС‚ РїРѕР»СѓС‡РµРЅС‹ С‡РµСЂРµР· СЃС…РµРјСѓ РґР»СЏ С‚Р°Р±Р»РёС†С‹ РёР· Р‘Р”,
+ * РµСЃР»Рё РІ false, С‚Рѕ Р·Р°РїСЂРѕСЃРѕРј SHOW COLUMNS FROM 
  * 
- * @return array - массив с параметрами колонок
+ * @return array - РјР°СЃСЃРёРІ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё РєРѕР»РѕРЅРѕРє
  * 
- * @throws TRMSqlQuery\Exception - если запрос выполнен с ошибкой, вбрасывается исключение
+ * @throws TRMSqlQuery\Exception - РµСЃР»Рё Р·Р°РїСЂРѕСЃ РІС‹РїРѕР»РЅРµРЅ СЃ РѕС€РёР±РєРѕР№, РІР±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ
  */
 public static function getTableColumnsInfo($TableName, $ExtendFlag = false)
 {
@@ -237,80 +361,19 @@ WHERE TABLE_NAME LIKE '{$TableName}'");
     if( !$Result )
     {
         throw new TRMSqlQueryException( __METHOD__ 
-                . " Ощибка получения схемы для таблицы [{$TableName}]"
+                . " РћС‰РёР±РєР° РїРѕР»СѓС‡РµРЅРёСЏ СЃС…РµРјС‹ РґР»СЏ С‚Р°Р±Р»РёС†С‹ [{$TableName}]"
                 . " (#" . self::$newlink->errno . "): " . self::$newlink->error);
     }
     return self::fetchAll($Result);
 }
 
 /**
- * соибирает номера всех записей, у которых поле для родительского элемента имеет имя $ParentFieldName,
- * далее, рекурсивно вызывается для каждого найденного, тем самым собирая дочерние элементы дочерних элементов
- * результирующие (возвращенные) массиывы соединяются в один
- * проходит все дерево вниз от заданной StartId
+ * РїРѕР»СѓС‡Р°РµС‚ РјР°СЃСЃРёРІ РґР°РЅРЅС‹С… РґР»СЏ СЂРµР·СѓР»СЊС‚Р°С‚Р° Р·Р°РїСЂРѕСЃР° $res,
+ * СЌС‚Рѕ РїРѕР»РёС„РёР», РІ РєР°РєРѕР№-С‚Рѕ РІРµСЂСЃРёРё PHP РЅРµ СЂР°Р±РѕС‚Р°Р» mysqli_result::fetch_all
  * 
- * @param int $StartId - первый ID, от которого начинается выборка по дереву
- * @param string $TableName - таблица, из которой производится выборка
- * @param string $IdFieldName - имя поля с ID записей
- * @param string $ParentFieldName - имя поля, которое соержти дочернее ID
- * @param string $OrderFieldName - имя поля, по которому производится сортировка (ВНИМАНИЕ! сортировка в рамках выборки одного ID)
- * @param string $PresentFieldName - если не null, тогда слжержит имя поля-флага, которое проверятся на наличие данных,
- * для добавления к результирующему массиву этой записи ее поле $PresentFieldName должно быть обязательно не пустым, оличным от 0, и не NULL
- * @param boolean $first - при пользовательском вызове этот флаг по умолчанию = true, т.е. первый рекурсивный вызов,
- * он позволяет добавить передаваемый $StartId в первый элемент результирующего массива
- * 
- * @return array - одномерный массив всех дочерних ID из поля $IdFieldName
- */
-public static function getAllChildsArray($StartId, $TableName, $IdFieldName, $ParentFieldName, $OrderFieldName = null, $PresentFieldName = null, $first=true)
-{
-    $query  = "SELECT {$IdFieldName} FROM `{$TableName}` WHERE `{$ParentFieldName}`=".$StartId;
-    if( isset($PresentFieldName) )
-    {
-        $query .=" AND `{$TableName}`.`{$PresentFieldName}`<>''  "
-                . "AND `{$TableName}`.`{$PresentFieldName}`<>'0' "
-                . "AND `{$TableName}`.`{$PresentFieldName}`<>'NULL'";
-    }
-    if( isset($OrderFieldName) )
-    {
-        $query .=" ORDER BY `{$TableName}`.`{$OrderFieldName}` ";
-    }
-    
-    $allgroups = array();
-    if($first === true) { $allgroups[] = $StartId; }
-    $result1 = static::$newlink->query($query);
-    if( !$result1 )
-    {
-        //TRMLib::dp( __METHOD__ . "Запрос неудачный [{$query}]" );
-        return null;
-    }
-    if( $result1->num_rows == 0 )
-    {
-        return $allgroups;
-    }
-
-    // добавляем каждый дочерний элемент в массив (если его там нет) и рекурсивно вызываем для него эту функцию
-    while ($row1 = $result1->fetch_array(MYSQLI_ASSOC)) 
-    {
-        // если очередной ID уже есть в массиве, значит в структуре зацикливание, пропускаем его
-        if( in_array( $row1[$IdFieldName], $allgroups ) ) { continue; }
-        $allgroups[]=$row1[$IdFieldName];
-        $currentgroups = static::getAllChildsArray($row1[$IdFieldName], $TableName, $IdFieldName, $ParentFieldName, $OrderFieldName, $PresentFieldName, false);
-        if( !empty($currentgroups) )
-        {
-            $allgroups = array_merge($allgroups, $currentgroups);
-        }
-    }
-    $result1->free();
-    return $allgroups;
-}
-
-/**
- * получает массив данных для результата запроса $res,
- * это полифил, в какой-то версии PHP не работал mysqli_result::fetch_all
- * 
- * @param mysqli_result $res - объект с результатом выполненя SQL-запроса через mysqli_result::query
- * @param int $stat - в каком виде получать результат (MYSQLI_NUM - нумерованный массив, MYSQLI_ASSOC - массив с индексами как поля в таблице БД, MYSQLI_BOTH - вернутся оба варианта)
- * @return array - массив строк с данными запроса
+ * @param mysqli_result $res - РѕР±СЉРµРєС‚ СЃ СЂРµР·СѓР»СЊС‚Р°С‚РѕРј РІС‹РїРѕР»РЅРµРЅСЏ SQL-Р·Р°РїСЂРѕСЃР° С‡РµСЂРµР· mysqli_result::query
+ * @param int $stat - РІ РєР°РєРѕРј РІРёРґРµ РїРѕР»СѓС‡Р°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚ (MYSQLI_NUM - РЅСѓРјРµСЂРѕРІР°РЅРЅС‹Р№ РјР°СЃСЃРёРІ, MYSQLI_ASSOC - РјР°СЃСЃРёРІ СЃ РёРЅРґРµРєСЃР°РјРё РєР°Рє РїРѕР»СЏ РІ С‚Р°Р±Р»РёС†Рµ Р‘Р”, MYSQLI_BOTH - РІРµСЂРЅСѓС‚СЃСЏ РѕР±Р° РІР°СЂРёР°РЅС‚Р°)
+ * @return array - РјР°СЃСЃРёРІ СЃС‚СЂРѕРє СЃ РґР°РЅРЅС‹РјРё Р·Р°РїСЂРѕСЃР°
  */
 public static function fetchAll($res, $stat = MYSQLI_ASSOC)
 {

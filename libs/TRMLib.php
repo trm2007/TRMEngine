@@ -3,255 +3,330 @@
 namespace TRMEngine\Helpers;
 
 /**
- * класс, в котором собраны некоторые полезные функции в виде статическиъ методов - библиотека
+ * РєР»Р°СЃСЃ, РІ РєРѕС‚РѕСЂРѕРј СЃРѕР±СЂР°РЅС‹ РЅРµРєРѕС‚РѕСЂС‹Рµ РїРѕР»РµР·РЅС‹Рµ С„СѓРЅРєС†РёРё РІ РІРёРґРµ СЃС‚Р°С‚РёС‡РµСЃРєРёСЉ РјРµС‚РѕРґРѕРІ - Р±РёР±Р»РёРѕС‚РµРєР°
  */
 class TRMLib
 {
 /**
- * DefaultDebugStringColor - цвет текста отладочной информации по умолчанию, используется в функции debugPrint и dp
+ * DefaultDebugStringColor - С†РІРµС‚ С‚РµРєСЃС‚Р° РѕС‚Р»Р°РґРѕС‡РЅРѕР№ РёРЅС„РѕСЂРјР°С†РёРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ С„СѓРЅРєС†РёРё debugPrint Рё dp
  */
 const DefaultDebugTextColor = "red";
 /**
- * DefaultInfoTextColor - цвет текста информационного сообщения по умолчанию, используется в функции ip
+ * DefaultInfoTextColor - С†РІРµС‚ С‚РµРєСЃС‚Р° РёРЅС„РѕСЂРјР°С†РёРѕРЅРЅРѕРіРѕ СЃРѕРѕР±С‰РµРЅРёСЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ С„СѓРЅРєС†РёРё ip
  */
 const DefaultInfoTextColor = "blue";
 /**
- * DefaultStringTextColor - цвет текста простых строк по умолчанию, используется в функции sp
+ * DefaultStringTextColor - С†РІРµС‚ С‚РµРєСЃС‚Р° РїСЂРѕСЃС‚С‹С… СЃС‚СЂРѕРє РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ С„СѓРЅРєС†РёРё sp
  */
 const DefaultStringTextColor = "green";
 /**
- * DefaultArrayTextColor - цвет текста массивов по умолчанию, используется в функции ap
+ * DefaultArrayTextColor - С†РІРµС‚ С‚РµРєСЃС‚Р° РјР°СЃСЃРёРІРѕРІ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ С„СѓРЅРєС†РёРё ap
  */
 const DefaultArrayTextColor = "gray";
 
 /**
- * счетчик распечатанных блоков отладочной информации
+ * СЃС‡РµС‚С‡РёРє СЂР°СЃРїРµС‡Р°С‚Р°РЅРЅС‹С… Р±Р»РѕРєРѕРІ РѕС‚Р»Р°РґРѕС‡РЅРѕР№ РёРЅС„РѕСЂРјР°С†РёРё
  */
 static public $DebugBlocksCounter = 0;
 
 /**
- * выводит отладочную тнформацию в виде таблицы стека вызовов
+ * РІС‹РІРѕРґРёС‚ РѕС‚Р»Р°РґРѕС‡РЅСѓСЋ С‚РЅС„РѕСЂРјР°С†РёСЋ РІ РІРёРґРµ С‚Р°Р±Р»РёС†С‹ СЃС‚РµРєР° РІС‹Р·РѕРІРѕРІ
  * 
- * @param array $arr - должен передаваться массив возвращаемый debug_backtrace()
+ * @param array $arr - РґРѕР»Р¶РµРЅ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РјР°СЃСЃРёРІ РІРѕР·РІСЂР°С‰Р°РµРјС‹Р№ debug_backtrace()
+ * @param boolean $CLIFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ Р±СѓРґРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ РІС‹РІРѕРґ РґР»СЏ Command Line РёРЅС‚РµСЂС„РµСЃР°,
+ * Р±РµР· HTML РѕС„РѕСЂРјР»РµРЅРёСЏ
  */
-protected static function printDebugTrace( array $arr )
+protected static function printDebugTrace( array $arr, $CLIFlag = null )
 {
-    echo "<table border='1' style='border: 1px solid black; border-collapse: collapse;'>";
-    echo "<tr><th>№</th><th>Стек вызова</th><th>Аргументы</th></tr>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag )
+    {
+        echo "<style>";
+        echo "
+.debug_table{
+    display: flex;
+    clear: both;
+}
+.debug_table:nth-child(4n), .debug_table:nth-child(4n-1){
+    background-color: #ddd;
+}
+.debug_table:nth-child(odd) div{
+    overflow: unset !important;
+}
+.debug_table .td1{
+    display: inline-block;
+    float: left;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    width: 20px;
+    box-sizing: border-box;
+}
+.debug_table .td2{
+    display: inline-block;
+    float: left;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    width: calc(50% - 20px);
+    box-sizing: border-box;
+    vertical-align: top;
+    max-height: 300px;
+    overflow: scroll;
+    white-space: break-spaces;
+    word-wrap: anywhere;
+    word-break: break-all;
+}
+.debug_table .td3{
+    display: inline-block;
+    float: left;
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+    width: 50%;
+    box-sizing: border-box;
+    vertical-align: top;
+    max-height: 300px;
+    overflow: scroll;
+    white-space: break-spaces;
+    word-wrap: anywhere;
+    word-break: break-all;
+}
+        ";
+        echo "</style>";
+    }
+    
+//    echo "<div class='debug_table'>";
     foreach ($arr as $num => $item)
     {
-        echo "<tr>";
-        echo "<td>$num</td>";
-        echo "<td style='vertical-align: top;'>";
-        if(array_key_exists("file", $item) ) { self::sp("Имя файла: " . $item["file"]); }
-        if(array_key_exists("line", $item) ) { self::sp("Номер строки: " . $item["line"]); }
-        if(array_key_exists("class", $item) ) { self::sp("Класс: " . $item["class"]); }
-        if(array_key_exists("object", $item) ) { self::sp("Объект:"); self::ip( $item["object"]); }
-        if(array_key_exists("type", $item) ) { self::sp("Тип вызова функции: " . $item["type"]); }
-//            Если это вызов метода объекта, будет выведено [->].
-//            Если это вызов статического метода класса, то [::].
-//            Если это простой вызов функции, не выводится ничего.
-        if(array_key_exists("function", $item) ) { self::sp("Функция: " . $item["function"]); }
-        echo "</td>";
+        if( !$CLIFlag )
+        {
+            echo "<div class='debug_table'>"
+                . "<div class='td1'>в„–</div>"
+                . "<div class='td2'>РЎС‚РµРє РІС‹Р·РѕРІР°</div>"
+                . "<div class='td3'>РђСЂРіСѓРјРµРЅС‚С‹</div>"
+                . "</div>";
 
-        echo "<td style='vertical-align: top;'>";
-        // array 	При нахождении внутри функции, будет выведен список аргументов этой функции. Если внутри включаемого файла, будет выведен список включаемых файлов. 
-        if(array_key_exists("args", $item) ) { self::ap($item["args"]); }
-        echo "</td>";
-
-        echo "</tr>";
+            echo "<div class='debug_table'>"
+                . "<div class='td1'>$num</div>"
+                . "<div class='td2'>";
+        }
+        if(array_key_exists("file", $item) ) 
+        { self::sp("РРјСЏ С„Р°Р№Р»Р°: " . $item["file"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("line", $item) ) 
+        { self::sp("РќРѕРјРµСЂ СЃС‚СЂРѕРєРё: " . $item["line"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("class", $item) ) 
+        { self::sp("РљР»Р°СЃСЃ: " . $item["class"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("type", $item) ) 
+        { self::sp("РўРёРї РІС‹Р·РѕРІР° С„СѓРЅРєС†РёРё: " . $item["type"], self::DefaultStringTextColor, $CLIFlag); }
+//            Р•СЃР»Рё СЌС‚Рѕ РІС‹Р·РѕРІ РјРµС‚РѕРґР° РѕР±СЉРµРєС‚Р°, Р±СѓРґРµС‚ РІС‹РІРµРґРµРЅРѕ [->].
+//            Р•СЃР»Рё СЌС‚Рѕ РІС‹Р·РѕРІ СЃС‚Р°С‚РёС‡РµСЃРєРѕРіРѕ РјРµС‚РѕРґР° РєР»Р°СЃСЃР°, С‚Рѕ [::].
+//            Р•СЃР»Рё СЌС‚Рѕ РїСЂРѕСЃС‚РѕР№ РІС‹Р·РѕРІ С„СѓРЅРєС†РёРё, РЅРµ РІС‹РІРѕРґРёС‚СЃСЏ РЅРёС‡РµРіРѕ.
+        if(array_key_exists("function", $item) ) 
+        { self::sp("Р¤СѓРЅРєС†РёСЏ: " . $item["function"], self::DefaultStringTextColor, $CLIFlag); }
+        if(array_key_exists("object", $item) ) 
+        {
+            self::sp("РћР±СЉРµРєС‚:", self::DefaultStringTextColor, $CLIFlag);
+            self::ip( $item["object"], self::DefaultInfoTextColor, $CLIFlag);
+        }
+        if( !$CLIFlag )
+        {
+            echo "</div>";
+            echo "<div class='td3'>";
+        }
+        // array
+        // РџСЂРё РЅР°С…РѕР¶РґРµРЅРёРё РІРЅСѓС‚СЂРё С„СѓРЅРєС†РёРё, Р±СѓРґРµС‚ РІС‹РІРµРґРµРЅ СЃРїРёСЃРѕРє Р°СЂРіСѓРјРµРЅС‚РѕРІ СЌС‚РѕР№ С„СѓРЅРєС†РёРё. 
+        // Р•СЃР»Рё РІРЅСѓС‚СЂРё РІРєР»СЋС‡Р°РµРјРѕРіРѕ С„Р°Р№Р»Р°, Р±СѓРґРµС‚ РІС‹РІРµРґРµРЅ СЃРїРёСЃРѕРє РІРєР»СЋС‡Р°РµРјС‹С… С„Р°Р№Р»РѕРІ. 
+        if(array_key_exists("args", $item) ) 
+        { self::ap($item["args"], self::DefaultArrayTextColor, $CLIFlag); }
+        if( !$CLIFlag )
+        {
+            echo "</div>";
+            echo "</div>";
+        }
     }
-    echo "</table>";
+//    echo "</div>";
 }
 
 /**
- * функция для вывода отладочной информации
+ * С„СѓРЅРєС†РёСЏ РґР»СЏ РІС‹РІРѕРґР° РѕС‚Р»Р°РґРѕС‡РЅРѕР№ РёРЅС„РѕСЂРјР°С†РёРё
  * 
- * @param string $str - строка для вывода
- * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
- * @param boolean $traceflag - флаг, который указывает выводить или нет информацию из стека вызовов
+ * @param string $str - СЃС‚СЂРѕРєР° РґР»СЏ РІС‹РІРѕРґР°
+ * @param string $color - С†РІРµС‚ РґР»СЏ РІС‹РІРѕРґР°, red, yellow, blue... РёР»Рё #00ff00...
+ * @param boolean $traceflag - С„Р»Р°Рі, РєРѕС‚РѕСЂС‹Р№ СѓРєР°Р·С‹РІР°РµС‚ РІС‹РІРѕРґРёС‚СЊ РёР»Рё РЅРµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ РёР· СЃС‚РµРєР° РІС‹Р·РѕРІРѕРІ
+ * @param boolean $CLIFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ Р±СѓРґРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ РІС‹РІРѕРґ РґР»СЏ Command Line РёРЅС‚РµСЂС„РµСЃР°,
+ * Р±РµР· HTML РѕС„РѕСЂРјР»РµРЅРёСЏ
  */
-public static function dp($str, $color = self::DefaultDebugTextColor, $traceflag = false )
+public static function dp($str, $color = self::DefaultDebugTextColor, $traceflag = false, $CLIFlag = null )
 {
     if( defined("DEBUG") )
     {
-        echo "<div class='trm_debug_info_div' style='width: 100%;'><strong>[Debug block(" . self::$DebugBlocksCounter++ . ")]</strong>";
-        self::debugPrint($str, $color);
-        if($traceflag) { self::printDebugTrace( debug_backtrace(), $color); }
-        echo "</div>";
+        if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+        if(!$CLIFlag) 
+        {
+            echo "<div class='trm_debug_info_div' style='max-width: 100%;'"
+            . "<strong>[Debug block(" . self::$DebugBlocksCounter++ . ")]</strong>";
+        }
+        self::debugPrint($str, $color, $CLIFlag);
+        if($traceflag) { self::printDebugTrace( debug_backtrace(), $CLIFlag); }
+        if(!$CLIFlag) 
+        {
+            echo "</div>";
+        }
     }
 }
 
 /**
- * Печатает содержимое строки $str в цвете $color в спец. тэгах <pre>...</pre> 
- * только если определена константа DEBUG
+ * РџРµС‡Р°С‚Р°РµС‚ СЃРѕРґРµСЂР¶РёРјРѕРµ СЃС‚СЂРѕРєРё $str РІ С†РІРµС‚Рµ $color РІ СЃРїРµС†. С‚СЌРіР°С… <pre>...</pre> 
+ * С‚РѕР»СЊРєРѕ РµСЃР»Рё РѕРїСЂРµРґРµР»РµРЅР° РєРѕРЅСЃС‚Р°РЅС‚Р° DEBUG
  * 
- * @param string $str - строка для вывода
- * @param string $color - цвет текста
+ * @param string $str - СЃС‚СЂРѕРєР° РґР»СЏ РІС‹РІРѕРґР°
+ * @param string $color - С†РІРµС‚ С‚РµРєСЃС‚Р°
+ * @param boolean $CLIFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ Р±СѓРґРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ РІС‹РІРѕРґ РґР»СЏ Command Line РёРЅС‚РµСЂС„РµСЃР°,
+ * Р±РµР· HTML РѕС„РѕСЂРјР»РµРЅРёСЏ
  */
-public static function debugPrint($str, $color = self::DefaultDebugTextColor )
+public static function debugPrint($str, $color = self::DefaultDebugTextColor, $CLIFlag = null )
 {
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
     if( defined("DEBUG") )
     {
-        echo "<pre style='color: {$color};'>";
+        if(!$CLIFlag) { echo "<pre style='color: {$color};'>"; }
         var_dump( $str );
-        echo "</pre>";
+        if(!$CLIFlag) { echo "</pre>"; }
+        else { echo PHP_EOL; }
     }
 }
 
 /**
- * функция для вывода информации в тегах <pre>
+ * С„СѓРЅРєС†РёСЏ РґР»СЏ РІС‹РІРѕРґР° РёРЅС„РѕСЂРјР°С†РёРё var_dump($str) РІ С‚РµРіР°С… <pre>,
+ * РµСЃР»Рё С‚РѕР»СЊРєРѕ СЃРєСЂРёРїС‚ РЅРµ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ РІ РѕРєСЂСѓР¶РµРЅРёРё CommandLine (CLI)
  * 
- * @param mixed $str - строка для вывода
- * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ * @param mixed $str - СЃС‚СЂРѕРєР° РґР»СЏ РІС‹РІРѕРґР°
+ * @param string $color - С†РІРµС‚ РґР»СЏ РІС‹РІРѕРґР°, red, yellow, blue... РёР»Рё #00ff00...
+ * @param boolean $CLIFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ Р±СѓРґРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ РІС‹РІРѕРґ РґР»СЏ Command Line РёРЅС‚РµСЂС„РµСЃР°,
+ * Р±РµР· HTML РѕС„РѕСЂРјР»РµРЅРёСЏ
  */
-public static function ip( $str, $color = self::DefaultInfoTextColor )
+public static function ip( $str, $color = self::DefaultInfoTextColor, $CLIFlag = null )
 {
-    echo "<pre style='color: {$color};'>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag ){ echo "<pre style='color: {$color};'>"; }
     var_dump( $str );
-    echo "</pre>";
+    if( !$CLIFlag ){ echo "</pre>"; }
+    else { echo PHP_EOL; }
 }
 
 /**
- * функция для вывода массива
+ * С„СѓРЅРєС†РёСЏ РґР»СЏ РІС‹РІРѕРґР° РјР°СЃСЃРёРІР°
  * 
- * @param array $arr - строка для вывода
- * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ * @param array $arr - СЃС‚СЂРѕРєР° РґР»СЏ РІС‹РІРѕРґР°
+ * @param string $color - С†РІРµС‚ РґР»СЏ РІС‹РІРѕРґР°, red, yellow, blue... РёР»Рё #00ff00...
+ * @param boolean $CLIFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ Р±СѓРґРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ РІС‹РІРѕРґ РґР»СЏ Command Line РёРЅС‚РµСЂС„РµСЃР°,
+ * Р±РµР· HTML РѕС„РѕСЂРјР»РµРЅРёСЏ
  */
-public static function ap( array $arr, $color = self::DefaultArrayTextColor )
+public static function ap( array $arr, $color = self::DefaultArrayTextColor, $CLIFlag = null )
 {
-    echo "<pre style='color: {$color};'>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag ){ echo "<pre style='color: {$color};'>"; }
     print_r( $arr );
-    echo "</pre>";
+    if( !$CLIFlag ){ echo "</pre>"; }
+    else { echo PHP_EOL; }
 }
 
 /**
- * функция для вывода строки
+ * С„СѓРЅРєС†РёСЏ РґР»СЏ РІС‹РІРѕРґР° СЃС‚СЂРѕРєРё
  * 
- * @param string $str - строка для вывода
- * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
+ * @param string $str - СЃС‚СЂРѕРєР° РґР»СЏ РІС‹РІРѕРґР°
+ * @param string $color - С†РІРµС‚ РґР»СЏ РІС‹РІРѕРґР°, red, yellow, blue... РёР»Рё #00ff00...
+ * @param boolean $CLIFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ Р±СѓРґРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЃСЏ РІС‹РІРѕРґ РґР»СЏ Command Line РёРЅС‚РµСЂС„РµСЃР°,
+ * Р±РµР· HTML РѕС„РѕСЂРјР»РµРЅРёСЏ
  */
-public static function sp( $str, $color = self::DefaultStringTextColor )
+public static function sp( $str, $color = self::DefaultStringTextColor, $CLIFlag = null )
 {
-    echo "<pre style='color: {$color};'>{$str}</pre>";
+    if( $CLIFlag === null ) { $CLIFlag = self::isCLI(); }
+
+    if( !$CLIFlag ){ echo "<pre style='color: {$color};'>"; }
+    echo $str;
+    if( !$CLIFlag ){ echo "</pre>"; }
+    else { echo PHP_EOL; }
 }
 
 /**
- * русские названия в английский транслит с заменой пробелов на минусы - 
+ * СЂСѓСЃСЃРєРёРµ РЅР°Р·РІР°РЅРёСЏ РІ Р°РЅРіР»РёР№СЃРєРёР№ С‚СЂР°РЅСЃР»РёС‚ СЃ Р·Р°РјРµРЅРѕР№ РїСЂРѕР±РµР»РѕРІ РЅР° РјРёРЅСѓСЃС‹ - 
  * 
- * @param string $s - строка с русскими буквами, которые будут заменены на английский аналог
- * @param boolean $specialforurl - если этот флаг установлен в true, тогда комбинация 100х100 с русским хэ, поменяется на 100x100 с английским икс!
- * @param string $charset - набор символов. поумолчанию устанавливается в "windows-1251"
- * @return string - строка в траслитерации без кирилических символов
+ * @param string $s - СЃС‚СЂРѕРєР° СЃ СЂСѓСЃСЃРєРёРјРё Р±СѓРєРІР°РјРё, РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ Р·Р°РјРµРЅРµРЅС‹ РЅР° Р°РЅРіР»РёР№СЃРєРёР№ Р°РЅР°Р»РѕРі
+ * @param boolean $specialforurl - РµСЃР»Рё СЌС‚РѕС‚ С„Р»Р°Рі СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ true, С‚РѕРіРґР° РєРѕРјР±РёРЅР°С†РёСЏ 100С…100 СЃ СЂСѓСЃСЃРєРёРј С…СЌ, РїРѕРјРµРЅСЏРµС‚СЃСЏ РЅР° 100x100 СЃ Р°РЅРіР»РёР№СЃРєРёРј РёРєСЃ!
+ * @param string $charset - РЅР°Р±РѕСЂ СЃРёРјРІРѕР»РѕРІ. РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РІ "utf-8"
+ * @return string - СЃС‚СЂРѕРєР° РІ С‚СЂР°СЃР»РёС‚РµСЂР°С†РёРё Р±РµР· РєРёСЂРёР»РёС‡РµСЃРєРёС… СЃРёРјРІРѕР»РѕРІ
  */
-public static function translit($s, $specialforurl=false, $charset = "windows-1251")
+public static function translit($s, $specialforurl=false, $charset = "utf-8")
 {
-    $s = (string) $s; // преобразуем в строковое значение
-    $s = strip_tags($s); // убираем HTML-теги
-    $s = str_replace(array("\n", "\r"), "-", $s); // убираем перевод каретки
+    $s = (string) $s; // РїСЂРµРѕР±СЂР°Р·СѓРµРј РІ СЃС‚СЂРѕРєРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ
+    $s = strip_tags($s); // СѓР±РёСЂР°РµРј HTML-С‚РµРіРё
+    $s = str_replace(array("\n", "\r"), "-", $s); // СѓР±РёСЂР°РµРј РїРµСЂРµРІРѕРґ РєР°СЂРµС‚РєРё
 
-    // меняет русский х на английский X если включен флаг specialforurl для комбинация с цифрами, например для размеров 100х100
+    // РјРµРЅСЏРµС‚ СЂСѓСЃСЃРєРёР№ С… РЅР° Р°РЅРіР»РёР№СЃРєРёР№ X РµСЃР»Рё РІРєР»СЋС‡РµРЅ С„Р»Р°Рі specialforurl РґР»СЏ РєРѕРјР±РёРЅР°С†РёСЏ СЃ С†РёС„СЂР°РјРё, 
+    // РЅР°РїСЂРёРјРµСЂ РґР»СЏ СЂР°Р·РјРµСЂРѕРІ 100С…100
     if($specialforurl) 
     {
-      $s = preg_replace("/([0-9]+)х([0-9]+)/U", '$1x$2', $s);
+      $s = preg_replace("/([0-9]+)С…([0-9]+)/U", '$1x$2', $s);
     }
 
-    // $s = function_exists('mb_strtolower') ? mb_strtolower($s, 'UTF-8') : strtolower($s); // переводим строку в нижний регистр (иногда надо задать локаль)
+    // $s = function_exists('mb_strtolower') ? mb_strtolower($s, 'UTF-8') : strtolower($s); // РїРµСЂРµРІРѕРґРёРј СЃС‚СЂРѕРєСѓ РІ РЅРёР¶РЅРёР№ СЂРµРіРёСЃС‚СЂ (РёРЅРѕРіРґР° РЅР°РґРѕ Р·Р°РґР°С‚СЊ Р»РѕРєР°Р»СЊ)
     $s = mb_strtolower($s, $charset);
-    $s = strtr($s, array('а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'zh','з'=>'z','и'=>'i','й'=>'j','к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f','х'=>'h','ц'=>'c','ч'=>'ch','ш'=>'sh','щ'=>'shch','ы'=>'y','э'=>'e','ю'=>'yu','я'=>'ya','ъ'=>'','ь'=>''));
-    $s = preg_replace("/[^0-9a-z-_]/i", "-", $s); // очищаем строку от недопустимых символов
-    $s = preg_replace("/\-\-+/", '-', $s); // удаляем повторяющиеся знаки -
+    $s = strtr($s, array('Р°'=>'a','Р±'=>'b','РІ'=>'v','Рі'=>'g','Рґ'=>'d','Рµ'=>'e','С‘'=>'e','Р¶'=>'zh','Р·'=>'z','Рё'=>'i','Р№'=>'j','Рє'=>'k','Р»'=>'l','Рј'=>'m','РЅ'=>'n','Рѕ'=>'o','Рї'=>'p','СЂ'=>'r','СЃ'=>'s','С‚'=>'t','Сѓ'=>'u','С„'=>'f','С…'=>'h','С†'=>'c','С‡'=>'ch','С€'=>'sh','С‰'=>'shch','С‹'=>'y','СЌ'=>'e','СЋ'=>'yu','СЏ'=>'ya','СЉ'=>'','СЊ'=>''));
+    $s = preg_replace("/[^0-9a-z-_]/i", "-", $s); // РѕС‡РёС‰Р°РµРј СЃС‚СЂРѕРєСѓ РѕС‚ РЅРµРґРѕРїСѓСЃС‚РёРјС‹С… СЃРёРјРІРѕР»РѕРІ
+    $s = preg_replace("/\-\-+/", '-', $s); // СѓРґР°Р»СЏРµРј РїРѕРІС‚РѕСЂСЏСЋС‰РёРµСЃСЏ Р·РЅР°РєРё -
     $s = trim($s, "-");
-    return $s; // возвращаем результат
+    return $s; // РІРѕР·РІСЂР°С‰Р°РµРј СЂРµР·СѓР»СЊС‚Р°С‚
 }
 
 /**
- * конвертирует массив (или одну строку),
- * в массиве конвертируются только строковые значения,
- * вызывается рекурсивно для всех дочерних элементов
+ * РєРѕРЅРІРµСЂС‚РёСЂСѓРµС‚ РјР°СЃСЃРёРІ (РёР»Рё РѕРґРЅСѓ СЃС‚СЂРѕРєСѓ),
+ * РІ РјР°СЃСЃРёРІРµ РєРѕРЅРІРµСЂС‚РёСЂСѓСЋС‚СЃСЏ С‚РѕР»СЊРєРѕ СЃС‚СЂРѕРєРѕРІС‹Рµ Р·РЅР°С‡РµРЅРёСЏ,
+ * РІС‹Р·С‹РІР°РµС‚СЃСЏ СЂРµРєСѓСЂСЃРёРІРЅРѕ РґР»СЏ РІСЃРµС… РґРѕС‡РµСЂРЅРёС… СЌР»РµРјРµРЅС‚РѕРІ РјР°СЃСЃРёРІР°
  * 
- * @param array|string &$array - ссылка на массив или строку, в результате выполнения функции меняется его содержимое
- * @param type $from - кодировка из которой конвертируется
- * @param type $to - кодировка в которую конвертируется
- * @return array|string - конвертированный массив или строка
+ * @param array|string &$array - СЃСЃС‹Р»РєР° РЅР° РјР°СЃСЃРёРІ РёР»Рё СЃС‚СЂРѕРєСѓ, РІ СЂРµР·СѓР»СЊС‚Р°С‚Рµ РІС‹РїРѕР»РЅРµРЅРёСЏ С„СѓРЅРєС†РёРё РјРµРЅСЏРµС‚СЃСЏ РµРіРѕ СЃРѕРґРµСЂР¶РёРјРѕРµ
+ * @param string $from - РєРѕРґРёСЂРѕРІРєР° РёР· РєРѕС‚РѕСЂРѕР№ РєРѕРЅРІРµСЂС‚РёСЂСѓРµС‚СЃСЏ, РЅР°РїСЂРёРјРµСЂ, windows-1251
+ * @param string $to - РєРѕРґРёСЂРѕРІРєР° РІ РєРѕС‚РѕСЂСѓСЋ РєРѕРЅРІРµСЂС‚РёСЂСѓРµС‚СЃСЏ, РЅР°РїСЂРёРјРµСЂ, UTF-8
+ * 
+ * @return array|string - РєРѕРЅРІРµСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ РјР°СЃСЃРёРІ РёР»Рё СЃС‚СЂРѕРєР°
  */
 public static function conv(&$array, $from = "utf-8", $to = "windows-1251")
 {
 //    if( empty($array) ) { return $array; }
+    $from = strtolower($from);
+    $to = strtolower($to);
 
-    if( !empty($array) && $from !== $to )
+    if( empty($array) || $from === $to )
     {
-        if( is_array($array) )
+        return $array;
+    }
+
+    if( is_array($array) )
+    {
+        foreach($array as $key => $param )
         {
-            foreach($array as $key => $param )
-            {
-                $array[$key] = TRMLib::conv ($array[$key], $from, $to);
-            }
+            $array[$key] = TRMLib::conv ($array[$key], $from, $to);
         }
-        elseif(is_string($array) )
-        {
-            $array = iconv($from, $to, $array);
-        }
+    }
+    elseif(is_string($array) )
+    {
+        $array = iconv($from, $to, $array);
     }
 
     return $array;
 }
 
 /**
- * Функция конвертации массива в XML объект.
- * На вход подается мульти-вложенный массив,
- * на выходе получается строка с валидным xml с помощью рекурсии
- *
- * @param array $data
- * @param string $rootNodeName - назвение коневого (или очередного в рекурсии) xml-узла
- * @param SimpleXMLElement $xml - используется рекурсивно
- * 
- * @return string XML - возвращает XML в виде строки
- */
-public static function convertArrayToXml($data, $rootNodeName = 'data', $xml=null)
-{
-    if ($xml == null)
-    {
-        $xml = simplexml_load_string("<?xml version=\"1.0\" encoding=\"utf-8\"?><$rootNodeName />");
-    }
-
-    //цикл перебора массива 
-    foreach($data as $key => $value)
-    {
-        // нельзя применять числовое название полей в XML
-        if (is_numeric($key))
-        {
-            // поэтому делаем их строковыми по образцу unknownNode_123...
-            $key = "unknownNode_{$key}";
-        }
-
-        // удаляем не латинские символы и не цифры
-        $key = preg_replace('/[^a-z0-9]/i', '', $key);
-
-        // если значение массива также является массивом то вызываем себя рекурсивно
-        if (is_array($value))
-        {
-            // добавляет пустой узел XML и возвращает объект SimpleXMLElement (точнее ссылку на него)
-            $node = $xml->addChild($key);
-            // рекурсивный вызов
-            self::convertArraytoXml($value, $rootNodeName, $node);
-        }
-        else
-        {
-            // добавляем один узел, 
-            // преобразуя возможные символы в соответсвующие HTML-коды функцией htmlentities (например кавычки, апострофы и т.д.)
-            $value = htmlentities($value);
-            // добавляет узел XML с данными
-            $xml->addChild($key,$value);
-        }
-
-    }
-
-    return $xml->asXML();
-}
-
-/**
- * ПОЛИФИЛ!!!
+ * РџРћР›РР¤РР›!!!
  * Returns the values from a single column of the input array, identified by
  * the $columnKey.
  *
@@ -357,6 +432,66 @@ public static function array_column($input = null, $columnKey = null, $indexKey 
     }
 
     return $resultArray;
+}
+
+/**
+ * РїСЂРѕРІРµСЂСЏРµС‚ РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ С‚РµРєСѓС‰РёР№ СЃРєСЂРёРї РІ Command Line
+ * @return boolean
+ */
+public static function isCLI()
+{
+//echo "http_response_code() === false" . PHP_EOL;
+    if( http_response_code() === false ) { return true; }
+//echo "defined('STDIN')" . PHP_EOL;
+    if( defined('STDIN') ) { return true; }
+//echo "php_sapi_name() === 'cli'" . PHP_EOL;
+    if( php_sapi_name() === 'cli' ) { return true; }
+//echo "empty(_SERVER['REMOTE_ADDR']) &&" . PHP_EOL;
+    if( empty($_SERVER['REMOTE_ADDR']) &&
+        !isset($_SERVER['HTTP_USER_AGENT']) && 
+        count($_SERVER['argv']) > 0) { return true; }
+//echo "!array_key_exists('REQUEST_METHOD', _SERVER)" . PHP_EOL;
+    if ( !array_key_exists('REQUEST_METHOD', $_SERVER) ) { return true; }
+
+//echo "Nothing...<br>" . PHP_EOL;
+
+    return false;
+}
+
+/**
+ * @return string - РїСЂРѕС‚РѕРєРѕР», РЅР°РїСЂРёРјРµСЂ, HTTP РёР»Рё HTTPS
+ */
+public static function getServerProtcol()
+{
+    if( isset( $_SERVER["HTTP_X_FORWARDED_PROTO"] ) )
+    {
+        return filter_input(INPUT_SERVER, "HTTP_X_FORWARDED_PROTO");
+    }
+    else if( isset( $_SERVER["HTTP_X_REQUEST_SCHEME"] ) )
+    {
+        return filter_input(INPUT_SERVER, "HTTP_X_REQUEST_SCHEME");
+    }
+    else if( isset( $_SERVER["REQUEST_SCHEME"] ) )
+    {
+        return filter_input(INPUT_SERVER, "REQUEST_SCHEME");
+    }
+
+    return "http";
+}
+
+
+public static function isMobile()
+{
+    $TestStr = "/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/";
+    
+    $UserAgent = filter_input(INPUT_SERVER, "HTTP_USER_AGENT");
+    preg_match($TestStr, $UserAgent, $Matches);
+
+    if($Matches && count($Matches))
+    {
+        return $Matches[0];
+    }
+    return null;
 }
 
 

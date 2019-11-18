@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
- * ÍÎ‡ÒÒ ‰Îˇ Ó·‡·ÓÚÍË ÒÚÂÍ‡ ‚˚ÁÓ‚Ó‚ ÔÓÒÂ‰ÌËÍÓ‚ ËÁ Ó˜ÂÂ‰Ë
+ * –∫–ª–∞—Å—Å –¥–ª—è –æ–±—Ä–∞–±–æ—Ç–∫–∏ —Å—Ç–µ–∫–∞ –≤—ã–∑–æ–≤–æ–≤ –ø–æ—Å—Ä–µ–¥–Ω–∏–∫–æ–≤ –∏–∑ –æ—á–µ—Ä–µ–¥–∏
  * 
  * @author TRM
  * @version 2018-12-22
@@ -15,20 +15,20 @@ use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 final class TRMNext implements RequestHandlerInterface
 {
 /**
- * ÔÓÒÎ‰ÂÌËÈ Action-Middleware,
- * ÍÓÚÓ˚È ·Û‰ÂÚ ‚˚Á‚‡Ì, ÂÒÎË Ó˜ÂÂ‰¸ ÛÊÂ ÔÛÒÚ‡, ÏÓÊÌÓ ÔÂÂ‰‡‚‡Ú¸ Á‡„ÎÛ¯ÍÛ, Ò Ó·‡·ÓÚ˜ËÍÓÏ ÒÚ‡ÌËˆ˚ 404
+ * –ø–æ—Å–ª–¥–µ–Ω–∏–π Action-Middleware,
+ * –∫–æ—Ç–æ—Ä—ã–π –±—É–¥–µ—Ç –≤—ã–∑–≤–∞–Ω, –µ—Å–ª–∏ –æ—á–µ—Ä–µ–¥—å —É–∂–µ –ø—É—Å—Ç–∞, –º–æ–∂–Ω–æ –ø–µ—Ä–µ–¥–∞–≤–∞—Ç—å –∑–∞–≥–ª—É—à–∫—É, —Å –æ–±—Ä–∞–±–æ—Ç—á–∏–∫–æ–º —Å—Ç—Ä–∞–Ω–∏—Ü—ã 404
  * @var RequestHandlerInterface
  */
 private $LastAction;
 /**
- * Ó˜ÂÂ‰¸ ÔÓÒÂ‰ÌËÍÓ‚
+ * –æ—á–µ—Ä–µ–¥—å –ø–æ—Å—Ä–µ–¥–Ω–∏–∫–æ–≤
  * @var \SplQueue
  */
 private $Queue;
 
 /**
- * @param \SplQueue $Queue - Ó˜ÂÂ‰¸ Ò Ó·˙ÂÍÚ‡ÏË Middleware, ‚ÌÛÚË ÓÔÛÒÚÓ¯‡ÂÚÒˇ, ÔÓ˝ÚÓÏÛ Ò˛‰‡ ÌÛÊÌÓ ÔÂÂ‰‡‚‡Ú¸ ÍÎÓÌ 
- * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $LastAction - ÔÓÒÎÂ‰ÌËÈ Middleware, ÍÓÚÓ˚È ·Û‰ÂÚ ‚˚Á‚‡Ì ÂÒÎË Ó˜ÂÂ‰¸ ÔÛÒÚ‡
+ * @param \SplQueue $Queue - –æ—á–µ—Ä–µ–¥—å —Å –æ–±—ä–µ–∫—Ç–∞–º–∏ Middleware, –≤–Ω—É—Ç—Ä–∏ –æ–ø—É—Å—Ç–æ—à–∞–µ—Ç—Å—è, –ø–æ—ç—Ç–æ–º—É —Å—é–¥–∞ –Ω—É–∂–Ω–æ –ø–µ—Ä–µ–¥–∞–≤–∞—Ç—å –∫–ª–æ–Ω 
+ * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $LastAction - –ø–æ—Å–ª–µ–¥–Ω–∏–π Middleware, –∫–æ—Ç–æ—Ä—ã–π –±—É–¥–µ—Ç –≤—ã–∑–≤–∞–Ω –µ—Å–ª–∏ –æ—á–µ—Ä–µ–¥—å –ø—É—Å—Ç–∞
  */
 public function __construct( \SplQueue $Queue, RequestHandlerInterface $LastAction )
 {
@@ -37,9 +37,9 @@ public function __construct( \SplQueue $Queue, RequestHandlerInterface $LastActi
 }
 
 /**
- * –Â‡ÎËÁÛÂÚ ËÚÂ‡ˆË˛, ‚˚Á˚‚‡ˇ ‚ÒÂ ˝ÎÂÏÂÌÚ˚ Middleware ËÁ Ó˜ÂÂ‰Ë $this->Queue,
- * ‚ Í‡˜ÂÒÚ‚Â LastAction Í‡Ê‰ÓÏÛ $MiddleWare ÔÂ‰ÎÒ‡„‡ÂÚÒˇ ÔÂÂ‰‡‚‡Ú¸ ‰‡Î¸ÌÂÈ¯Û˛ Ó·‡·ÓÚÍÛ Ó·˙ÂÍÚÛ $this,
- * ËÏÂÌÌÓ ˝ÚÓÚ ÔÓ‰ıÓ‰ Â‡ÎËÁÛÂÚ ÂÍÒË‚Ì˚È ‚˚ÁÓ‚
+ * –†–µ–∞–ª–∏–∑—É–µ—Ç –∏—Ç–µ—Ä–∞—Ü–∏—é, –≤—ã–∑—ã–≤–∞—è –≤—Å–µ —ç–ª–µ–º–µ–Ω—Ç—ã Middleware –∏–∑ –æ—á–µ—Ä–µ–¥–∏ $this->Queue,
+ * –≤ –∫–∞—á–µ—Å—Ç–≤–µ LastAction –∫–∞–∂–¥–æ–º—É $MiddleWare –ø—Ä–µ–¥–ª—Å–∞–≥–∞–µ—Ç—Å—è –ø–µ—Ä–µ–¥–∞–≤–∞—Ç—å –¥–∞–ª—å–Ω–µ–π—à—É—é –æ–±—Ä–∞–±–æ—Ç–∫—É –æ–±—ä–µ–∫—Ç—É $this,
+ * –∏–º–µ–Ω–Ω–æ —ç—Ç–æ—Ç –ø–æ–¥—Ö–æ–¥ —Ä–µ–∞–ª–∏–∑—É–µ—Ç —Ä–µ–∫—Ä—Å–∏–≤–Ω—ã–π –≤—ã–∑–æ–≤
  * 
  * @param Request $Request
  * 

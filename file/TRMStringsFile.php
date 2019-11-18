@@ -3,30 +3,30 @@
 namespace TRMEngine\File;
 
 /**
- * расширяет работу с файлом TRMFile, 
- * позволяя оперировать с отдельными строками как с элементами массива,
- * в частности, к полченному содержимому, 
- * можно будет прменить foreach( TRMStringsFile->getArrayBuffer() ) для перебора всех полученных строк
+ * СЂР°СЃС€РёСЂСЏРµС‚ СЂР°Р±РѕС‚Сѓ СЃ С„Р°Р№Р»РѕРј TRMFile, 
+ * РїРѕР·РІРѕР»СЏСЏ РѕРїРµСЂРёСЂРѕРІР°С‚СЊ СЃ РѕС‚РґРµР»СЊРЅС‹РјРё СЃС‚СЂРѕРєР°РјРё РєР°Рє СЃ СЌР»РµРјРµРЅС‚Р°РјРё РјР°СЃСЃРёРІР°,
+ * РІ С‡Р°СЃС‚РЅРѕСЃС‚Рё, Рє РїРѕР»С‡РµРЅРЅРѕРјСѓ СЃРѕРґРµСЂР¶РёРјРѕРјСѓ, 
+ * РјРѕР¶РЅРѕ Р±СѓРґРµС‚ РїСЂРјРµРЅРёС‚СЊ foreach( TRMStringsFile->getArrayBuffer() ) РґР»СЏ РїРµСЂРµР±РѕСЂР° РІСЃРµС… РїРѕР»СѓС‡РµРЅРЅС‹С… СЃС‚СЂРѕРє
  */
 class TRMStringsFile extends TRMFile
 {
 /**
- * @var array - если вызван метод 
+ * @var array - РµСЃР»Рё РІС‹Р·РІР°РЅ РјРµС‚РѕРґ 
  */
-protected $ArrayBuffer = "";
+protected $ArrayBuffer = array();
 
 
 /**
- * @return array - возвращает строки, полученные из файла в виде массива,
- * массив будет не пустым, только после вызова getEveryStringToArrayFrom(...),
- * либо заполнения вручную
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєРё, РїРѕР»СѓС‡РµРЅРЅС‹Рµ РёР· С„Р°Р№Р»Р° РІ РІРёРґРµ РјР°СЃСЃРёРІР°,
+ * РјР°СЃСЃРёРІ Р±СѓРґРµС‚ РЅРµ РїСѓСЃС‚С‹Рј, С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ РІС‹Р·РѕРІР° getEveryStringToArrayFrom(...),
+ * Р»РёР±Рѕ Р·Р°РїРѕР»РЅРµРЅРёСЏ РІСЂСѓС‡РЅСѓСЋ
  */
 public function getArrayBuffer()
 {
     return $this->ArrayBuffer;
 }
 /**
- * @param array $ArrayBuffer - устанавливает массив со строками, строковый буфер не затрагивает!!!
+ * @param array $ArrayBuffer - СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РјР°СЃСЃРёРІ СЃРѕ СЃС‚СЂРѕРєР°РјРё, СЃС‚СЂРѕРєРѕРІС‹Р№ Р±СѓС„РµСЂ РЅРµ Р·Р°С‚СЂР°РіРёРІР°РµС‚!!!
  */
 public function setArrayBuffer($ArrayBuffer)
 {
@@ -34,7 +34,7 @@ public function setArrayBuffer($ArrayBuffer)
 }
 
 /**
- * @param string $str - строка, которая будет добавлена в массив ArrayBuffer, но не в строковый буфер!!!
+ * @param string $str - СЃС‚СЂРѕРєР°, РєРѕС‚РѕСЂР°СЏ Р±СѓРґРµС‚ РґРѕР±Р°РІР»РµРЅР° РІ РјР°СЃСЃРёРІ ArrayBuffer, РЅРѕ РЅРµ РІ СЃС‚СЂРѕРєРѕРІС‹Р№ Р±СѓС„РµСЂ!!!
  */
 public function addStringToArray($str)
 {
@@ -42,8 +42,8 @@ public function addStringToArray($str)
 }
 
 /**
- * @return int - возвращает количество строк, хранящихся в массиве,
- * для получения размера буыера используйте - getBufferSize
+ * @return int - РІРѕР·РІСЂР°С‰Р°РµС‚ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє, С…СЂР°РЅСЏС‰РёС…СЃСЏ РІ РјР°СЃСЃРёРІРµ,
+ * РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ СЂР°Р·РјРµСЂР° Р±СѓС‹РµСЂР° РёСЃРїРѕР»СЊР·СѓР№С‚Рµ - getBufferSize
  */
 public function getArraySize()
 {
@@ -51,7 +51,7 @@ public function getArraySize()
 }
 
 /**
- * очищает массив со строками
+ * РѕС‡РёС‰Р°РµС‚ РјР°СЃСЃРёРІ СЃРѕ СЃС‚СЂРѕРєР°РјРё
  */
 public function clearArray()
 {
@@ -59,70 +59,83 @@ public function clearArray()
 }
 
 /**
- * заполняет массив ArrayBuffer содержимым файла, 
- * каждая строка записывается в новый элемент массива
+ * Р·Р°РїРѕР»РЅСЏРµС‚ РјР°СЃСЃРёРІ ArrayBuffer СЃРѕРґРµСЂР¶РёРјС‹Рј С„Р°Р№Р»Р°, 
+ * РєР°Р¶РґР°СЏ СЃС‚СЂРѕРєР° Р·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ РІ РЅРѕРІС‹Р№ СЌР»РµРјРµРЅС‚ РјР°СЃСЃРёРІР°
  * 
- * @param string $filename - имя файла, которое нужно прочитать
- * @param int $option - опции чтения файла для функции file(..., $option), 
- * поумолчанию включена опция пропускать пустые строки FILE_SKIP_EMPTY_LINES
+ * @param string $filename - РёРјСЏ С„Р°Р№Р»Р°, РєРѕС‚РѕСЂРѕРµ РЅСѓР¶РЅРѕ РїСЂРѕС‡РёС‚Р°С‚СЊ
+ * @param int $option - РѕРїС†РёРё С‡С‚РµРЅРёСЏ С„Р°Р№Р»Р° РґР»СЏ С„СѓРЅРєС†РёРё file(..., $option), 
+ * РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ РІРєР»СЋС‡РµРЅР° РѕРїС†РёСЏ РїСЂРѕРїСѓСЃРєР°С‚СЊ РїСѓСЃС‚С‹Рµ СЃС‚СЂРѕРєРё FILE_SKIP_EMPTY_LINES
  * 
  * @return boolean
  */
-public function getEveryStringToArrayFrom($filename, $option = FILE_SKIP_EMPTY_LINES)
+public function getEveryStringToArrayFrom($filename = "", $option = FILE_SKIP_EMPTY_LINES)
 {
-    if( !is_file($filename) ) { echo "[Имя файла не верно {$filename}]"; return false; }
+    if( empty($filename) ) { $filename = $this->getFullPath(); }
+    if( !is_file($filename) ) { $this->StateString = "РёРјСЏ С„Р°Р№Р»Р° Р·Р°РґР°РЅРѕ РЅРµ РІРµСЂРЅРѕ {$filename}"; return false; }
     $this->ArrayBuffer = array();
     $this->ArrayBuffer = file($filename, $option);
-    if( !$this->ArrayBuffer ){ $this->ArrayBuffer = array(); return false; }
-    
+    if( $this->ArrayBuffer === false )
+    {
+        $this->StateString = "РЅРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕС‡РёС‚Р°С‚СЊ РґР°РЅРЅС‹Рµ РёР· С„Р°Р№Р»Р° {$filename}"; 
+        $this->ArrayBuffer = array();
+        return false;
+    }
+    $this->StateString = "";
     return true;
 }
 
 /**
- * получает очередную строку из открытого файла и помещает ее в массив
- * можно указать количество считываемых байт, по умолчанию читает всю строкустроку, 
- * либо 4096 байта если она длиннее, либо до конца файла
+ * РїРѕР»СѓС‡Р°РµС‚ РѕС‡РµСЂРµРґРЅСѓСЋ СЃС‚СЂРѕРєСѓ РёР· РѕС‚РєСЂС‹С‚РѕРіРѕ С„Р°Р№Р»Р° Рё РїРѕРјРµС‰Р°РµС‚ РµРµ РІ РјР°СЃСЃРёРІ
+ * РјРѕР¶РЅРѕ СѓРєР°Р·Р°С‚СЊ РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‡РёС‚С‹РІР°РµРјС‹С… Р±Р°Р№С‚, 
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ С‡РёС‚Р°РµС‚ РІСЃСЋ СЃС‚СЂРѕРєСѓ, 
+ * Р»РёР±Рѕ 4096 Р±Р°Р№С‚Р° РµСЃР»Рё СЃС‚СЂРѕРєР° РѕРєР°Р¶РµС‚СЃСЏ РґР»РёРЅРЅРµРµ, 
+ * Р»РёР±Рѕ РґРѕ РєРѕРЅС†Р° С„Р°Р№Р»Р°, РµСЃР»Рё РѕРЅ РѕРєР°Р¶РµС‚СЃСЏ РєРѕСЂРѕС‡Рµ 4096 Р±Р°Р№С‚
  * 
  * @param int $length
  * @return boolean
  */
 public function getStringToArrayFrom($length = 4096)
 {
-    if( !$this->Handle ){ return false; }
+    if( !$this->Handle ) { $this->StateString = "С„Р°Р№Р» РґР»СЏ С‡С‚РµРЅРёСЏ РЅРµ РѕС‚РєСЂС‹С‚"; return false; }
 
     $str = fgets($this->Handle, $length);
-    if(!$str)
-    {
-        return false;
-    }
+    if($str === false) { $this->StateString = "РЅРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕС‡РёС‚Р°С‚СЊ РґР°РЅРЅС‹Рµ РёР· С„Р°Р№Р»Р° {$this->FullPath}"; return false; }
+
     $this->addToBuffer($str);
+    $this->StateString = "";
     return true;
 }
 
 /**
- * записывает каждую строку из массива в файл, каждая строка будет заказнчиваться EOL .
- * если файл не открыт, то пытаестя открыть его в режиме $mod - поумолчанию перезапись всего содержимого...
- * возвращается количество записанных байт, 0 - если буфер пуст и false в случае ошибки
+ * Р·Р°РїРёСЃС‹РІР°РµС‚ РєР°Р¶РґСѓСЋ СЃС‚СЂРѕРєСѓ РёР· РјР°СЃСЃРёРІР° РІ С„Р°Р№Р», 
+ * РєР°Р¶РґР°СЏ СЃС‚СЂРѕРєР° Р±СѓРґРµС‚ Р·Р°РєР°РЅС‡РёРІР°С‚СЊСЃСЏ EOL.
+ * РµСЃР»Рё С„Р°Р№Р» РЅРµ РѕС‚РєСЂС‹С‚, С‚Рѕ РїС‹С‚Р°РµСЃС‚СЏ РѕС‚РєСЂС‹С‚СЊ РµРіРѕ РІ СЂРµР¶РёРјРµ $mod - РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ РїРµСЂРµР·Р°РїРёСЃСЊ РІСЃРµРіРѕ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ...
+ * РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїРёСЃР°РЅРЅС‹С… Р±Р°Р№С‚, 0 - РµСЃР»Рё Р±СѓС„РµСЂ РїСѓСЃС‚ Рё false РІ СЃР»СѓС‡Р°Рµ РѕС€РёР±РєРё
  * 
- * @param string $mod - режим: "a" добавления в файл, или "w" перезаписи всего содержимого
+ * @param string $mod - СЂРµР¶РёРј: "a" РґРѕР±Р°РІР»РµРЅРёСЏ РІ С„Р°Р№Р», РёР»Рё "w" РїРµСЂРµР·Р°РїРёСЃРё РІСЃРµРіРѕ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ
  * @return boolean|int
  */
 public function putStringsArrayTo($mod = "w", $AddEolflag = true)
 {
-    if( empty($this->ArrayBuffer) ) { return 0; }
+    if( empty($this->ArrayBuffer) ) { $this->StateString = ""; return 0; }
     if( !$this->Handle )
     {
-        if( !$this->FullPath ) { return false; }
+        if( !$this->FullPath ) { $this->StateString = "С„Р°Р№Р» РґР»СЏ Р·Р°РїРёСЃРё РЅРµ РѕС‚РєСЂС‹С‚, РёРјСЏ РЅРµ Р·Р°РґР°РЅРѕ"; return false; }
         if( !$this->openFile( $this->FullPath, $mod ) ) { return false; }
     }
     $count = 0;
+    $length = 0;
+    $this->StateString = "";
     foreach( $this->ArrayBuffer as $str )
     {
-        $str .= PHP_EOL;
-        $count += strlen($str);
-        if($AddEolflag) { self::fwrite_stream($this->Handle, $str ); }
-        else { self::fwrite_stream($this->Handle, $str); }// fwrite( $this->Handle, $str ); }
+        if($AddEolflag) { $str .= PHP_EOL; }
+        $length = strlen($str);
+        $count += $length;
+        
+        $writen = self::fwrite_stream($this->Handle, $str); // fwrite( $this->Handle, $str ); }
+        if(strlen($str) > $writen) {$this->StateString .= "СЃС‚СЂРѕРєР° [{$str}] РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ Р·Р°РїРёСЃР°РЅР° ({$writen} Р±Р°Р№С‚ РёР· {$length});";  }
     }
+    
     return $count;
 }
 

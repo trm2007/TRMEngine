@@ -4,24 +4,26 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DiContainer\TRMDIContainer;
+use TRMEngine\Helpers\TRMLib;
+use TRMEngine\Repository\Exceptions\TRMRepositoryGetObjectException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
 /**
- * óïðàâëÿåò îáúåêòàìè Repository
+ * ÑƒÐ¿Ñ€Ð°Ð²Ð»ÑÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°Ð¼Ð¸ Repository
  */
 class TRMRepositoryManager
 {
 /**
- * @var array - ìàññèâ ñîîòâåòñòâèé òèïîâ îáúåêòîâ (ñóùíîñòåé) èõ êàëàññàì õðàíëèù (Repository)
+ * @var array - Ð¼Ð°ÑÑÐ¸Ð² ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²Ð¸Ð¹ Ñ‚Ð¸Ð¿Ð¾Ð² Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² (ÑÑƒÑ‰Ð½Ð¾ÑÑ‚ÐµÐ¹) Ð¸Ñ… ÐºÐ»Ð°ÑÑÐ°Ð¼ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸ÐµÐ² (Repository)
  */
 protected $RepositoryNameArray = array();
 
 
 /**
- * óñòàíàâëèâàåò ìàññèâ ñîîòâåòñâèé òèïîâ îáúåêòîâ (ñóùíîñòåé) èõ êàëàññàì õðàíëèù (Repository) -
+ * ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ Ð¼Ð°ÑÑÐ¸Ð² ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÐ²Ð¸Ð¹ Ñ‚Ð¸Ð¿Ð¾Ð² Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² (ÑÑƒÑ‰Ð½Ð¾ÑÑ‚ÐµÐ¹) Ð¸Ñ… ÐºÐ°Ð»Ð°ÑÑÐ°Ð¼ Ñ…Ñ€Ð°Ð½Ð»Ð¸Ñ‰ (Repository) -
  * array( $objectclassname => $repositoryclassname, ... )
  * 
- * @param array $arr - ìàññèâ ñîîòâåòñâèé òèïîâ îáúåêòîâ (ñóùíîñòåé) èõ êàëàññàì õðàíëèù (Repository)
+ * @param array $arr - Ð¼Ð°ÑÑÐ¸Ð² ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÐ²Ð¸Ð¹ Ñ‚Ð¸Ð¿Ð¾Ð² Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² (ÑÑƒÑ‰Ð½Ð¾ÑÑ‚ÐµÐ¹) Ð¸Ñ… ÐºÐ°Ð»Ð°ÑÑÐ°Ð¼ Ñ…Ñ€Ð°Ð½Ð»Ð¸Ñ‰ (Repository)
  */
 public function setRepositoryNameArray(array $arr)
 {
@@ -32,41 +34,41 @@ public function setRepositoryNameArray(array $arr)
 }
 
 /**
- * äîáàâëÿåò ñîîòâåòñâóþùèé îáúåêò ðåïîçèòîðèÿ äëÿ îáúåêòîâ êëàññà $objectclassname,
- * åñëè äëÿ $objectclassname ðàíåå áûë óñòàíîâëåí ðïîçèòîðèé, îí áóäåò óäàëåí è óñòàíîâëåí íîâûé!
+ * Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÑ‚ ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÐ²ÑƒÑŽÑ‰Ð¸Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ñ Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² ÐºÐ»Ð°ÑÑÐ° $objectclassname,
+ * ÐµÑÐ»Ð¸ Ð´Ð»Ñ $objectclassname Ñ€Ð°Ð½ÐµÐµ Ð±Ñ‹Ð» ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½ Ñ€Ð¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹, Ð¾Ð½ Ð±ÑƒÐ´ÐµÑ‚ ÑƒÐ´Ð°Ð»ÐµÐ½ Ð¸ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½ Ð½Ð¾Ð²Ñ‹Ð¹!
  * 
- * @param string $objectclassname - èìÿ êëàññà îáúåêòîâ, äëÿ êîòîðûéõ óñòàíàâëèâàåò ðåïîçèòîðèé
- * @param string $repositoryclassname - èìÿ êëàññà îáúåêòà Repository
+ * @param string $objectclassname - Ð¸Ð¼Ñ ÐºÐ»Ð°ÑÑÐ° Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹Ñ… ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹
+ * @param string $repositoryclassname - Ð¸Ð¼Ñ ÐºÐ»Ð°ÑÑÐ° Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Repository
  */
 public function addRepositoryName($objectclassname, $repositoryclassname)
 {
     if( !class_exists($repositoryclassname) )
     {
-        throw new \Exception( "Íå íàéäåí êëàññ ðåïîçèòîðèÿ {$repositoryclassname} äëÿ îáúåêòîâ òèï {$objectclassname}!");
+        throw new TRMRepositoryGetObjectException( "ÐÐµ Ð½Ð°Ð¹Ð´ÐµÐ½ ÐºÐ»Ð°ÑÑ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ñ {$repositoryclassname} Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² Ñ‚Ð¸Ð¿ {$objectclassname}!");
     }
     $this->RepositoryNameArray[$objectclassname] = $repositoryclassname;
 }
 
 /**
- * Âîçâðàùàåò îáúåêò Repository äëÿ îáúåêòîâ òèï $objectclassname
+ * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚ Repository Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² Ñ‚Ð¸Ð¿ $objectclassname
  * 
- * @param string $objectclassname - èìÿ òèïà îáúåêòîâ, äëÿ êîòîðûõ íóæíî ïîëó÷èòü îáúåêò õðàíèëèùà
+ * @param string $objectclassname - Ð¸Ð¼Ñ Ñ‚Ð¸Ð¿Ð° Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… Ð½ÑƒÐ¶Ð½Ð¾ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°
  * @return TRMRepositoryInterface
  */
 public function getRepository($objectclassname)
 {
     if( !$objectclassname )
     {
-        throw new \Exception("Íåïðàâèëüíî óêàçàí òèï îáúåêòîâ {$objectclassname}!");
+        throw new TRMRepositoryGetObjectException("ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾ ÑƒÐºÐ°Ð·Ð°Ð½ Ñ‚Ð¸Ð¿ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² {$objectclassname}!");
     }
     if( !isset($this->RepositoryNameArray[$objectclassname]) )
     {
         if( !class_exists($objectclassname."Repository") )
         {
             ob_start();
-            \TRMEngine\Helpers\TRMLib::ap($this->RepositoryNameArray);
+            TRMLib::ap($this->RepositoryNameArray);
             $debinf = ob_get_clean();
-            throw new \Exception( $debinf . "Íå íàéäåí êëàññ ðåïîçèòîðèÿ äëÿ îáúåêòîâ òèï {$objectclassname}!");
+            throw new TRMRepositoryGetObjectException( $debinf . "ÐÐµ Ð½Ð°Ð¹Ð´ÐµÐ½ ÐºÐ»Ð°ÑÑ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ñ Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² Ñ‚Ð¸Ð¿ {$objectclassname}!");
         }
         $this->RepositoryNameArray[$objectclassname] = $objectclassname."Repository";
     }
@@ -74,16 +76,14 @@ public function getRepository($objectclassname)
 }
 
 /**
- * Âîçâðàùàåò îáúåêò Repository äëÿ îáúåêòà äàííûõ $object,
- * ïðè ýòîì óñòàíàâëèâàåò îáúåêò $object êàê îáúåêò äàííûõ äëÿ ðåïîçèòîðèÿ
+ * Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚ Repository Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð´Ð°Ð½Ð½Ñ‹Ñ… $object,
  * 
- * @param TRMDataObjectInterface $object - îáúåêò, äëÿ êîòîðîãî íóæíî ïîëó÷èòü îáúåêò õðàíèëèùà
+ * @param TRMDataObjectInterface $object - Ð¾Ð±ÑŠÐµÐºÑ‚, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð³Ð¾ Ð½ÑƒÐ¶Ð½Ð¾ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°
  * @return TRMRepositoryInterface
  */
 public function getRepositoryFor(TRMDataObjectInterface $object)
 {
     $r = $this->getRepository( get_class($object) );
-    $r->setObject($object);
     return $r;
 }
 

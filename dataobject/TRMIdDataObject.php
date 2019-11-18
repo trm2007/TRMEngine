@@ -3,228 +3,87 @@
 namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
+use TRMEngine\Exceptions\TRMException;
 
 /**
- * абстрактный класс для объекта данных, которые могут быть сохранены в репозитории-хранилище,
- * так как это данные для одной записи, то у такого объекта может быть ID-идентификатор,
- * а так же возможно обращаться к свойствам объекта через $object->properties (реализованы методы __get и __set)
+ * Р°Р±СЃС‚СЂР°РєС‚РЅС‹Р№ РєР»Р°СЃСЃ РґР»СЏ РѕР±СЉРµРєС‚Р° РґР°РЅРЅС‹С…, РєРѕС‚РѕСЂС‹Рµ РјРѕРіСѓС‚ Р±С‹С‚СЊ СЃРѕС…СЂР°РЅРµРЅС‹ РІ СЂРµРїРѕР·РёС‚РѕСЂРёРё-С…СЂР°РЅРёР»РёС‰Рµ,
+ * С‚Р°Рє РєР°Рє СЌС‚Рѕ РґР°РЅРЅС‹Рµ РґР»СЏ РѕРґРЅРѕР№ Р·Р°РїРёСЃРё, С‚Рѕ Сѓ С‚Р°РєРѕРіРѕ РѕР±СЉРµРєС‚Р° РјРѕР¶РµС‚ Р±С‹С‚СЊ ID-РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ,
+ * Р° С‚Р°Рє Р¶Рµ РІРѕР·РјРѕР¶РЅРѕ РѕР±СЂР°С‰Р°С‚СЊСЃСЏ Рє СЃРІРѕР№СЃС‚РІР°Рј РѕР±СЉРµРєС‚Р° С‡РµСЂРµР· $object->properties (СЂРµР°Р»РёР·РѕРІР°РЅС‹ РјРµС‚РѕРґС‹ __get Рё __set)
  *
  * @author TRM
 
  */
-abstract class TRMIdDataObject extends TRMDataObject implements \ArrayAccess, TRMIdDataObjectInterface
+abstract class TRMIdDataObject extends TRMDataObject implements TRMIdDataObjectInterface
 {
 /**
- * @var array - имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД
+ * @var array - РёРјСЏ СЃРІРѕР№СЃС‚РІР° РґР»СЏ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂР° РѕР±СЉРµРєС‚Р°, РѕР±С‹С‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РёРјРµРЅРµРј ID-РїРѕР»СЏ РёР· Р‘Р”,
+ * РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РѕР±СЉСЏРІР»РµРЅ РІ РєР°Р¶РґРѕРј РґРѕС‡РµСЂРЅРµРј РєР»Р°СЃСЃРµ!!!
  */
-private $IdFieldName;
+// static protected $IdFieldName;
 
 /**
- * возвращает массив с данными (возвращается только одна - 1-я строка), 
- * вернется дубликат, так как массив передается по значению ( версия PHP 5.3 ) !!!
- *
- * @return array
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РёРјСЏ СЃРІРѕР№СЃС‚РІР° РґР»СЏ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂР° РѕР±СЉРµРєС‚Р°, РѕР±С‹С‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РёРјРµРЅРµРј ID-РїРѕР»СЏ РёР· Р‘Р”,
+ * РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РјР°СЃСЃРёРІ IdFieldName = array( РёРјСЏ РѕР±СЉРµРєС‚Р°, РёРјСЏ ID-РїРѕР»Рµ РІ РѕР±СЉРµРєС‚Рµ )
  */
-public function getOwnData()
+static public function getIdFieldName()
 {
-    if( !count($this->DataArray) ) { return null; }
-    return $this->DataArray[0];
+    return static::$IdFieldName;
 }
 
 /**
- * задает данные для одной строки массива DataArray - 1-я строка, старые данные стираются.
- * пользоваться прямым присвоение следует осторожно,
- * так как передаваться должен двумерный массив, даже состоящий из одной строки!!!
- *
- * @param array $data - массив с данными, в объекте сохранится дубликат массива, 
- * так как массив передается по значению ( версия PHP 5.3 ) !!! 
+ * @param array $IdFieldName - СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РёРјСЏ СЃРІРѕР№СЃС‚РІР° РґР»СЏ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂР° РѕР±СЉРµРєС‚Р°, 
+ * РѕР±С‹С‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РёРјРµРЅРµРј ID-РїРѕР»СЏ РёР· Р‘Р”,
+ * РїРµСЂРµРґР°РµС‚СЃСЏ РјР°СЃСЃРёРІ IdFieldName = array( РёРјСЏ РѕР±СЉРµРєС‚Р°, РёРјСЏ ID-РїРѕР»Рµ РІ РѕР±СЉРµРєС‚Рµ )
  */
-public function setOwnData( array $data )
+static public function setIdFieldName( array $IdFieldName ) 
 {
-    $this->clear();
-    $this->DataArray[0] = $data;
-}
-
-/**
- * @return array - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
- * возвращается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
- */
-public function getIdFieldName()
-{
-    return $this->IdFieldName;
-}
-
-/**
- * @param array $IdFieldName - устанавливает имя свойства для идентификатора объекта, 
- * обычно совпадает с именем ID-поля из БД,
- * передается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
- */
-public function setIdFieldName( array $IdFieldName ) 
-{
-    $this->IdFieldName[0] = reset($IdFieldName);
-    $this->IdFieldName[1] = next($IdFieldName);
+    static::$IdFieldName[0] = reset($IdFieldName);
+    static::$IdFieldName[1] = next($IdFieldName);
     reset($IdFieldName);
 }
 
 /**
- * возвращает значение поля из массива[$name] как свойство объекта $val = $obj->name;
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ Р·РЅР°С‡РµРЅРёРµ РїРѕР»СЏ РїРµСЂРІРёС‡РЅРѕРіРѕ РєР»СЋС‡Р° - ID, 
+ * РґР»СЏ СЌС‚РѕРіРѕ РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡ РґРѕР»Р¶РµРЅ Р±С‹С‚ Р·Р°РґР°РЅ РІ IdFieldName
  *
- * @param string $objectname - имя объекта, для которого нужно получить массив со значениями полей
- * @return array - массив со значениями полей объект значение свойства-поля
- */
-public function __get($objectname)
-{
-    if( !isset($this->{$objectname}) )
-    {
-        return $this->DataArray[0][$objectname];
-    }
-
-    return null;
-}
-
-/**
- * устанавливает значение поля в массиве[$name] как свойство объекта $val = $obj->name;
- *
- * @param string $objectname - имя объекта, для которого нужно установить массив со значениями полей
- * @param array $val - массив со значениями полей объект значение свойства-поля
- */
-public function __set($objectname, array $val)
-{
-    if( !isset($this->{$objectname}) )
-    {
-        $this->DataArray[0][$objectname] = $val;
-    }
-}
-
-/**
- * возвращает значение поля первичного ключа, 
- * первого встретивщегося в наборе всех подобъектов!!!
- * для этого первичный ключ должен быт задан в getIdFieldName()
- *
- * @return mixed|null - ID-объекта
+ * @return mixed|null - ID-РѕР±СЉРµРєС‚Р°
  */
 public function getId()
 {
-    // с 24.03.2019
-    // IdFieldName - это массив содержащий array( имя объекта, имя поля )
-    if( !isset($this->IdFieldName[0]) || !isset($this->IdFieldName[1]) )
+    // СЃ 24.03.2019
+    // IdFieldName - СЌС‚Рѕ РјР°СЃСЃРёРІ СЃРѕРґРµСЂР¶Р°С‰РёР№ array( РёРјСЏ РѕР±СЉРµРєС‚Р°, РёРјСЏ РїРѕР»СЏ )
+    if( !isset(static::$IdFieldName[0]) || !isset(static::$IdFieldName[1]) )
     {
-        throw new TRMException( __METHOD__ . " - не установлен IdFieldName!");
+        throw new TRMException( __METHOD__ . " - РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ IdFieldName!");
     }
 
-    if( !isset($this->DataArray[0]) ) { return null; }
-    if( !isset($this->DataArray[0][$this->IdFieldName[0]]) ) { return null; }
-    if( !isset($this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]]) ) { return null; }
-
-    $data = $this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]];
+    $data = $this->getData( static::$IdFieldName[0], static::$IdFieldName[1] );
     
-    // проверяем на равенство null, так как далее приведение null к int вернет 0 
-    // раньше ID мог быть только целочисленным...
-    if( false === $data || "" === $data || null === $data ) { return null; }
+    // РїСЂРѕРІРµСЂСЏРµРј РЅР° РїСѓСЃС‚РѕС‚Сѓ, 
+    // С‚Р°Рє РєР°Рє РґР°Р»РµРµ РїСЂРёРІРµРґРµРЅРёРµ СЌС‚РёС… С‚РёРїРѕРІ Рє int Р±СѓРґРµС‚ РІРѕСЃРїСЂРёРЅРёРјР°С‚СЊСЃСЏ РєР°Рє 0 
+    if( false === $data || "" === $data ) { return null; }
 
     return $data;
 }
 
 /**
- * устанавливает для всех подобъектов значения полей ключа совпадающего с IdFieldName!!!
- * для этого первичный ключ должен быт задан в getIdFieldName()
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ Р·РЅР°С‡РµРЅРёРµ ID-РїРѕР»СЏ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ РґР°РЅРЅС‹РјРё РёР· РјР°СЃСЃРёРІР° IdFieldName!!!
+ * РёРјСЏ РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡Р° РґРѕР»Р¶РµРЅРѕ Р±С‹С‚СЊ Р·Р°РґР°РЅРѕ РІ IdFieldName
  *
- * @param mixed - ID-объекта
+ * @param mixed - ID-РѕР±СЉРµРєС‚Р°
  */
 public function setId($id)
 {
-    if( !isset($this->IdFieldName[0]) || !isset($this->IdFieldName[1]) )
-    {
-        throw new TRMException( __METHOD__ . " - не установлен IdFieldName!");
-    }
-    $this->DataArray[0][$this->IdFieldName[0]][$this->IdFieldName[1]] = $id;
+    $this->setData( static::$IdFieldName[0], static::$IdFieldName[1], $id );
 }
 
 /**
- * обнуляет ID-объекта
- * эквивалентен setId(null);
+ * РѕР±РЅСѓР»СЏРµС‚ ID-РѕР±СЉРµРєС‚Р°
+ * СЌРєРІРёРІР°Р»РµРЅС‚РµРЅ setId(null);
  */
 public function resetId()
 {
-    $this->setData( 0, $this->IdFieldName[0], $this->IdFieldName[1], null );
-}
-
-/**
- * возврашает значение хранящееся в поле $fieldname
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля
- * @return mixed|null - если есть значение в поле $fieldname, то вернется его значение, либо null,
- */
-public function getFieldValue( $objectname, $fieldname )
-{
-    return $this->getData(0, $objectname, $fieldname);
-}
-
-/**
- * устанавливает значение поля $fieldname, старое значение будет потеряно,
- * если поля с таким именем не было в объекте данных, то оно установится
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля, значение которого нужно установить/изменить
- * @param mixed $value - новое значение
- */
-public function setFieldValue( $objectname, $fieldname, $value )
-{
-    $this->setData(0, $objectname, $fieldname, $value);
-}
-
-/**
- * ниже реализован интерфейс ArrayAccess,
- * так как объект создается для работы с одной записью, 
- * то вся работа происходит только с 0-й строкой данных
- */
-
-/**
- * Присваивает значение заданному смещению - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @param array $value
- */
-public function offsetSet($offset, $value)
-{
-    if (is_null($offset)) {
-        $this->DataArray[0][] = $value;
-    } else {
-        $this->DataArray[0][$offset] = $value;
-    }
-}
-
-/**
- * Определяет, существует ли заданное смещение (ключ) - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @return array
- */
-public function offsetExists($offset)
-{
-    return isset($this->DataArray[0][$offset]);
-}
-
-/**
- * Удаляет смещение, объект по заданному смещению - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- */
-public function offsetUnset($offset)
-{
-    unset($this->DataArray[0][$offset]);
-}
-
-/**
- * Возвращает заданное смещение (ключ) - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @return array
- */
-public function offsetGet($offset)
-{
-    return isset($this->DataArray[0][$offset]) ? $this->DataArray[0][$offset] : null;
+    $this->setData( static::$IdFieldName[0], static::$IdFieldName[1], null );
 }
 
 

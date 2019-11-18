@@ -9,7 +9,7 @@ use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
- * реализация посредника для выполнения обработки запроса с помощью обычной функции,
+ * СЂРµР°Р»РёР·Р°С†РёСЏ РїРѕСЃСЂРµРґРЅРёРєР° РґР»СЏ РІС‹РїРѕР»РЅРµРЅРёСЏ РѕР±СЂР°Р±РѕС‚РєРё Р·Р°РїСЂРѕСЃР° СЃ РїРѕРјРѕС‰СЊСЋ РѕР±С‹С‡РЅРѕР№ С„СѓРЅРєС†РёРё,
  * 
  */
 final class TRMCallableMiddleware implements MiddlewareInterface

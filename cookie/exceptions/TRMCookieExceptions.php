@@ -5,13 +5,13 @@ namespace TRMEngine\Cookies\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * должно выбрасываться при ошибке авторизации через Cookie
+ * РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РїСЂРё РѕС€РёР±РєРµ Р°РІС‚РѕСЂРёР·Р°С†РёРё С‡РµСЂРµР· Cookie
  */
 class TRMAuthCookieException extends TRMException
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Ошибка авторизации! " . PHP_EOL;
+        $message .= PHP_EOL . " РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }

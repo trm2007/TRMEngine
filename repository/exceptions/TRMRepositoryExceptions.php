@@ -1,38 +1,43 @@
 <?php
 
-namespace TRMEngine\Repository\Exeptions;
+namespace TRMEngine\Repository\Exceptions;
 
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * âûáðàñûâàåòñÿ, åñëè ðåïîçèòîðèé íå ñìîã ïîëó÷èòü îáúåêò
+ * Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ÑÑ, ÐµÑÐ»Ð¸ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹ Ð½Ðµ ÑÐ¼Ð¾Ð³ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð¾Ð±ÑŠÐµÐºÑ‚
  */
-class TRMRepositoryGetObjectException extends TRMException {
-
-}
-
-
-/**
- * âûáðàñûâàåòñÿ, åñëè â ðåïîçèòîðèè íå óñòàíîâëåíà ññûëêà íà îáúåêò äàííûõ
- */
-class TRMRepositoryNoDataObjectException extends TRMException
+class TRMRepositoryGetObjectException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Íå óñòàíîâëåí îáúåêò ñ äàííûìè â ðåïîçèòîðèè! " . PHP_EOL;
+        $message .= PHP_EOL . " ÐžÑˆÐ¸ÐºÐ° Ð¿Ñ€Ð¸ Ñ€Ð°Ð±Ð¾Ñ‚Ðµ Ñ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸ÑÐ¼Ð¸! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }
 
 
 /**
- * âûáðàñûâàåòñÿ, åñëè ðåïîçèòîðèé íå çíàåò îáúåêò äàííûõ òàêîãî òèïà
+ * Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ÑÑ, ÐµÑÐ»Ð¸ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸ Ð½Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½Ð° ÑÑÑ‹Ð»ÐºÐ° Ð½Ð° Ð¾Ð±ÑŠÐµÐºÑ‚ Ð´Ð°Ð½Ð½Ñ‹Ñ…
+ */
+class TRMRepositoryNoDataObjectException extends TRMException
+{
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " ÐÐµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+}
+
+
+/**
+ * Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ÑÑ, ÐµÑÐ»Ð¸ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹ Ð½Ðµ Ð·Ð½Ð°ÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ñ‚Ð°ÐºÐ¾Ð³Ð¾ Ñ‚Ð¸Ð¿Ð°
  */
 class TRMRepositoryUnknowDataObjectClassException extends TRMException
 {
     public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Îáúåêò íåèçâåñòíîãî êëàññà ïåðåäàí â ðåïîçèòîðèé! " . PHP_EOL;
+        $message .= PHP_EOL . " ÐžÐ±ÑŠÐµÐºÑ‚ Ð½ÐµÐ¸Ð·Ð²ÐµÑÑ‚Ð½Ð¾Ð³Ð¾ ÐºÐ»Ð°ÑÑÐ° Ð¿ÐµÑ€ÐµÐ´Ð°Ð½ Ð² Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 }

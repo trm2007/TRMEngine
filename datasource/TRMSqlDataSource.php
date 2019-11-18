@@ -5,103 +5,231 @@ namespace TRMEngine\DataSource;
 use TRMEngine\DataMapper\TRMDataMapper;
 use TRMEngine\DataMapper\TRMSafetyFields;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
+use TRMEngine\DataObject\TRMDataObjectsCollection;
 use TRMEngine\DataSource\Exceptions\TRMDataSourceNoUpdatebleFieldsException;
 use TRMEngine\DataSource\Exceptions\TRMDataSourceSQLEmptyTablesListException;
 use TRMEngine\DataSource\Exceptions\TRMDataSourceSQLInsertException;
 use TRMEngine\DataSource\Exceptions\TRMDataSourceSQLNoSafetyFieldsException;
 use TRMEngine\DataSource\Exceptions\TRMDataSourceWrongTableSortException;
 use TRMEngine\DataSource\Interfaces\TRMDataSourceInterface;
-use TRMEngine\DataSource\TRMSqlDataSource;
 use TRMEngine\Exceptions\TRMSqlQueryException;
-use TRMEngine\Helpers\TRMLib;
-use TRMEngine\TRMDBObject;
+use TRMEngine\Helpers\TRMState;
 
 /**
- * абстрактный класс,
- * общий для всех классов обработки записей из таблиц БД,
- * принимает в качестве зависимости объет DataMapper,
- * для работы с БД использует статический объект TRMDBObject,
- * который работает через MySQLi
+ * РѕР±С‰РёР№ РґР»СЏ РІСЃРµС… РєР»Р°СЃСЃРѕРІ РѕР±СЂР°Р±РѕС‚РєРё Р·Р°РїРёСЃРµР№ РёР· С‚Р°Р±Р»РёС† Р‘Р” MySQL,
+ * РїСЂРёРЅРёРјР°РµС‚ РІ РєР°С‡РµСЃС‚РІРµ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕР±СЉРµС‚ MySQLi,
  */
-abstract class TRMSqlDataSource implements TRMDataSourceInterface
+class TRMSqlDataSource extends TRMState implements TRMDataSourceInterface
 {
-/**
- * константы для индексов массива параметров дочерних таблиц
- */
-//const DATASOURCE_MAIN_FIELD_NAME_INDEX = "MainFieldName";
-//const DATASOURCE_CHILD_FIELD_NAME_INDEX = "ChildFieldName";
-//const DATASOURCE_OPERATOR_INDEX = "Operator";
-//const DATASOURCE_ALIAS_NAME_INDEX = "AliasName";
-//const DATASOURCE_JOIN_INDEX = "Join";
-
-/**
- * если не указан тип Join, то принимается это значение = "LEFT"
- */
+/** РµСЃР»Рё РЅРµ СѓРєР°Р·Р°РЅ С‚РёРї Join, С‚Рѕ РїСЂРёРЅРёРјР°РµС‚СЃСЏ СЌС‚Рѕ Р·РЅР°С‡РµРЅРёРµ = "LEFT" */
 const DATASOURCE_JOIN_DEFAULT = "LEFT";
-
-/** константа показывающая, что нужно брать имена полей в кавычки */
+/** РєРѕРЅСЃС‚Р°РЅС‚Р° РїРѕРєР°Р·С‹РІР°СЋС‰Р°СЏ, С‡С‚Рѕ РЅСѓР¶РЅРѕ Р±СЂР°С‚СЊ РёРјРµРЅР° РїРѕР»РµР№ РІ РєР°РІС‹С‡РєРё */
 const NEED_QUOTE = 32000;
-/** константа показывающая, что брать имена полей в кавычки НЕ нужно */
+/** РєРѕРЅСЃС‚Р°РЅС‚Р° РїРѕРєР°Р·С‹РІР°СЋС‰Р°СЏ, С‡С‚Рѕ Р±СЂР°С‚СЊ РёРјРµРЅР° РїРѕР»РµР№ РІ РєР°РІС‹С‡РєРё РќР• РЅСѓР¶РЅРѕ */
 const NOQUOTE = 32001;
 
 /**
- * @var string - SQL-запрос сохраненный в виде строки
+ * @var string - С‚РµРєСѓС‰РёР№ SQL-Р·Р°РїСЂРѕСЃ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ Р·Р°РїРёСЃРµР№ РёР· Р‘Р”,
+ * РµСЃР»Рё СЃС‚СЂРѕРєР° РЅРµ РїСѓС‚СЃР°СЏ, Р·РЅР°С‡РёС‚ Р·Р°РїСЂРѕСЃ РµС‰Рµ РЅРµ РІС‹РїРѕР»РЅРµРЅ!
+ * РїРѕСЃР»Рµ СѓРґР°С‡РЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ РґР°РЅРЅРѕРіРѕ Р·Р°РїСЂРѕСЃР° СЃС‚СЂРѕРєР° РѕРїСѓСЃС‚РѕС‰Р°РµС‚СЃСЏ!
  */
-public $QueryString = "";
+protected $QueryString = "";
+/**
+ * @var string - С‚РµРєСѓС‰Р°СЏ СЃС‚СЂРѕРєР° SQL-Р·Р°РїСЂРѕСЃР° РґР»СЏ РІСЃС‚Р°РІРєРё Р·Р°РїРёСЃРµР№ РІ Р‘Р”,
+ * РµСЃР»Рё СЃС‚СЂРѕРєР° РЅРµ РїСѓС‚СЃР°СЏ, Р·РЅР°С‡РёС‚ Р·Р°РїСЂРѕСЃ РµС‰Рµ РЅРµ РІС‹РїРѕР»РЅРµРЅ!
+ * РїРѕСЃР»Рµ СѓРґР°С‡РЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ РґР°РЅРЅРѕРіРѕ Р·Р°РїСЂРѕСЃР° СЃС‚СЂРѕРєР° РѕРїСѓСЃС‚РѕС‰Р°РµС‚СЃСЏ!
+ */
+protected $InsertQueryString = "";
+/**
+ * @var string - С‚РµРєСѓС‰Р°СЏ СЃС‚СЂРѕРєР° SQL-Р·Р°РїСЂРѕСЃР° РґР»СЏ РІСЃС‚Р°РІРєРё Рё РѕР±РЅРѕРІР»РµРЅРёСЏ Р·Р°РїРёСЃРµР№ РІ Р‘Р”,
+ * РµСЃР»Рё СЃС‚СЂРѕРєР° РЅРµ РїСѓС‚СЃР°СЏ, Р·РЅР°С‡РёС‚ Р·Р°РїСЂРѕСЃ РµС‰Рµ РЅРµ РІС‹РїРѕР»РЅРµРЅ!
+ * РїРѕСЃР»Рµ СѓРґР°С‡РЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ РґР°РЅРЅРѕРіРѕ Р·Р°РїСЂРѕСЃР° СЃС‚СЂРѕРєР° РѕРїСѓСЃС‚РѕС‰Р°РµС‚СЃСЏ!
+ */
+protected $UpdateQueryString = "";
+/**
+ * @var string - С‚РµРєСѓС‰Р°СЏ СЃС‚СЂРѕРєР° SQL-Р·Р°РїСЂРѕСЃР° РґР»СЏ СѓРґР°Р»РµРЅРёСЏ Р·Р°РїРёСЃРµР№ РёР· Р‘Р”,
+ * РµСЃР»Рё СЃС‚СЂРѕРєР° РЅРµ РїСѓС‚СЃР°СЏ, Р·РЅР°С‡РёС‚ Р·Р°РїСЂРѕСЃ РµС‰Рµ РЅРµ РІС‹РїРѕР»РЅРµРЅ!
+ * РїРѕСЃР»Рµ СѓРґР°С‡РЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ РґР°РЅРЅРѕРіРѕ Р·Р°РїСЂРѕСЃР° СЃС‚СЂРѕРєР° РѕРїСѓСЃС‚РѕС‰Р°РµС‚СЃСЏ!
+ */
+protected $DeleteQueryString = "";
 
 /**
- * @var TRMDataObjectInterface - ссылка на объект данных, содержащий массив значений для всех полей данной записи, могут быть собраны из нескольких таблиц
- */
-public $DataObject;
-
-/**
- * @var array - массив полей и значений $Params[FieldName] = array( FieldValue, Operator, AndOr... ),
- * значения которых будут использоваться при запросе SELECT в секции WHERE
+ * @var array - РјР°СЃСЃРёРІ РїРѕР»РµР№ Рё Р·РЅР°С‡РµРЅРёР№ $Params[FieldName] = array( FieldValue, Operator, AndOr... ),
+ * Р·РЅР°С‡РµРЅРёСЏ РєРѕС‚РѕСЂС‹С… Р±СѓРґСѓС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РїСЂРё Р·Р°РїСЂРѕСЃРµ SELECT РІ СЃРµРєС†РёРё WHERE
  */
 protected $Params = array();
 /**
- * @var int - стартовая позиция для выборки - OFFSET, может применяться, например, для пагинации
+ * @var int - СЃС‚Р°СЂС‚РѕРІР°СЏ РїРѕР·РёС†РёСЏ РґР»СЏ РІС‹Р±РѕСЂРєРё - OFFSET, РјРѕР¶РµС‚ РїСЂРёРјРµРЅСЏС‚СЊСЃСЏ, РЅР°РїСЂРёРјРµСЂ, РґР»СЏ РїР°РіРёРЅР°С†РёРё
  */
 protected $StartPosition = null;
 /**
- * @var int - количество записей для выборки - LIMIT, может применяться, например, для пагинации
+ * @var int - РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїРёСЃРµР№ РґР»СЏ РІС‹Р±РѕСЂРєРё - LIMIT, РјРѕР¶РµС‚ РїСЂРёРјРµРЅСЏС‚СЊСЃСЏ, РЅР°РїСЂРёРјРµСЂ, РґР»СЏ РїР°РіРёРЅР°С†РёРё
  */
 protected $Count = null;
 /**
- * @var array - массив полей для сортировки - array( fieldname1 => "ASC | DESC", ... ) для ORDER BY
+ * @var array - РјР°СЃСЃРёРІ РїРѕР»РµР№ РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєРё - array( fieldname1 => "ASC | DESC", ... ) РґР»СЏ ORDER BY
  */
 protected $OrderFields = array();
 /**
- * @var array - массив полей для группировки - array( fieldname1 => "" ) для GROUP BY
+ * @var array - РјР°СЃСЃРёРІ РїРѕР»РµР№ РґР»СЏ РіСЂСѓРїРїРёСЂРѕРІРєРё - array( fieldname1 => "" ) РґР»СЏ GROUP BY
  */
 protected $GroupFields = array();
 /**
- * @var TRMSafetyFields - объект полей для каждой таблицы в запросе,
- * указана возможность чтения/записи поля, его тип, индекс и т.д.
+ * @var array - РјР°СЃСЃРёРІ РїРѕР»РµР№ Рё Р·РЅР°С‡РµРЅРёР№ $HavingParams[FieldName] = array( FieldValue, Operator, AndOr... ),
+ * Р·РЅР°С‡РµРЅРёСЏ РєРѕС‚РѕСЂС‹С… Р±СѓРґСѓС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РїСЂРё Р·Р°РїСЂРѕСЃРµ SELECT РІ СЃРµРєС†РёРё HAVING
  */
-public $SafetyFields;
+protected $HavingParams = array();
+
 /**
- * @var mysqli - объект MySQLi для работы с БД MySQL
+ * @var \mysqli - РѕР±СЉРµРєС‚ MySQLi РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ Р‘Р” MySQL, РІРЅРµРґСЂСЏРµС‚СЃСЏ РєР°Рє Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ С‡РµСЂРµР· РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
  */
 protected $MySQLiObject;
 
 
 /**
- * 
- * @param TRMSafetyFields $SafetyFields - DataMapprt для объекта, с которым будет работать этот DataSource
+ * @param \mysqli $MySQLiObject - РґСЂР°Р№РІРµСЂ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ MySQL
  */
-public function __construct(TRMSafetyFields $SafetyFields) //$MainTableName, array $MainIndexFields, array $SecondTablesArray = null, $MainAlias = null )
+public function __construct( \mysqli $MySQLiObject ) //$MainTableName, array $MainIndexFields, array $SecondTablesArray = null, $MainAlias = null )
 {
-    $this->setSafetyFields($SafetyFields);
-    $this->MySQLiObject = TRMDBObject::$newlink; // TRMDIContainer::getStatic("TRMDBObject")->$newlink;
+    $this->MySQLiObject = $MySQLiObject; // TRMDBObject::$newlink; // TRMDIContainer::getStatic("TRMDBObject")->$newlink;
 }
 
 /**
- * получает, проверяет и возвращает верный SQL-оператор
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЃ РєР°РєРѕР№ Р·Р°РїРёСЃРё РЅР°С‡РёРЅР°С‚СЊ РІС‹Р±РѕСЂРєСѓ - StartPosition
+ * Рё РєР°РєРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїРёСЃРµР№ РІС‹Р±РёСЂР°С‚СЊ - Count
+ *
+ * @param int $Count - РєР°РєРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РїРёСЃРµР№ РІС‹Р±РёСЂР°С‚СЊ
+ * @param int $StartPosition - СЃ РєР°РєРѕР№ Р·Р°РїРёСЃРё РЅР°С‡РёРЅР°С‚СЊ РІС‹Р±РѕСЂРєСѓ
+ */
+public function setLimit( $Count , $StartPosition = null )
+{
+    $this->StartPosition = $StartPosition;
+    $this->Count = $Count;
+}
+
+/**
+ * Р·Р°РґР°РµС‚ РјР°СЃСЃРёРІ СЃРѕСЂС‚РёСЂРѕРІРєРё РїРѕ РїРѕР»СЏРј, СЃС‚Р°СЂС‹Рµ Р·РЅР°С‡РµРЅРёСЏ СѓРґР°Р»СЏСЋС‚СЃСЏ
+ *
+ * @param array - РјР°СЃСЃРёРІ РїРѕР»РµР№, РїРѕ РєРѕС‚РѕСЂС‹Рј СЃРѕСЂС‚РёСЂСѓРµС‚СЃСЏ - array( fieldname1 => "ASC | DESC", ... )
+ */
+public function setOrder( array $orderfields )
+{
+    $this->OrderFields = array();
+
+    $this->addOrder( $orderfields );
+}
+
+/**
+ * РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С‚РёРї СЃРѕСЂС‚РёСЂРѕРІРєРё РґР»СЏ РїРѕР»Рµ РїСЂРё Р·Р°РїСЂРѕСЃРµ
+ *
+ * @param string $OrderFieldName - РёРјСЏ РїРѕР»СЏ , РїРѕ РєРѕС‚РѕСЂРѕРјСѓ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ СЃРѕСЂС‚РёСЂРѕРІРєР°
+ * @param boolean $AscFlag - РµСЃР»Рё true, С‚Рѕ СЃРѕСЂС‚РёСЂСѓРµС‚СЃСЏ РїРѕ СЌС‚РѕРјСѓ РїРѕР»СЋ РєР°Рє ASC, РІ РїСЂРѕС‚РёРІРЅРѕРј СЃР»СѓС‡Р°Рµ, РєР°Рє DESC
+ * @param int $FieldQuoteFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ Р·РЅР°С‡РµРЅРёРµ TRMSqlDataSource::NEED_QUOTE,
+ * С‚Рѕ РёРјСЏ РїРѕР»СЏ Р±СѓРґРµС‚ Р±СЂР°С‚СЊСЃСЏ РІ Р°РїРѕСЃС‚СЂРѕС„С‹ `FieldName` ASC
+ */
+public function setOrderField( $OrderFieldName, $AscFlag = true, $FieldQuoteFlag = TRMSqlDataSource::NEED_QUOTE )
+{
+    if( $FieldQuoteFlag === TRMSqlDataSource::NEED_QUOTE )
+    {
+        $OrderFieldName = $this->prepareKey($OrderFieldName);
+    }
+    $this->OrderFields[$OrderFieldName] = ( ($AscFlag == 1) ? "ASC" : "DESC");
+}
+
+/**
+ * РґРѕР±Р°РІР»СЏРµС‚ РїРѕР»СЏ РІ РјР°СЃСЃРёРІ СЃРѕСЂС‚РёСЂРѕРІРєРё, 
+ * РµСЃР»Рё СѓР¶Рµ РµСЃС‚СЊ, С‚Рѕ СЃС‚Р°СЂС‹Рµ Р·РЅР°С‡РµРЅРёСЏ РїРµСЂРµР·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ
+ *
+ * @param array $orderfields - РјР°СЃСЃРёРІ РїРѕР»РµР№, РїРѕ РєРѕС‚РѕСЂС‹Рј СЃРѕСЂС‚РёСЂСѓРµС‚СЃСЏ 
+ * array( fieldname1 => "ASC | DESC", fieldname2 => "ASC | DESC", ... )
+ */
+public function addOrder( array $orderfields )
+{
+    foreach( $orderfields as $field => $order )
+    {
+        if( empty($order) ) { $this->OrderFields[$field] = "ASC"; continue; }
+        $order = trim(strtoupper($order));
+        if( $order == "ASC" || $order == "DESC" )
+        {
+            $this->OrderFields[$field] = $order;
+        }
+        else
+        {
+            $this->OrderFields[$field] = "ASC";
+        }
+    }
+}
+
+/**
+ * Р”РѕР±Р°РІР»СЏРµС‚ РїРѕР»Рµ, РїРѕ РєРѕС‚РѕСЂРѕРјСѓ Р±СѓРґРµС‚ РїСЂРѕРёР·РІРµРґРµРЅР° РіСЂСѓРїРїРёСЂРѕРІРєР°
+ * @param string $GroupFieldName
+ */
+public function setGroupField($GroupFieldName)
+{
+    $this->GroupFields[$GroupFieldName]="";
+}
+
+/**
+ * РѕС‡РёСЃС‚РєР° РїР°СЂР°РјРµС‚СЂРѕРІ WHERE Р·Р°РїСЂРѕСЃР°, РїРѕСЂСЏРґРѕРє СЃРѕСЂС‚РёСЂРѕРІРєРё
+ * Рё СЃС‚СЂРѕРє Р·Р°РїСЂРѕСЃРѕРІ SELECT, UPDATE/INSERT, DELETE
+ */
+public function clear()
+{
+    $this->QueryString = "";
+    $this->UpdateQueryString = "";
+    $this->DeleteQueryString = "";
+    $this->clearParams();
+    $this->clearOrder();
+    $this->clearLimit();
+    $this->clearHavingParams();
+    $this->clearGroup();
+}
+
+/**
+ * РѕС‡РёС‰Р°РµС‚ РѕРіСЂР°РЅРёС‡РµРЅРёРµ РІС‹Р±РѕСЂРєРё (РЅР° РєРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»СѓС‡Р°РµРјС‹С… Р·Р°РїРёСЃРµР№)
+ */
+public function clearLimit()
+{
+    $this->Count = null;
+    $this->StartPosition = null;
+}
+
+/**
+ * РѕС‡РёСЃС‚РєР° РїР°СЂР°РјРµС‚СЂРѕРІ РґР»СЏ WHERE-СѓСЃР»РѕРІРёР№ РІ SQL-Р·Р°РїСЂРѕСЃРµ
+ */
+public function clearParams()
+{
+    $this->Params = array();
+}
+/**
+ * РѕС‡РёСЃС‚РєР° РїР°СЂР°РјРµС‚СЂРѕРІ РґР»СЏ HAVING-СѓСЃР»РѕРІРёР№ РІ SQL-Р·Р°РїСЂРѕСЃРµ
+ */
+public function clearHavingParams()
+{
+    $this->HavingParams = array();
+}
+
+/**
+ * РѕС‡РёС‰Р°РµС‚ РїРѕСЂСЏРґРѕРє СЃРѕСЂС‚РёСЂРѕРІРєРё
+ */
+public function clearOrder()
+{
+    $this->OrderFields = array();
+}
+
+/**
+ * РѕС‡РёС‰Р°РµС‚ СЃРїРёСЃРѕРє РїРѕР»РµР№ РґР»СЏ РіСЂСѓРїРїРёСЂРѕРІРєРё
+ */
+public function clearGroup()
+{
+    $this->GroupFields = array();
+}
+/**
+ * РїРѕР»СѓС‡Р°РµС‚, РїСЂРѕРІРµСЂСЏРµС‚ Рё РІРѕР·РІСЂР°С‰Р°РµС‚ РІРµСЂРЅС‹Р№ SQL-РѕРїРµСЂР°С‚РѕСЂ
  * 
- * @param string $operator - оператор для проверки
- * @param string $default - оператор поумолчанию, если $operator не валиден
- * @return string - валидный SQL оператор
+ * @param string $operator - РѕРїРµСЂР°С‚РѕСЂ РґР»СЏ РїСЂРѕРІРµСЂРєРё
+ * @param string $default - РѕРїРµСЂР°С‚РѕСЂ РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ, РµСЃР»Рё $operator РЅРµ РІР°Р»РёРґРµРЅ
+ * @return string - РІР°Р»РёРґРЅС‹Р№ SQL РѕРїРµСЂР°С‚РѕСЂ
  */
 public static function makeValidSQLOperator($operator, $default = "=")
 {
@@ -128,12 +256,12 @@ public static function makeValidSQLOperator($operator, $default = "=")
 }
 
 /**
- * получает, проверяет и возвращает верный префикс оператора JOIN для SQL-запросов
+ * РїРѕР»СѓС‡Р°РµС‚, РїСЂРѕРІРµСЂСЏРµС‚ Рё РІРѕР·РІСЂР°С‰Р°РµС‚ РІРµСЂРЅС‹Р№ РїСЂРµС„РёРєСЃ РѕРїРµСЂР°С‚РѕСЂР° JOIN РґР»СЏ SQL-Р·Р°РїСЂРѕСЃРѕРІ
  * 
- * @param string $join - оператор-приставка для JOIN, который нужно проверить, валидным считается LEGT, RIGHT, INNER, OUTER
- * @param string $default - если оператор не валиден, то присваивается значение $default, поумолчанию установлено в LEGT
+ * @param string $join - РѕРїРµСЂР°С‚РѕСЂ-РїСЂРёСЃС‚Р°РІРєР° РґР»СЏ JOIN, РєРѕС‚РѕСЂС‹Р№ РЅСѓР¶РЅРѕ РїСЂРѕРІРµСЂРёС‚СЊ, РІР°Р»РёРґРЅС‹Рј СЃС‡РёС‚Р°РµС‚СЃСЏ LEGT, RIGHT, INNER, OUTER
+ * @param string $default - РµСЃР»Рё РѕРїРµСЂР°С‚РѕСЂ РЅРµ РІР°Р»РёРґРµРЅ, С‚Рѕ РїСЂРёСЃРІР°РёРІР°РµС‚СЃСЏ Р·РЅР°С‡РµРЅРёРµ $default, РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ РІ LEGT
  * 
- * @return string - валидный оператор-приставка для JOIN в SQL-запросе
+ * @return string - РІР°Р»РёРґРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ-РїСЂРёСЃС‚Р°РІРєР° РґР»СЏ JOIN РІ SQL-Р·Р°РїСЂРѕСЃРµ
  */
 public static function makeValidJoinOperator($join, $default = TRMSqlDataSource::DATASOURCE_JOIN_DEFAULT)
 {
@@ -149,79 +277,38 @@ public static function makeValidJoinOperator($join, $default = TRMSqlDataSource:
 }
 
 /**
- * @return TRMSafetyFields - объект DataMapper для текущего набора данных
- */
-function getSafetyFields()
-{
-    return $this->SafetyFields;
-}
-/**
- * @param TRMSafetyFields $SafetyFields - объект DataMapper для текущего набора данных
- */
-function setSafetyFields(TRMSafetyFields $SafetyFields)
-{
-    $this->SafetyFields = $SafetyFields;
-}
-
-/**
- * устанавливает связь с объектом данных,
- * объект данных должен реализовывать интерфейс TRMDataObjectInterface
+ * С„РѕСЂРјРёСЂСѓРµС‚ С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° СЃРѕ СЃРїРёСЃРєРѕРј РїРѕР»РµР№, РєРѕС‚РѕСЂС‹Рµ РІС‹Р±РёСЂР°СЋС‚СЃСЏ РёР· С‚Р°Р±Р»РёС†
  * 
- * @param TRMDataObjectInterface $data - объект, данные которого будут получены и/или сохранены/удалены в БД
- */
-public function linkData( TRMDataObjectInterface $data )
-{
-    $this->DataObject = $data;
-}
-
-/**
- * очистка параметров WHERE запроса и строки текущего запроса
- */
-public function clear()
-{
-    $this->QueryString = "";
-    $this->clearParams();
-}
-
-/**
- * очистка параметров для WHERE-условий в SQL-запросе
- */
-public function clearParams()
-{
-    $this->Params = array();
-}
-
-/**
- * формирует часть запроса со списком полей, которые выбираются из таблиц
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
  *
- * @return string - строка со списком полей
+ * @return string - СЃС‚СЂРѕРєР° СЃРѕ СЃРїРёСЃРєРѕРј РїРѕР»РµР№
  * 
  * @throws TRMDataSourceSQLNoSafetyFieldsException
  */
-private function generateFieldsString()
+private function generateFieldsString( TRMSafetyFields $SafetyFields )
 {
-    if( !$this->SafetyFields || !$this->SafetyFields->count() )
+    if( !$SafetyFields->count() )
     {
-        throw new TRMDataSourceSQLNoSafetyFieldsException(__METHOD__ );
+        throw new TRMDataSourceSQLNoSafetyFieldsException( __METHOD__  . " - " . get_class($this) );
     }
     $fieldstr = "";
-    foreach( $this->SafetyFields as $TableName => $TableState )
+    foreach( $SafetyFields as $TableName => $Table )
     {        
-        $TableAlias = $this->SafetyFields->getAliasForTableName($TableName);
+        $TableAlias = $Table->Alias;
         $tn = empty($TableAlias) ? $TableName : $TableAlias;
-        foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $fieldname => $state )
+        foreach( $Table as $FieldName => $Field )
         {
             if( !empty($tn) ) { $fieldstr .= "`" . $tn . "`."; }
 
-            if( isset($state[ TRMDataMapper::QUOTE_INDEX ]) && $state[ TRMDataMapper::QUOTE_INDEX ] == TRMDataMapper::NEED_QUOTE )
+            if( $Field->Quote == TRMDataMapper::NEED_QUOTE )
             {
-                $fieldstr .= "`" . $fieldname . "`";
+                $fieldstr .= "`" . $FieldName . "`";
             }
-            else { $fieldstr .= $fieldname; }
+            else { $fieldstr .= $FieldName; }
 
-            if( isset($state[TRMDataMapper::FIELDALIAS_INDEX]) && strlen($state[TRMDataMapper::FIELDALIAS_INDEX])>0 )
+            if( strlen($Field->Alias)>0 )
             {
-                $fieldstr .= (" AS ".$state["FieldAlias"]);
+                $fieldstr .= (" AS ".$Field->Alias);
             }
             $fieldstr .= ",";
         }
@@ -230,51 +317,55 @@ private function generateFieldsString()
 }
 
 /**
- * формирует часть запроса связанную с JOIN таблиц
+ * С„РѕСЂРјРёСЂСѓРµС‚ С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° СЃРІСЏР·Р°РЅРЅСѓСЋ СЃ JOIN С‚Р°Р±Р»РёС†
+ * 
+ * @param TRMSafetyFields $DataMapper - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
  *
- * @return string - строка с JOIN-частью запроса
+ * @return string - СЃС‚СЂРѕРєР° СЃ JOIN-С‡Р°СЃС‚СЊСЋ Р·Р°РїСЂРѕСЃР°
  */
-private function generateJoinString()
+private function generateJoinString( TRMSafetyFields $DataMapper )
 {
+    $SafetyFields = clone $DataMapper;
+    $SafetyFields->sortObjectsForReverseRelationOrder();
     $JoinedTables = array();
-    foreach( $this->SafetyFields as $CurrentTableName => $CurrentTableState )
+    foreach( $SafetyFields as $CurrentTableName => $CurrentTable )
     {
-        foreach ( $CurrentTableState[TRMDataMapper::FIELDS_INDEX] as $CurrentFieldName => $CurrentFieldState )
+        foreach ( $CurrentTable as $CurrentFieldName => $CurrentField )
         {
-            // если есть Relation, занчит таблица из Relation должна быть присоединена по полю из Relation
-            if( isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]) )
+            // РµСЃР»Рё РµСЃС‚СЊ Relation, Р·Р°РЅС‡РёС‚ С‚Р°Р±Р»РёС†Р° РёР· Relation РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РїСЂРёСЃРѕРµРґРёРЅРµРЅР° РїРѕ РїРѕР»СЋ РёР· Relation
+            if( !empty($CurrentField->Relation) )
             {
                 $JoinedTables
-                    [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
-                        [TRMDataMapper::FIELDS_INDEX]
-                            [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::FIELD_NAME_INDEX] ]
+                    [ $CurrentField->Relation[TRMDataMapper::OBJECT_NAME_INDEX] ]
+                    [ TRMDataMapper::FIELDS_INDEX ]
+                    [ $CurrentField->Relation[TRMDataMapper::FIELD_NAME_INDEX] ]
                         = array(
-                            // если для главной таблицы задан альяс, то будем испльзовать его в строке JOIN,
-                            // если не задан, то имя таблицы
-                            TRMDataMapper::OBJECT_NAME_INDEX => isset($CurrentTableState["ObjectAlias"]) ? $CurrentTableState["ObjectAlias"] : $CurrentTableName,
+                            // РµСЃР»Рё РґР»СЏ РіР»Р°РІРЅРѕР№ С‚Р°Р±Р»РёС†С‹ Р·Р°РґР°РЅ Р°Р»СЊСЏСЃ, С‚Рѕ Р±СѓРґРµРј РёСЃРїР»СЊР·РѕРІР°С‚СЊ РµРіРѕ РІ СЃС‚СЂРѕРєРµ JOIN,
+                            // РµСЃР»Рё РЅРµ Р·Р°РґР°РЅ, С‚Рѕ РёРјСЏ С‚Р°Р±Р»РёС†С‹
+                            TRMDataMapper::OBJECT_NAME_INDEX => !empty($CurrentTable->Alias) ? $CurrentTable->Alias : $CurrentTableName,
                             TRMDataMapper::FIELD_NAME_INDEX => $CurrentFieldName,
-                            // оператор применяется в родительском $CurrentFieldName поле по отношению проверяемому TRMDataMapper::FIELD_NAME_INDEX...
-                            "Operator" => isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Operator"]) ?
-                                self::makeValidSQLOperator($CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Operator"]) :
-                                "=",
+                            // РѕРїРµСЂР°С‚РѕСЂ РїСЂРёРјРµРЅСЏРµС‚СЃСЏ РІ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРј $CurrentFieldName РїРѕР»Рµ РїРѕ РѕС‚РЅРѕС€РµРЅРёСЋ РїСЂРѕРІРµСЂСЏРµРјРѕРјСѓ TRMDataMapper::FIELD_NAME_INDEX...
+                            "Operator" =>   isset($CurrentField->Relation["Operator"]) ?
+                                            self::makeValidSQLOperator($CurrentField->Relation["Operator"]) :
+                                            "=",
                         );
-                if( !empty( $CurrentTableState["ObjectAlias"] ) )
+                if( !empty($CurrentTable->Alias) )
                 {
                     $JoinedTables
-                        [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
-                            ["ObjectAlias"] = $CurrentTableState["ObjectAlias"];
+                        [ $CurrentField->Relation[TRMDataMapper::OBJECT_NAME_INDEX] ]
+                        ["ObjectAlias"] = $CurrentTable->Alias;
                 }
                 
                 $JoinedTables
-                    [ $CurrentFieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]
-                        ["Join"] = isset($CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Join"]) ?
-                            $CurrentFieldState[TRMDataMapper::RELATION_INDEX]["Join"] :
-                            self::DATASOURCE_JOIN_DEFAULT;
+                    [ $CurrentField->Relation[TRMDataMapper::OBJECT_NAME_INDEX] ]
+                    ["Join"] =  isset($CurrentField->Relation["Join"]) ?
+                                $CurrentField->Relation["Join"] :
+                                self::DATASOURCE_JOIN_DEFAULT;
             }
         }
     }
 
-    // если никакие связи не нашлись, значит секция JOIN пуста!!!
+    // РµСЃР»Рё РЅРёРєР°РєРёРµ СЃРІСЏР·Рё РЅРµ РЅР°С€Р»РёСЃСЊ, Р·РЅР°С‡РёС‚ СЃРµРєС†РёСЏ JOIN РїСѓСЃС‚Р°!!!
     if( empty($JoinedTables) )
     {
         return "";
@@ -293,11 +384,11 @@ private function generateJoinString()
 
 /**
  * 
- * @param string $TableName - имя таблицы
- * @param array $TableState - массив состояния (подмассив с именами полей, альяс для таблицы, 
- * возможно, указатель на метод подключения  JOIN (LEFT, RIGHT, INNER...) 
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹
+ * @param array $TableState - РјР°СЃСЃРёРІ СЃРѕСЃС‚РѕСЏРЅРёСЏ (РїРѕРґРјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№, Р°Р»СЊСЏСЃ РґР»СЏ С‚Р°Р±Р»РёС†С‹, 
+ * РІРѕР·РјРѕР¶РЅРѕ, СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РјРµС‚РѕРґ РїРѕРґРєР»СЋС‡РµРЅРёСЏ  JOIN (LEFT, RIGHT, INNER...) 
  * 
- * @return string - строка с частью JOIN-запроса для таблицы $TableName
+ * @return string - СЃС‚СЂРѕРєР° СЃ С‡Р°СЃС‚СЊСЋ JOIN-Р·Р°РїСЂРѕСЃР° РґР»СЏ С‚Р°Р±Р»РёС†С‹ $TableName
  */
 public function generateJoinStringForTable($TableName, array &$TableState)
 {
@@ -324,19 +415,19 @@ public function generateJoinStringForTable($TableName, array &$TableState)
     }
 
     $joinstr .= " JOIN `" . $TableName . "`";
-    // если задан псевдоним таблицы, то добавляем его
+    // РµСЃР»Рё Р·Р°РґР°РЅ РїСЃРµРІРґРѕРЅРёРј С‚Р°Р±Р»РёС†С‹, С‚Рѕ РґРѕР±Р°РІР»СЏРµРј РµРіРѕ
     if( !empty($TableState["ObjectAlias"])  ) { $joinstr .= $TableState["ObjectAlias"]; }
     $joinstr .= " ON ";
 
     foreach( $TableState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldRelation )
     {
         $joinstr .= "`" . $FieldRelation[TRMDataMapper::OBJECT_NAME_INDEX] . "`.`" .  $FieldRelation[TRMDataMapper::FIELD_NAME_INDEX] . "`";
-        // оператор сравнивает родительский элемент, котороый изначально ссылался через Relation в $this->SafetyFields
-        // он идет первым!
-        // с текущим элементом присоединяемой таблицы, он идет вторым дальше...
+        // РѕРїРµСЂР°С‚РѕСЂ СЃСЂР°РІРЅРёРІР°РµС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ СЌР»РµРјРµРЅС‚, РєРѕС‚РѕСЂРѕС‹Р№ РёР·РЅР°С‡Р°Р»СЊРЅРѕ СЃСЃС‹Р»Р°Р»СЃСЏ С‡РµСЂРµР· Relation РІ $SafetyFields
+        // РѕРЅ РёРґРµС‚ РїРµСЂРІС‹Рј!
+        // СЃ С‚РµРєСѓС‰РёРј СЌР»РµРјРµРЅС‚РѕРј РїСЂРёСЃРѕРµРґРёРЅСЏРµРјРѕР№ С‚Р°Р±Р»РёС†С‹, РѕРЅ РёРґРµС‚ РІС‚РѕСЂС‹Рј РґР°Р»СЊС€Рµ...
         $joinstr .= $FieldRelation["Operator"];
-        // если для присоединяемой таблицы задан альяс, то будем испльзовать его в строке JOIN,
-        // если не задан, то имя таблицы
+        // РµСЃР»Рё РґР»СЏ РїСЂРёСЃРѕРµРґРёРЅСЏРµРјРѕР№ С‚Р°Р±Р»РёС†С‹ Р·Р°РґР°РЅ Р°Р»СЊСЏСЃ, С‚Рѕ Р±СѓРґРµРј РёСЃРїР»СЊР·РѕРІР°С‚СЊ РµРіРѕ РІ СЃС‚СЂРѕРєРµ JOIN,
+        // РµСЃР»Рё РЅРµ Р·Р°РґР°РЅ, С‚Рѕ РёРјСЏ С‚Р°Р±Р»РёС†С‹
         $joinstr .= !empty($TableState["ObjectAlias"]) ? $TableState["ObjectAlias"] : ("`" . $TableName . "`");
         $joinstr .= ".`{$FieldName}`";
         $joinstr .= " AND ";
@@ -345,14 +436,37 @@ public function generateJoinStringForTable($TableName, array &$TableState)
 }
 
 /**
- * формирует часть запроса связанную с условиями WHERE
+ * С„РѕСЂРјРёСЂСѓРµС‚ С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° СЃРІСЏР·Р°РЅРЅСѓСЋ СЃ СѓСЃР»РѕРІРёСЏРјРё HAVING
  *
- * @return string - строка с WHERE-частью запроса
+ * @return string - СЃС‚СЂРѕРєР° СЃ HAVING-С‡Р°СЃС‚СЊСЋ Р·Р°РїСЂРѕСЃР°
+ */
+private function generateHavingString()
+{
+    return $this->generateConditionString($this->HavingParams);
+}
+
+/**
+ * С„РѕСЂРјРёСЂСѓРµС‚ С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° СЃРІСЏР·Р°РЅРЅСѓСЋ СЃ СѓСЃР»РѕРІРёСЏРјРё WHERE
+ *
+ * @return string - СЃС‚СЂРѕРєР° СЃ WHERE-С‡Р°СЃС‚СЊСЋ Р·Р°РїСЂРѕСЃР°
  */
 private function generateWhereString()
 {
+    return $this->generateConditionString($this->Params);
+}
+
+/**
+ * С„РѕСЂРјРёСЂСѓРµС‚ С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° СЃРІСЏР·Р°РЅРЅСѓСЋ СЃ СѓСЃР»РѕРІРёСЏРјРё WHERE РёР»Рё HAVING
+ * 
+ * @param array $Params - РјР°СЃСЃРёРІ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё, 
+ * РЅР° РѕСЃРЅРѕРІР°РЅРёРё РєРѕС‚РѕСЂРѕРіРѕ Р±СѓРґРµС‚ СЃС„РѕСЂРјРёСЂРѕРІР°РЅР° С‡Р°СЃС‚СЊ СЃС‚СЂРѕРєРё Р·Р°РїСЂРѕСЃР°
+ * 
+ * @return string - СЃС‚СЂРѕРєР° СЃ WHERE РёР»Рё HAVING-С‡Р°СЃС‚СЊСЋ Р·Р°РїСЂРѕСЃР°
+ */
+protected function generateConditionString(array &$Params)
+{
     $wherestr = "";
-    foreach( $this->Params as $TableName => $TableParams )
+    foreach( $Params as $TableName => $TableParams )
     {
         foreach( $TableParams as $param )
         {
@@ -363,12 +477,12 @@ private function generateWhereString()
 
             $wherestr .= $param["andor"] . " " . $key . " " . $param["operator"];
 
-            if( $param["operator"] == "IN" || $param["operator"] == "NOT IN" ) { $wherestr .= " (" . $param["value"] . ") "; }
+            if( $param["operator"] == "IN" || $param["operator"] == "NOT IN" ) { $wherestr .= " (" . trim( $param["value"], "() " ) . ") "; }
             else if( $param["operator"] == "IS" || 
                      $param["operator"] == "NOT" || 
                      (isset($param["dataquote"]) && $param["dataquote"] == TRMSqlDataSource::NOQUOTE)
                     ) { $wherestr .= " " . $param["value"] . " "; }
-            else { $wherestr .= "'" . trim($param["value"], "'") . "' "; }
+            else { $wherestr .= "'" . addcslashes( trim($param["value"], "'"), "'" ) . "' "; }
         }
     }
 
@@ -376,19 +490,22 @@ private function generateWhereString()
 }
 
 /**
- * формирует список таблиц и их псевдонимов для секции FROM SELECT-запроса
- * имена таблиц и их псевдонимы берутся из SafetyFields
+ * С„РѕСЂРјРёСЂСѓРµС‚ СЃРїРёСЃРѕРє С‚Р°Р±Р»РёС† Рё РёС… РїСЃРµРІРґРѕРЅРёРјРѕРІ РґР»СЏ СЃРµРєС†РёРё FROM SELECT-Р·Р°РїСЂРѕСЃР°
+ * РёРјРµРЅР° С‚Р°Р±Р»РёС† Рё РёС… РїСЃРµРІРґРѕРЅРёРјС‹ Р±РµСЂСѓС‚СЃСЏ РёР· SafetyFields
  * 
- * @return string - строка вида "`table1` AS `t1`, `table2` AS `ttt`"
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
+ * 
+ * @return string - СЃС‚СЂРѕРєР° РІРёРґР° "`table1` AS `t1`, `table2` AS `ttt`"
  */
-private function generateFromStr()
+private function generateFromStr( TRMSafetyFields $SafetyFields )
 {
-    $MainTables = $this->SafetyFields->getObjectsNamesWithoutBackRelations();
+    $MainTables = $SafetyFields->getObjectsNamesWithoutBackRelations();
     $fromstr="";
     foreach($MainTables as $TableName)
     {
+        if(empty($TableName)) { continue; }
         $fromstr .= "`{$TableName}`";
-        $alias = $this->SafetyFields->getAliasForTableName($TableName);
+        $alias = $SafetyFields->getAliasForTableName($TableName);
         if( $alias )
         {
             $fromstr .= " AS `{$alias}`";
@@ -399,19 +516,22 @@ private function generateFromStr()
 }
 
 /**
- * формирует и возвращает строку SQL-запроса к БД для выбора записи
- * параметры WHERE устанавливаются перед вызовом этой функции с помощью - addWhereParam или addWhereParamFromArray
+ * С„РѕСЂРјРёСЂСѓРµС‚ Рё РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚СЂРѕРєСѓ SQL-Р·Р°РїСЂРѕСЃР° Рє Р‘Р” РґР»СЏ РІС‹Р±РѕСЂР° Р·Р°РїРёСЃРё
+ * РїР°СЂР°РјРµС‚СЂС‹ WHERE СѓСЃС‚Р°РЅР°РІР»РёРІР°СЋС‚СЃСЏ РїРµСЂРµРґ РІС‹Р·РѕРІРѕРј СЌС‚РѕР№ С„СѓРЅРєС†РёРё 
+ * СЃ РїРѕРјРѕС‰СЊСЋ - addWhereParam РёР»Рё addWhereParamFromArray
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
  *
  * @return string
  * 
  * @throws TRMDataSourceSQLEmptyTablesListException
  */
-public function makeSelectQuery() // array $params = null, $limit = 1, $offset = null)
+public function makeSelectQuery( TRMSafetyFields $SafetyFields )
 {
-    // строка с перечислением полей для выборки 
-    $fieldstr = $this->generateFieldsString();
+    // СЃС‚СЂРѕРєР° СЃ РїРµСЂРµС‡РёСЃР»РµРЅРёРµРј РїРѕР»РµР№ РґР»СЏ РІС‹Р±РѕСЂРєРё 
+    $fieldstr = $this->generateFieldsString($SafetyFields);
 
-    $fromstr = $this->generateFromStr();
+    $fromstr = $this->generateFromStr($SafetyFields);
     
     if(empty($fromstr))
     {
@@ -420,37 +540,43 @@ public function makeSelectQuery() // array $params = null, $limit = 1, $offset =
     
     $this->QueryString = "SELECT " . $fieldstr . " FROM " . $fromstr;
     
-    // строка с секцией JOIN, присоединяются все таблицы из массива Tables
-    $joinstr = $this->generateJoinString();
+    // СЃС‚СЂРѕРєР° СЃ СЃРµРєС†РёРµР№ JOIN, РїСЂРёСЃРѕРµРґРёРЅСЏСЋС‚СЃСЏ РІСЃРµ С‚Р°Р±Р»РёС†С‹ РёР· РјР°СЃСЃРёРІР° Tables
+    $joinstr = $this->generateJoinString($SafetyFields);
     if( strlen($joinstr) ) { $this->QueryString .= $joinstr; }
 
-    // строка с условиями WHERE
+    // СЃС‚СЂРѕРєР° СЃ СѓСЃР»РѕРІРёСЏРјРё WHERE
     $wherestr = $this->generateWhereString();
     if( strlen($wherestr) ) { $this->QueryString .= " WHERE " . $wherestr . " "; }
 
-    // часть запроса для группировки
+    // С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° РґР»СЏ РіСЂСѓРїРїРёСЂРѕРІРєРё
     if( !empty($this->GroupFields) )
     {
         $this->QueryString .= " GROUP BY ";
         foreach( $this->GroupFields as $field => $group )
         {
-                $this->QueryString .= " {$field},";
+            $this->QueryString .= " " . $this->prepareKey($field) . ",";
         }
         $this->QueryString = rtrim($this->QueryString, ",") . " ";
+        
+        if(!empty($this->HavingParams))
+        {
+            $this->QueryString .= " HAVING " . $this->generateHavingString() . " ";
+        }
     }
 
-    // часть запроса для сортировки
+    // С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєРё
     if( !empty($this->OrderFields) )
     {
         $this->QueryString .= " ORDER BY ";
         foreach( $this->OrderFields as $field => $order )
         {
-                $this->QueryString .= " {$field} {$order},";
+            // РІ Р°РїРѕСЃС‚СЂРѕС„С‹ РёРјСЏ РїРѕР»СЏ РЅРµ Р±РµСЂРµСЊСЃСЏ, СЌС‚Рѕ РґРµР»Р°РµС‚СЃСЏ РІ setOrderField
+            $this->QueryString .= " {$field} {$order},";
         }
         $this->QueryString = rtrim($this->QueryString, ",");
     }
 
-    // часть запроса для установки начала выборки и ограничения на количество выбираемых записей по условию
+    // С‡Р°СЃС‚СЊ Р·Р°РїСЂРѕСЃР° РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РЅР°С‡Р°Р»Р° РІС‹Р±РѕСЂРєРё Рё РѕРіСЂР°РЅРёС‡РµРЅРёСЏ РЅР° РєРѕР»РёС‡РµСЃС‚РІРѕ РІС‹Р±РёСЂР°РµРјС‹С… Р·Р°РїРёСЃРµР№ РїРѕ СѓСЃР»РѕРІРёСЋ
     if( is_int($this->Count) ) { $this->QueryString .= " LIMIT {$this->Count}"; }
     if( is_int($this->StartPosition) ) { $this->QueryString .= " OFFSET {$this->StartPosition}"; }
 
@@ -458,13 +584,13 @@ public function makeSelectQuery() // array $params = null, $limit = 1, $offset =
 }
 
 /**
- * оборачивает ключ в апострофы, убирая лишние и проверяя на наличе точки, т.е. указание на таблицу
+ * РѕР±РѕСЂР°С‡РёРІР°РµС‚ РєР»СЋС‡ РІ Р°РїРѕСЃС‚СЂРѕС„С‹, СѓР±РёСЂР°СЏ Р»РёС€РЅРёРµ Рё РїСЂРѕРІРµСЂСЏСЏ РЅР° РЅР°Р»РёС‡Рµ С‚РѕС‡РєРё, С‚.Рµ. СѓРєР°Р·Р°РЅРёРµ РЅР° С‚Р°Р±Р»РёС†Сѓ
  *
- * @param string $key - клюя для подготовки к использованию в запросах,
- * обрамляется апострофами `key`, если указана принадлежность к таблице через точку,
- * то сформируется строка вида `table`.`key`
+ * @param string $key - РєР»СЋС‡-РёРЅРґРµРєСЃ РґР»СЏ РїРѕРґРіРѕС‚РѕРІРєРё Рє РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЋ РІ Р·Р°РїСЂРѕСЃР°С…,
+ * РѕР±СЂР°РјР»СЏРµС‚СЃСЏ Р°РїРѕСЃС‚СЂРѕС„Р°РјРё С‚РёРїР° `key`, РµСЃР»Рё СѓРєР°Р·Р°РЅР° РїСЂРёРЅР°РґР»РµР¶РЅРѕСЃС‚СЊ Рє С‚Р°Р±Р»РёС†Рµ С‡РµСЂРµР· С‚РѕС‡РєСѓ,
+ * С‚Рѕ СЃС„РѕСЂРјРёСЂСѓРµС‚СЃСЏ СЃС‚СЂРѕРєР° РІРёРґР° `table`.`key`
  * 
- * @return string - подготовленный для вставки в запрос ключ таблицы
+ * @return string - РїРѕРґРіРѕС‚РѕРІР»РµРЅРЅС‹Р№ РґР»СЏ РІСЃС‚Р°РІРєРё РІ Р·Р°РїСЂРѕСЃ РєР»СЋС‡ С‚Р°Р±Р»РёС†С‹
  */
 protected function prepareKey($key)
 {
@@ -474,17 +600,17 @@ protected function prepareKey($key)
 }
 
 /**
- * добавляет параметр для условия WHERE в запросе
+ * РґРѕР±Р°РІР»СЏРµС‚ РїР°СЂР°РјРµС‚СЂ РґР»СЏ СѓСЃР»РѕРІРёСЏ WHERE РІ Р·Р°РїСЂРѕСЃРµ
  * 
- * @param string $tablename - имя таблицы для поля, которое добавляется к условию
- * @param string $fieldname - имя поля для сравнения
- * @param string|numeric|boolean $data - данные для сравнения
- * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
- * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
- * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::NEED_QUOTE
- * @param string $alias - альяс для таблицы из которой сравнивается поле, если не задан, то будет совпадать с альясом главной таблицы
- * @param integer $dataquote - если нужно оставить сравниваемое выражение без кавычек, 
- * то этот аргумент доложен быть - TRMSqlDataSource::NOQUOTE
+ * @param string $tablename - РёРјСЏ С‚Р°Р±Р»РёС†С‹ РґР»СЏ РїРѕР»СЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР±Р°РІР»СЏРµС‚СЃСЏ Рє СѓСЃР»РѕРІРёСЋ
+ * @param string $fieldname - РёРјСЏ РїРѕР»СЏ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ
+ * @param string|numeric|boolean $data - РґР°РЅРЅС‹Рµ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ
+ * @param string $operator - РѕРїРµСЂР°С‚РѕСЂ СЃСЂР°РІРЅРµРЅРёСЏ (=, !=, >, < Рё С‚.Рґ.), РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ =
+ * @param string $andor - С‡С‚Рѕ СЃС‚Р°РІРёС‚СЊ РїРµСЂРµРґ СЌС‚РёРј СѓСЃР»РѕРІРёРµРј OR РёР»Рё AND ? РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ AND
+ * @param integer $quote - РЅСѓР¶РЅРѕ Р»Рё Р±СЂР°С‚СЊ РІ Р°РїРѕСЃС‚СЂРѕС„С‹ РёРјРµРЅР° РїРѕР»РµР№, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РЅСѓР¶РЅРѕ - TRMSqlDataSource::NEED_QUOTE
+ * @param string $alias - Р°Р»СЊСЏСЃ РґР»СЏ С‚Р°Р±Р»РёС†С‹ РёР· РєРѕС‚РѕСЂРѕР№ СЃСЂР°РІРЅРёРІР°РµС‚СЃСЏ РїРѕР»Рµ, РµСЃР»Рё РЅРµ Р·Р°РґР°РЅ, С‚Рѕ Р±СѓРґРµС‚ СЃРѕРІРїР°РґР°С‚СЊ СЃ Р°Р»СЊСЏСЃРѕРј РіР»Р°РІРЅРѕР№ С‚Р°Р±Р»РёС†С‹
+ * @param integer $dataquote - РµСЃР»Рё РЅСѓР¶РЅРѕ РѕСЃС‚Р°РІРёС‚СЊ СЃСЂР°РІРЅРёРІР°РµРјРѕРµ РІС‹СЂР°Р¶РµРЅРёРµ Р±РµР· РєР°РІС‹С‡РµРє, 
+ * С‚Рѕ СЌС‚РѕС‚ Р°СЂРіСѓРјРµРЅС‚ РґРѕР»РѕР¶РµРЅ Р±С‹С‚СЊ - TRMSqlDataSource::NOQUOTE
  * 
  * @return $this
  */
@@ -503,10 +629,10 @@ public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $a
 }
 
 /**
- * добавляет условие в секцию WHERE-запроса
+ * РґРѕР±Р°РІР»СЏРµС‚ СѓСЃР»РѕРІРёРµ РІ СЃРµРєС†РёСЋ WHERE-Р·Р°РїСЂРѕСЃР°
  * 
- * @param string $tablename - имя объекта для которого устанавливается поле
- * @param array $params - массив с параметрами следующего формата<br>
+ * @param string $tablename - РёРјСЏ РѕР±СЉРµРєС‚Р° РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РїРѕР»Рµ
+ * @param array $param - РјР°СЃСЃРёРІ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё СЃР»РµРґСѓСЋС‰РµРіРѕ С„РѕСЂРјР°С‚Р°<br>
  * array(
  * "key" => $fieldname,<br>
  * "value" => $data,<br>
@@ -518,22 +644,172 @@ public function addWhereParam($tablename, $fieldname, $data, $operator = "=", $a
  * 
  * @return $this
  */
-public function addWhereParamFromArray($tablename, array $params)
+public function addWhereParamFromArray($tablename, array $param)
+{
+    $this->generateParamsFromArrayFor($tablename, $param, $this->Params);
+    return $this;
+}
+
+
+/**
+ * РґРѕР±Р°РІР»СЏРµС‚ РїР°СЂР°РјРµС‚СЂ РґР»СЏ СѓСЃР»РѕРІРёСЏ WHERE РІ Р·Р°РїСЂРѕСЃРµ
+ * 
+ * @param string $tablename - РёРјСЏ С‚Р°Р±Р»РёС†С‹ РґР»СЏ РїРѕР»СЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР±Р°РІР»СЏРµС‚СЃСЏ Рє СѓСЃР»РѕРІРёСЋ
+ * @param string $fieldname - РёРјСЏ РїРѕР»СЏ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ
+ * @param string|numeric|boolean $data - РґР°РЅРЅС‹Рµ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ
+ * @param string $operator - РѕРїРµСЂР°С‚РѕСЂ СЃСЂР°РІРЅРµРЅРёСЏ (=, !=, >, < Рё С‚.Рґ.), РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ =
+ * @param string $andor - С‡С‚Рѕ СЃС‚Р°РІРёС‚СЊ РїРµСЂРµРґ СЌС‚РёРј СѓСЃР»РѕРІРёРµРј OR РёР»Рё AND ? РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ AND
+ * @param integer $quote - РЅСѓР¶РЅРѕ Р»Рё Р±СЂР°С‚СЊ РІ Р°РїРѕСЃС‚СЂРѕС„С‹ РёРјРµРЅР° РїРѕР»РµР№, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РЅСѓР¶РЅРѕ - TRMSqlDataSource::NEED_QUOTE
+ * @param string $alias - Р°Р»СЊСЏСЃ РґР»СЏ С‚Р°Р±Р»РёС†С‹ РёР· РєРѕС‚РѕСЂРѕР№ СЃСЂР°РІРЅРёРІР°РµС‚СЃСЏ РїРѕР»Рµ, РµСЃР»Рё РЅРµ Р·Р°РґР°РЅ, С‚Рѕ Р±СѓРґРµС‚ СЃРѕРІРїР°РґР°С‚СЊ СЃ Р°Р»СЊСЏСЃРѕРј РіР»Р°РІРЅРѕР№ С‚Р°Р±Р»РёС†С‹
+ * @param integer $dataquote - РµСЃР»Рё РЅСѓР¶РЅРѕ РѕСЃС‚Р°РІРёС‚СЊ СЃСЂР°РІРЅРёРІР°РµРјРѕРµ РІС‹СЂР°Р¶РµРЅРёРµ Р±РµР· РєР°РІС‹С‡РµРє, 
+ * С‚Рѕ СЌС‚РѕС‚ Р°СЂРіСѓРјРµРЅС‚ РґРѕР»РѕР¶РµРЅ Р±С‹С‚СЊ - TRMSqlDataSource::NOQUOTE
+ * 
+ * @return $this
+ */
+public function addHavingParam($tablename, $fieldname, $data, $operator = "=", $andor = "AND", $quote = TRMSqlDataSource::NEED_QUOTE, $alias = null, $dataquote = TRMSqlDataSource::NEED_QUOTE)
+{
+    $value = array(
+            "key" => $fieldname,
+            "value" => $data,
+            "operator" => $operator,
+            "andor" => $andor,
+            "quote" => $quote,
+            "alias" => $alias, //($alias!== null) ? $alias : $this->AliasName,
+            "dataquote" => $dataquote,
+            );
+    return $this->addHavingParamFromArray( $tablename, $value );
+}
+
+/**
+ * РґРѕР±Р°РІР»СЏРµС‚ СѓСЃР»РѕРІРёРµ РІ СЃРµРєС†РёСЋ WHERE-Р·Р°РїСЂРѕСЃР°
+ * 
+ * @param string $tablename - РёРјСЏ РѕР±СЉРµРєС‚Р° РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РїРѕР»Рµ
+ * @param array $param - РјР°СЃСЃРёРІ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё СЃР»РµРґСѓСЋС‰РµРіРѕ С„РѕСЂРјР°С‚Р°<br>
+ * array(
+ * "key" => $fieldname,<br>
+ * "value" => $data,<br>
+ * "operator" => $operator,<br>
+ * "andor" => $andor,<br>
+ * "quote" => $quote,<br>
+ * "alias" => $alias,<br>
+ * "dataquote" => $dataquote );
+ * 
+ * @return $this
+ */
+public function addHavingParamFromArray($tablename, array $param)
+{
+    $this->generateParamsFromArrayFor($tablename, $param, $this->HavingParams);
+    return $this;
+}
+
+/**
+ * СѓР±РёСЂР°РµС‚ СѓСЃР»РѕРІРёРµ РёР· СЃРµРєС†РёРё WHERE-Р·Р°РїСЂРѕСЃР°
+ * 
+ * @param string $tablename - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»РµС‚СЃСЏ СѓСЃР»РѕРІРёРµ РґР»СЏ РїРѕР»СЏ
+ * @param string $key - РёРјСЏ РїРѕР»СЏ, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»СЏРµС‚СЃСЏ СѓСЃР»РѕРІРёРµ
+ * @param string $value - Р·РЅР°С‡РµРЅРёРµ РґР°РЅРЅС‹С… РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ, РґРѕР»Р¶РЅРѕ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РІРјРµСЃС‚Рµ СЃ РѕРїРµСЂР°С‚РѕСЂРѕРј,
+ * С‡С‚Рѕ Р±С‹ РѕРґРЅРѕРЅР°С‡РЅРѕ РёРґРµРЅС‚РёС„РёС†РёСЂРѕРІР°С‚СЊ СѓСЃР»РѕРІРёРµ
+ * @param string $operator - РѕРїРµСЂР°С‚РѕСЂ СЃСЂР°РІРЅРµРЅРёСЏ, РґРѕР»Р¶РµРЅ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РІРјРµСЃС‚Рµ СЃРѕ СЃР·РЅР°С‡РµРЅРёРµРј $value,
+ * С‡С‚Рѕ Р±С‹ РѕРґРЅРѕРЅР°С‡РЅРѕ РёРґРµРЅС‚РёС„РёС†РёСЂРѕРІР°С‚СЊ СѓСЃР»РѕРІРёРµ
+ * 
+ * @return $this
+ */
+public function removeHavingParam( $tablename, $key, $value = null, $operator = null )
+{
+     $this->removeParam($tablename, $key, $value, $operator, $this->HavingParams);
+     return $this;
+}
+
+/**
+ * СѓР±РёСЂР°РµС‚ СѓСЃР»РѕРІРёРµ РёР· СЃРµРєС†РёРё WHERE-Р·Р°РїСЂРѕСЃР°
+ * 
+ * @param string $tablename - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»РµС‚СЃСЏ СѓСЃР»РѕРІРёРµ РґР»СЏ РїРѕР»СЏ
+ * @param string $key - РёРјСЏ РїРѕР»СЏ, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»СЏРµС‚СЃСЏ СѓСЃР»РѕРІРёРµ
+ * @param string $value - Р·РЅР°С‡РµРЅРёРµ РґР°РЅРЅС‹С… РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ, РґРѕР»Р¶РЅРѕ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РІРјРµСЃС‚Рµ СЃ РѕРїРµСЂР°С‚РѕСЂРѕРј,
+ * С‡С‚Рѕ Р±С‹ РѕРґРЅРѕРЅР°С‡РЅРѕ РёРґРµРЅС‚РёС„РёС†РёСЂРѕРІР°С‚СЊ СѓСЃР»РѕРІРёРµ
+ * @param string $operator - РѕРїРµСЂР°С‚РѕСЂ СЃСЂР°РІРЅРµРЅРёСЏ, РґРѕР»Р¶РµРЅ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РІРјРµСЃС‚Рµ СЃРѕ СЃР·РЅР°С‡РµРЅРёРµРј $value,
+ * С‡С‚Рѕ Р±С‹ РѕРґРЅРѕРЅР°С‡РЅРѕ РёРґРµРЅС‚РёС„РёС†РёСЂРѕРІР°С‚СЊ СѓСЃР»РѕРІРёРµ
+ * 
+ * @return $this
+ */
+public function removeWhereParam( $tablename, $key, $value = null, $operator = null )
+{
+     $this->removeParam($tablename, $key, $value, $operator, $this->Params);
+     return $this;
+}
+
+/**
+ * СѓР±РёСЂР°РµС‚ СѓСЃР»РѕРІРёРµ РёР· СЃРµРєС†РёРё WHERE РёР»Рё HAVING-Р·Р°РїСЂРѕСЃР°
+ * 
+ * @param string $tablename - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»РµС‚СЃСЏ СѓСЃР»РѕРІРёРµ РґР»СЏ РїРѕР»СЏ
+ * @param string $key - РёРјСЏ РїРѕР»СЏ, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»СЏРµС‚СЃСЏ СѓСЃР»РѕРІРёРµ
+ * @param string $value - Р·РЅР°С‡РµРЅРёРµ РґР°РЅРЅС‹С… РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ, РґРѕР»Р¶РЅРѕ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РІРјРµСЃС‚Рµ СЃ РѕРїРµСЂР°С‚РѕСЂРѕРј,
+ * С‡С‚Рѕ Р±С‹ РѕРґРЅРѕРЅР°С‡РЅРѕ РёРґРµРЅС‚РёС„РёС†РёСЂРѕРІР°С‚СЊ СѓСЃР»РѕРІРёРµ
+ * @param string $operator - РѕРїРµСЂР°С‚РѕСЂ СЃСЂР°РІРЅРµРЅРёСЏ, РґРѕР»Р¶РµРЅ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РІРјРµСЃС‚Рµ СЃРѕ СЃР·РЅР°С‡РµРЅРёРµРј $value,
+ * С‡С‚Рѕ Р±С‹ РѕРґРЅРѕРЅР°С‡РЅРѕ РёРґРµРЅС‚РёС„РёС†РёСЂРѕРІР°С‚СЊ СѓСЃР»РѕРІРёРµ
+ * @param array &$ResParams - РјР°СЃСЃРёРІ, РёР· РєРѕС‚РѕСЂРѕРіРѕ Р±СѓРґРµС‚ СѓРґР°Р»РµРЅ СЂРµР·СѓР»СЊС‚Р°С‚
+ */
+protected function removeParam( $tablename, $key, $value, $operator, array &$ResParams )
+{
+    // РїСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё РїР°СЂР°РјРµС‚СЂС‹ РґР»СЏ СѓРєР°Р·Р°РЅРЅРѕР№ С‚Р°Р±Р»РёС†С‹
+    if( !isset($ResParams[$tablename]) ) { return; }
+
+    foreach( $ResParams[$tablename] as $Index => $CurrentParam )
+    {
+        if( $CurrentParam["key"] !== $key ) { continue; }
+
+        // РµСЃР»Рё РЅРµ Р·Р°РґР°РЅРѕ Р·РЅР°С‡РµРЅРёРµ РІРјРµСЃС‚Рµ СЃ РѕРїРµСЂР°С‚РѕСЂРѕРј СЃСЂР°РІРЅРµРЅРёСЏ,
+        // С‚Рѕ Р±СѓРґСѓС‚ СѓРґР°Р»РµРЅС‹ РІСЃРµ РїР°СЂР°РјРµС‚СЂС‹ РґР»СЏ РєР»СЋС‡Р° $key
+        if( !isset($operator) || !isset($value) )
+        {
+            unset( $ResParams[$tablename][$Index] );
+            continue;
+        }
+        // РІ РїСЂРѕС‚РёРІРЅРѕРј СЃР»СѓС‡Р°Рµ (РµСЃР»Рё Р·Р°РґР°РЅС‹ Р·РЅР°С‡РµРЅРёРµ Рё РѕРїРµСЂР°С‚РѕСЂ),
+        // С‚Рѕ РїСЂРѕРІРµСЂСЏС‚СЃСЏ РёС… СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ, РµСЃР»Рё СЃРѕРІРїР°РґР°СЋС‚,
+        // С‚РѕРіРґР° СЌС‚РѕС‚ РїР°СЂР°РјРµС‚СЂ СѓРґР°Р»СЏРµС‚СЃСЏ Рё Р·Р°РІРµСЂС€Р°РµС‚СЃСЏ РІС‹РїРѕР»РЅРµРЅРёРµ,
+        // С‚Р°Рє РєР°Рє РѕРґРёРЅР°РєРѕРІС‹С… СѓСЃР»РѕРІРёР№ РЅРµ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ!
+        if( $CurrentParam["value"] === $value &&
+            $CurrentParam["operator"] === $operator )
+        {
+            unset( $ResParams[$tablename][$Index] );
+            return;
+        }
+    }
+}
+
+/**
+ * РґРѕР±Р°РІР»СЏРµС‚ СѓСЃР»РѕРІРёРµ РІ СЃРµРєС†РёСЋ WHERE РёР»Рё HAVING-Р·Р°РїСЂРѕСЃР°
+ * 
+ * @param string $tablename - РёРјСЏ РѕР±СЉРµРєС‚Р° РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РїРѕР»Рµ
+ * @param array $param - РјР°СЃСЃРёРІ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё СЃР»РµРґСѓСЋС‰РµРіРѕ С„РѕСЂРјР°С‚Р°<br>
+ * array(
+ * "key" => $fieldname,<br>
+ * "value" => $data,<br>
+ * "operator" => $operator,<br>
+ * "andor" => $andor,<br>
+ * "quote" => $quote,<br>
+ * "alias" => $alias,<br>
+ * "dataquote" => $dataquote );
+ * @param array &$ResParams - РјР°СЃСЃРёРІ, РІ РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ РґРѕР±Р°РІР»РµРЅ СЂРµР·СѓР»СЊС‚Р°С‚
+ * 
+ */
+protected function generateParamsFromArrayFor($tablename, array $param, array &$ResParams)
 {
     $value = array();
 
-    $value["key"] = $params["key"];
-    $value["value"] = $params["value"];
+    $value["key"] = $param["key"];
+    $value["value"] = $param["value"];
     $value["operator"] = "=";
     $value["andor"] = "AND";
     $value["quote"] = TRMSqlDataSource::NEED_QUOTE;
-    $value["alias"] = isset( $params["alias"] ) ? $params["alias"] : null; // $this->AliasName;
+    $value["alias"] = isset( $param["alias"] ) ? $param["alias"] : null; // $this->AliasName;
     $value["dataquote"] = TRMSqlDataSource::NEED_QUOTE;
     
-    // проверяем, есть ли уже такое условие, что бы не добавлять второй раз дубликат
-    if( isset($this->Params[$tablename]) )
+    // РїСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё СѓР¶Рµ С‚Р°РєРѕРµ СѓСЃР»РѕРІРёРµ, С‡С‚Рѕ Р±С‹ РЅРµ РґРѕР±Р°РІР»СЏС‚СЊ РІС‚РѕСЂРѕР№ СЂР°Р· РґСѓР±Р»РёРєР°С‚
+    if( isset($ResParams[$tablename]) )
     {
-        foreach( $this->Params[$tablename] as $checkedparams )
+        foreach( $ResParams[$tablename] as $checkedparams )
         {
             if( $checkedparams["key"] === $value["key"] &&
                 $checkedparams["value"] === $value["value"] &&
@@ -552,23 +828,23 @@ public function addWhereParamFromArray($tablename, array $params)
     /* VALUE */
     if( is_string($value["value"]) || is_numeric($value["value"]) || is_bool($value["value"]) )
     {
-        // для строчных значений экранируем одинарные кавычки, что бы не было конфликта в запросе
+        // РґР»СЏ СЃС‚СЂРѕС‡РЅС‹С… Р·РЅР°С‡РµРЅРёР№ СЌРєСЂР°РЅРёСЂСѓРµРј РѕРґРёРЅР°СЂРЅС‹Рµ РєР°РІС‹С‡РєРё, С‡С‚Рѕ Р±С‹ РЅРµ Р±С‹Р»Рѕ РєРѕРЅС„Р»РёРєС‚Р° РІ Р·Р°РїСЂРѕСЃРµ
         if( is_string($value["value"]) )
         {
             $value["value"] = str_replace("'", "\\'", $value["value"]);
         }
     }
     
-    /* OPERATOR - для простого value это может быть = или НЕ = */
-    if( isset($params["operator"]) )
+    /* OPERATOR - РґР»СЏ РїСЂРѕСЃС‚РѕРіРѕ value СЌС‚Рѕ РјРѕР¶РµС‚ Р±С‹С‚СЊ = РёР»Рё РќР• = */
+    if( isset($param["operator"]) )
     {
-        $value["operator"] = self::makeValidSQLOperator($params["operator"]);
+        $value["operator"] = self::makeValidSQLOperator($param["operator"]);
     }
 
     /* AND OR */
-    if( isset($params["andor"]) )
+    if( isset($param["andor"]) )
     {
-        $value["andor"] = trim(strtoupper($params["andor"]));
+        $value["andor"] = trim(strtoupper($param["andor"]));
         if( !($value["andor"] == "AND") && !($value["andor"] == "OR") )
         {
             $value["andor"] = "AND";
@@ -576,28 +852,26 @@ public function addWhereParamFromArray($tablename, array $params)
     }
 
     /* QUOTE */
-    // по умолчанию все имена полей берутся в апострофы, этой опцией можно убрать, например для вычисляемых полей */
-    if( isset($params["quote"]) && $params["quote"] == TRMSqlDataSource::NOQUOTE )
+    // РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РІСЃРµ РёРјРµРЅР° РїРѕР»РµР№ Р±РµСЂСѓС‚СЃСЏ РІ Р°РїРѕСЃС‚СЂРѕС„С‹, СЌС‚РѕР№ РѕРїС†РёРµР№ РјРѕР¶РЅРѕ СѓР±СЂР°С‚СЊ, РЅР°РїСЂРёРјРµСЂ РґР»СЏ РІС‹С‡РёСЃР»СЏРµРјС‹С… РїРѕР»РµР№ */
+    if( isset($param["quote"]) && $param["quote"] == TRMSqlDataSource::NOQUOTE )
     {
         $value["quote"] = TRMSqlDataSource::NOQUOTE;
     }
-    if( isset($params["dataquote"]) && $params["dataquote"] == TRMSqlDataSource::NOQUOTE )
+    if( isset($param["dataquote"]) && $param["dataquote"] == TRMSqlDataSource::NOQUOTE )
     {
         $value["dataquote"] = TRMSqlDataSource::NOQUOTE;
     }
 
-    $this->Params[$tablename][] = $value;
-
-    return $this;
+    $ResParams[$tablename][] = $value;
 }
 
 /**
- * добавляет массив параметров к уже установленному
+ * РґРѕР±Р°РІР»СЏРµС‚ РјР°СЃСЃРёРІ РїР°СЂР°РјРµС‚СЂРѕРІ Рє СѓР¶Рµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРјСѓ
  *
- * @param string $tablename - имя объекта для которого устанавливаются параметры
- * @param array - параметры, используемые в запросе, как правило сюда передается ID-записи 
- * все должно передаваться в массиве array( $fieldname => array(value, operator, andor, quote, alias, dataquote), ...)
- * обязательными являются array(..., $fieldname => array(value), ...)
+ * @param string $tablename - РёРјСЏ РѕР±СЉРµРєС‚Р° РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°СЋС‚СЃСЏ РїР°СЂР°РјРµС‚СЂС‹
+ * @param array - РїР°СЂР°РјРµС‚СЂС‹, РёСЃРїРѕР»СЊР·СѓРµРјС‹Рµ РІ Р·Р°РїСЂРѕСЃРµ, РєР°Рє РїСЂР°РІРёР»Рѕ СЃСЋРґР° РїРµСЂРµРґР°РµС‚СЃСЏ ID-Р·Р°РїРёСЃРё 
+ * РІСЃРµ РґРѕР»Р¶РЅРѕ РїРµСЂРµРґР°РІР°С‚СЊСЃСЏ РІ РјР°СЃСЃРёРІРµ array( $fieldname => array(value, operator, andor, quote, alias, dataquote), ...)
+ * РѕР±СЏР·Р°С‚РµР»СЊРЅС‹РјРё СЏРІР»СЏСЋС‚СЃСЏ array(..., $fieldname => array(value), ...)
  */
 public function generateParamsFrom( $tablename, array $params )
 {
@@ -606,10 +880,10 @@ public function generateParamsFrom( $tablename, array $params )
         return;
     }
 
-    // если передаются параметры, значит удаляем уже установленные
+    // РµСЃР»Рё РїРµСЂРµРґР°СЋС‚СЃСЏ РїР°СЂР°РјРµС‚СЂС‹, Р·РЅР°С‡РёС‚ СѓРґР°Р»СЏРµРј СѓР¶Рµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Рµ
     //unset($this->Params);
     //$this->Params = array();
-    // в $params передан массив, перебираем значения
+    // РІ $params РїРµСЂРµРґР°РЅ РјР°СЃСЃРёРІ, РїРµСЂРµР±РёСЂР°РµРј Р·РЅР°С‡РµРЅРёСЏ
     foreach($params as $key => $value)
     {
         $this->addWhereParam($tablename, 
@@ -626,12 +900,12 @@ public function generateParamsFrom( $tablename, array $params )
 }
 
 /**
- * Выполняет запрос переданный в $query
+ * Р’С‹РїРѕР»РЅСЏРµС‚ Р·Р°РїСЂРѕСЃ РїРµСЂРµРґР°РЅРЅС‹Р№ РІ $query
  * 
- * @param string $query - строка SQL-запроса
+ * @param string $query - СЃС‚СЂРѕРєР° SQL-Р·Р°РїСЂРѕСЃР°
  * 
- * @return mysqli_result - объект-результат выполнения запроса
- * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
+ * @return \mysqli_result - РѕР±СЉРµРєС‚-СЂРµР·СѓР»СЊС‚Р°С‚ РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР°
+ * @throws TRMSqlQueryException - РІ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡РЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ
  */
 public function executeQuery($query)
 {
@@ -639,94 +913,90 @@ public function executeQuery($query)
 
     if( !$result )
     {
-        throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$query}]" );
+        throw new TRMSqlQueryException( __METHOD__ . " Р—Р°РїСЂРѕСЃ Рє Р‘Р” РІРµСЂРЅСѓР» РѕС€РёР±РєСѓ![{$query}]" );
     }
     return $result;
 }
 
 /**
- * вспомогательная функция для проверки и формирования запроса к БД
- * отправляет запрос на выполнение
- * функция вызывается из getFromDB и addFromDB
+ * РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅР°СЏ С„СѓРЅРєС†РёСЏ РґР»СЏ РїСЂРѕРІРµСЂРєРё Рё С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ Р·Р°РїСЂРѕСЃР° Рє Р‘Р”
+ * РѕС‚РїСЂР°РІР»СЏРµС‚ Р·Р°РїСЂРѕСЃ РЅР° РІС‹РїРѕР»РЅРµРЅРёРµ
+ * С„СѓРЅРєС†РёСЏ РІС‹Р·С‹РІР°РµС‚СЃСЏ РёР· getFromDB Рё addFromDB
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
  *
- * @return mysqli_result - объект-результат выполнения запроса
- * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
+ * @return \mysqli_result - РѕР±СЉРµРєС‚-СЂРµР·СѓР»СЊС‚Р°С‚ РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР°
+ * @throws TRMSqlQueryException - РІ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡РЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ
  */
-private function runSelectQuery()
+private function runSelectQuery( TRMSafetyFields $SafetyFields )
 {
-    if( !$this->makeSelectQuery() ) // $params, $this->Count, $this->StartPosition) )
+    if( !$this->makeSelectQuery( $SafetyFields ) )
     {
-        throw new TRMSqlQueryException( __METHOD__ . " Неудачно сформирован запрос к БД" );
+        throw new TRMSqlQueryException( __METHOD__ . " РќРµСѓРґР°С‡РЅРѕ СЃС„РѕСЂРјРёСЂРѕРІР°РЅ Р·Р°РїСЂРѕСЃ Рє Р‘Р”" );
     }
 
     return $this->executeQuery($this->QueryString);
 }
  
 /**
- * считываем данные из БД используя запрос, который возвращает функция makeSelectQuery
- * перезаписывает связанный объект с данными
+ * СЃС‡РёС‚С‹РІР°РµС‚ РґР°РЅРЅС‹Рµ РёР· Р‘Р” РёСЃРїРѕР»СЊР·СѓСЏ Р·Р°РїСЂРѕСЃ, 
+ * РєРѕС‚РѕСЂС‹Р№ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ С„СѓРЅРєС†РёСЏ makeSelectQuery РЅР° РѕСЃРЅРѕРІРµ SafetyFields 
+ * Рё Where РїР°СЂР°РјРµС‚СЂРѕРІ
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
  *
- * @return int - количество прочитанных строк из БД
- * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
+ * @return \mysqli_result - РѕР±СЉРµРєС‚ СЃ СЂРµР·СѓР»СЊС‚Р°С‚РѕРј Р·Р°РїСЂРѕСЃР°
+ * @throws TRMSqlQueryException - РІ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡РЅРѕРіРѕ РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР° РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ
  */
-public function getDataFrom()
+public function getDataFrom( TRMSafetyFields $SafetyFields )
 {
-    $result = $this->runSelectQuery();
+    $result = $this->runSelectQuery($SafetyFields);
     if( !$result )
     {
-        throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
+        throw new TRMSqlQueryException( __METHOD__ . " Р—Р°РїСЂРѕСЃ Рє Р‘Р” РІРµСЂРЅСѓР» РѕС€РёР±РєСѓ![{$this->QueryString}]" );
     }
-    $Arr = TRMDBObject::fetchAll($result, MYSQLI_NUM);
-    $Count = count($Arr);
-    // преобразуем одномерный массив в многомерный согласно DataMapper-у
-    for( $i=0; $i<$Count; $i++ )
-    {
-        $k = 0;
-        foreach( $this->SafetyFields as $TableName => $TableState )
-        {
-            foreach( array_keys($TableState[TRMDataMapper::FIELDS_INDEX]) as $FieldName )
-            {
-                $this->DataObject->setData($i, $TableName, $FieldName, $Arr[$i][$k++]);
-            }
-        }
-    }
-    
-//    $this->DataObject->setDataArray( TRMDBObject::fetchAll($result) ); //  $result->fetch_all(MYSQLI_ASSOC) );
-    return $result->num_rows;
+
+    $this->QueryString = "";
+    return $result;
 }
 
 /**
- * считываем данные из БД используя запрос, который возвращает функция makeSelectQuery
- * добавляет полученное множество к имеющимся данным
- *
- * @return int - количество прочитанных строк из БД
- * @throws TRMSqlQueryException - в случае неудачного выполнения запроса выбрасывается исключение
- */
-public function addDataFrom() // array $params = null)
-{
-    $result = $this->runSelectQuery(); //$params);
-    if( !$result )
-    {
-        throw new TRMSqlQueryException( __METHOD__ . " Запрос к БД вернул ошибку![{$this->QueryString}]" );
-    }
-    $this->DataObject->mergeDataArray( TRMDBObject::fetchAll($result) ); //$result->fetch_all(MYSQLI_ASSOC) );
-    return $result->num_rows;
-}
-
-/**
- *  
- * @param array $IndexesNames
- * @param array $UpdatableFieldsNames
- * @param array $CurrentKeyFlag
+ * @param TRMSafetyFields $DataMapper - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
+ * @param array $IndexesNames - РїРѕСЃР»Рµ СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё Р±СѓРґРµС‚ СЃРѕРґРµСЂР¶Р°С‚СЊ РїРѕР»СЏ, 
+ * РєРѕС‚РѕСЂС‹Рµ СЃР»РµРґСѓРµС‚ РІРєР»СЋС‡Р°С‚СЊ РІ СЃРµРєС†РёСЋ WHERE update-Р·Р°РїСЂРѕСЃР°, 
+ * РїСЂРѕРІРµСЂСЏРµС‚ СЃРЅР°С‡Р°Р»Р° РЅР°Р»РёС‡РёРµ РїРµСЂРІРёС‡РЅС‹С… РёРЅРґРµРєСЃРѕРІ, 
+ * РµСЃР»Рё РЅРµ РЅР°Р№РґРµРЅС‹ РїРµСЂРІРёС‡РЅС‹Рµ, С‚Рѕ РёС‰РµС‚ СѓРЅРёРєР°Р»СЊРЅС‹Рµ РєР»СЋС‡Рё, 
+ * РµСЃР»Рё Рё РѕРЅРё РЅРµ РЅРµР°Р№РґРµРЅС‹, С‚Рѕ, СЃРїРµС†РёР°Р»СЊРЅРѕ, РґР»СЏ Р·Р°РїСЂРѕСЃР° DELETE Р±СѓРґСѓС‚ РґРѕР±Р°РІР»РµРЅС‹ РІСЃРµ РїРѕР»СЏ
+ * РґР»СЏ РїРѕРёСЃРєР° РїРѕ СЃСЂР°РІРЅРµРЅРёСЋ, РґР»СЏ СЌС‚РѕРіРѕ $CurrentKeyFlag РЅСѓР¶РЅРѕ РѕСЃС‚Р°РІРёС‚СЊ null... 
+ * @param array $UpdatableFieldsNames - РїРѕСЃР»Рµ СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё СЃРѕРµСЂР¶РёС‚ РјР°СЃСЃРёРІ РґРѕСЃС‚СѓРїРЅС‹С… РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»РµР№
+ * @param array $CurrentKeyFlag - РµСЃР»Рё РЅРµ null, 
+ * С‚Рѕ РїРѕСЃР»Рµ СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё Р±СѓРґРµС‚ СЃРѕРґРµСЂР¶Р°С‚СЊ РјР°СЃСЃРёРІ РІРёРґР° :
+ * array( Table1 => "PRI", Table3 => "UNI", Table7 => "PRI"... ),
+ * С‚.Рµ. РµСЃР»Рё РІ С‚Р°Р±Р»РёС†Рµ РµСЃС‚СЊ РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡, С‚Рѕ РґР»СЏ РЅРµРµ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ PRI,
+ * РµСЃР»Рё РЅРµС‚ РїРµСЂРІРёС‡РЅРѕРіРіРѕ, РЅРѕ РµСЃС‚СЊ СѓРЅРёРєР°Р»СЊРЅС‹Р№, С‚Рѕ РґР»СЏ СЌС‚РѕР№ С‚Р°Р±Р»РёС†С‹ Р±СѓРґРµС‚ UNI,
+ * РІ РјР°СЃСЃРёРІРµ $IndexesNames РґР»СЏ РєР°Р¶РґРѕР№ С‚Р°Р±Р»РёС†С‹ TableN Р±СѓРґСѓС‚ РёРјРµРЅРЅРѕ РїРѕР»СЏ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёРµ 
+ * Р»РёР±Рѕ РїРµСЂРІРёС‡РЅС‹Рј, РµСЃР»Рё РµСЃС‚СЊ, Р»РёР±Рѕ СѓРЅРёРєР°Р»СЊРЅС‹Рј РїРѕР»СЏРј, РµСЃР»Рё РѕРЅРё С‚Р°Рј РµСЃС‚СЊ,
+ * РїСЂРѕРІРµСЂРёС‚СЊ СЌС‚Рѕ РјРѕР¶РЅРѕ РёРјРµРЅРЅРѕ РїРѕ Р·РЅР°С‡РµРЅРёСЋ РІ РјР°СЃСЃРёРІРµ $CurrentKeyFlag[TableN],
+ * РµСЃР»Рё $CurrentKeyFlag РЅРµ РїРµСЂРµРґР°РЅ, С‚.Рµ. === null,
+ * РІ РєР°Р¶РґРѕРј $IndexesNames[TableN] Р±СѓРґРµС‚ РјР°СЃСЃРёРІ СЃРѕ РІСЃРµРјРё РїРѕР»СЏРјРё РѕС‡РµСЂРµРґРЅРѕР№ С‚Р°Р±Р»РёС†С‹ TableN
  * 
  * @throws TRMDataSourceWrongTableSortException
  * @throws TRMDataSourceNoUpdatebleFieldsException
  */
-private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, array &$UpdatableFieldsNames, array &$CurrentKeyFlag = null )
+private function generateIndexesAndUpdatableFieldsNames( 
+        TRMSafetyFields $DataMapper, 
+        array &$IndexesNames, 
+        array &$UpdatableFieldsNames, 
+        array &$CurrentKeyFlag = null )
 {
-    if(!$this->SafetyFields->sortObjectsForRelationOrder())
+    // СЃРѕСЂС‚РёСЂСѓРµС‚ РґР°РЅРЅС‹Рµ РІ DataMapper, С‚Р°РєРёРј РѕР±СЂР°Р·РѕРј,
+    // С‡С‚Рѕ Р±С‹ СЃРЅР°С‡Р°Р»Р° С€Р»Рё РІСЃРµ РЅР°Р·Р°РІРёСЃРёРјС‹Рµ РѕР±СЉРµС‚С‹, 
+    // РЅР°РїСЂРёРјРµСЂ, РїСЂРѕРёР·РІРѕРґРёС‚РµР»Рё, РіСЂСѓРїРїС‹, РµРґ. РёР·РјРµСЂРµРЅРёСЏ,
+    // Рё СѓР¶Рµ РїРѕС‚РѕРј Р·Р°РІРёСЃРёРјС‹Рµ РѕС‚ РЅРёС… 
+    $SafetyFields = clone $DataMapper;
+    if(!$SafetyFields->sortObjectsForRelationOrder())
     {
-        throw new TRMDataSourceWrongTableSortException(__METHOD__ . " отсортировать массив с таблицами не удалось");
+        throw new TRMDataSourceWrongTableSortException(__METHOD__ . " РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РјР°СЃСЃРёРІ СЃ С‚Р°Р±Р»РёС†Р°РјРё РЅРµ СѓРґР°Р»РѕСЃСЊ");
     }
     if( isset($CurrentKeyFlag) )
     {
@@ -740,14 +1010,15 @@ private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, a
     
     $UpdatableFieldsNames = array();
     $IndexesNames = array();
-    
-    foreach( $this->SafetyFields as $TableName => $TableState )
+
+    $ArrayKeys = $SafetyFields->getArrayKeys();
+    foreach( $ArrayKeys as $TableName )
     {
         
-        // получаем массив доступных для записи полей в очередной таблице $TableName
-        $UpdatableFieldsNames[$TableName] = $this->SafetyFields->getUpdatableFieldsNamesFor($TableName);
-        // если массив оказался пустым, 
-        // то продолжаем цикл
+        // РїРѕР»СѓС‡Р°РµРј РјР°СЃСЃРёРІ РґРѕСЃС‚СѓРїРЅС‹С… РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»РµР№ РІ РѕС‡РµСЂРµРґРЅРѕР№ С‚Р°Р±Р»РёС†Рµ $TableName
+        $UpdatableFieldsNames[$TableName] = $SafetyFields->getUpdatableFieldsNamesFor($TableName);
+        // РµСЃР»Рё РјР°СЃСЃРёРІ РѕРєР°Р·Р°Р»СЃСЏ РїСѓСЃС‚С‹Рј, 
+        // С‚Рѕ РїСЂРѕРґРѕР»Р¶Р°РµРј С†РёРєР»
         if( empty($UpdatableFieldsNames[$TableName]) )
         {
             unset($UpdatableFieldsNames[$TableName]);
@@ -755,37 +1026,43 @@ private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, a
         }
         
         $IndexesNames[$TableName] = array();
-        // если же есть доступные для записи поля в этой таблице,
-        // то формируем поля, которые будут в секции WHERE update-запроса для таблицы $TableName
-        // проверяем сначала наличие первичных индексов, 
-        // если не найдены первичные, то поищем уникальные ключи,
-        // если и они не неайлены, то для запроса DELETE будут добавлены все поля, 
-        // для поиска записи по совпаденияю всех значений во всех полях таблицы
+        // РµСЃР»Рё Р¶Рµ РµСЃС‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»СЏ РІ СЌС‚РѕР№ С‚Р°Р±Р»РёС†Рµ,
+        // С‚Рѕ С„РѕСЂРјРёСЂСѓРµРј СЃРїРёСЃРѕРє РїРѕР»РµР№, 
+        // РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РІ СЃРµРєС†РёРё WHERE update- Рё/РёР»Рё delete-Р·Р°РїСЂРѕСЃРѕРІ РґР»СЏ С‚Р°Р±Р»РёС†С‹ $TableName
+        // РїСЂРѕРІРµСЂСЏРµРј СЃРЅР°С‡Р°Р»Р° РЅР°Р»РёС‡РёРµ РїРµСЂРІРёС‡РЅС‹С… РёРЅРґРµРєСЃРѕРІ, 
+        // РµСЃР»Рё РЅРµ РЅР°Р№РґРµРЅС‹ РїРµСЂРІРёС‡РЅС‹Рµ, С‚Рѕ РёС‰РµРј СѓРЅРёРєР°Р»СЊРЅС‹Рµ РєР»СЋС‡Рё,
+        // РµСЃР»Рё Рё РѕРЅРё РЅРµ РЅРµР°Р№Р»РµРЅС‹, С‚Рѕ РґР»СЏ Р·Р°РїСЂРѕСЃР° DELETE Р±СѓРґСѓС‚ РґРѕР±Р°РІР»РµРЅС‹ РІСЃРµ РїРѕР»СЏ, 
+        // РґР»СЏ РїРѕРёСЃРєР° Р·Р°РїРёСЃРё РїРѕ СЃРѕРІРїР°РґРµРЅРёСЏСЋ РІСЃРµС… Р·РЅР°С‡РµРЅРёР№ РІРѕ РІСЃРµС… РїРѕР»СЏС… С‚Р°Р±Р»РёС†С‹
+        // С‡С‚Рѕ Р±С‹ СѓРґР°Р»РёС‚СЊ СЌС‚Сѓ Р·Р°РїРёСЃСЊ
         foreach( $Keys as $Key )
         {
-            $IndexesNames[$TableName] = $this->SafetyFields->getIndexFieldsNames($TableName, $Key);
+            $IndexesNames[$TableName] = $SafetyFields->getIndexFieldsNames($TableName, $Key);
             if( !empty($IndexesNames[$TableName]) )
             {
-                // сохраняем вид ключа, что бы знать по ключевым полям будем делать Update, или по уникальным...
-                // разница в том, что отсутсвие данных первичного ключа для записи говорит о том, что это новая запись и ее нужно добавить,
-                // а отсутсвие данных в уникальном ключе не позволит никак обновить данные и это будет ошибка обновления!!!
+                // СЃРѕС…СЂР°РЅСЏРµРј РІРёРґ РєР»СЋС‡Р°, С‡С‚Рѕ Р±С‹ Р·РЅР°С‚СЊ РїРѕ РєР»СЋС‡РµРІС‹Рј РїРѕР»СЏРј Р±СѓРґРµРј РґРµР»Р°С‚СЊ Update, 
+                // РёР»Рё РїРѕ СѓРЅРёРєР°Р»СЊРЅС‹Рј...
+                // СЂР°Р·РЅРёС†Р° РІ С‚РѕРј, С‡С‚Рѕ РѕС‚СЃСѓС‚СЃРІРёРµ РґР°РЅРЅС‹С… РїРµСЂРІРёС‡РЅРѕРіРѕ РєР»СЋС‡Р° РґР»СЏ Р·Р°РїРёСЃРё РіРѕРІРѕСЂРёС‚ Рѕ С‚РѕРј, 
+                // С‡С‚Рѕ СЌС‚Рѕ РЅРѕРІР°СЏ Р·Р°РїРёСЃСЊ Рё РµРµ РЅСѓР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ,
+                // Р° РѕС‚СЃСѓС‚СЃРІРёРµ РґР°РЅРЅС‹С… РІ СѓРЅРёРєР°Р»СЊРЅРѕРј РєР»СЋС‡Рµ РЅРµ РїРѕР·РІРѕР»РёС‚ РЅРёРєР°Рє РѕР±РЅРѕРІРёС‚СЊ РґР°РЅРЅС‹Рµ 
+                // Рё СЌС‚Рѕ Р±СѓРґРµС‚ РѕС€РёР±РєР° РѕР±РЅРѕРІР»РµРЅРёСЏ!!!
                 if( isset($CurrentKeyFlag) ) { $CurrentKeyFlag[$TableName] = $Key; }
                 break;
             }
         }
 
-        // если никакие поля для WHERE подобрать не удалось, 
-        // то секция WHERE update-запроса останется пустой,
-        // в этом случае запрос вида UPDATE TABLE SET FIELD1 = Value
-        // обновит значения поля FIELD1 во всех записях TABLE...
-        // это не совсем то, что нужно, 
-        // поэтому обновляем и обновляемые поля для этой таблицы, вообще не трогаем ее...
+        // РµСЃР»Рё РЅРёРєР°РєРёРµ РїРѕР»СЏ РґР»СЏ WHERE РїРѕРґРѕР±СЂР°С‚СЊ РЅРµ СѓРґР°Р»РѕСЃСЊ, 
+        // С‚Рѕ СЃРµРєС†РёСЏ WHERE update- РёР»Рё delete-Р·Р°РїСЂРѕСЃР° РѕСЃС‚Р°РЅРµС‚СЃСЏ РїСѓСЃС‚РѕР№,
+        // РІ СЌС‚РѕРј СЃР»СѓС‡Р°Рµ Р·Р°РїСЂРѕСЃ РІРёРґР° UPDATE TABLE SET FIELD1 = Value
+        // РѕР±РЅРѕРІРёС‚ Р·РЅР°С‡РµРЅРёСЏ РїРѕР»СЏ FIELD1 РІРѕ РІСЃРµС… Р·Р°РїРёСЃСЏС… TABLE...,
+        // Р° DELETE СѓРґР°Р»РёС‚ РІСЃРµ,
+        // СЌС‚Рѕ РЅРµ СЃРѕРІСЃРµРј С‚Рѕ, С‡С‚Рѕ РЅСѓР¶РЅРѕ, 
+        // РїРѕСЌС‚РѕРјСѓ РѕС‡РёС‰Р°РµРј РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»СЏ РІ СЌС‚РѕР№ С‚Р°Р±Р»РёС†С‹, 
+        // РІРѕРѕР±С‰Рµ РЅРµ С‚СЂРѕРіР°РµРј РµРµ...
         if( empty($IndexesNames[$TableName]) )
         {
             //$UpdatableFieldsNames[$TableName] = array();
-            unset($UpdatableFieldsNames[$TableName]);
+            //unset($UpdatableFieldsNames[$TableName]);
             unset($IndexesNames[$TableName]);
-            continue;
         }
     }
 
@@ -796,115 +1073,152 @@ private function generateIndexesAndUpdatableFieldsNames( array &$IndexesNames, a
 }
 
 /**
- * обновляет записи в таблице БД данными из объекта-данных DataObject,
- * если записи еще нет в таблице, т.е. нет ID для текущей строки, то добавляет ее,
- * в данной версии использует INSERT ... ON DUPLICATE KEY UPDATE ...
+ * РѕР±РЅРѕРІР»СЏРµС‚ Р·Р°РїРёСЃРё РІ С‚Р°Р±Р»РёС†Рµ Р‘Р” РґР°РЅРЅС‹РјРё РёР· РѕР±СЉРµРєС‚Р°-РґР°РЅРЅС‹С… DataObject,
+ * РµСЃР»Рё Р·Р°РїРёСЃРё РµС‰Рµ РЅРµС‚ РІ С‚Р°Р±Р»РёС†Рµ, С‚.Рµ. РЅРµС‚ ID РґР»СЏ С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРё,
+ * С‚Рѕ РґРѕР±Р°РІР»СЏРµС‚ РµРµ, РµСЃР»Рё РїСЂРё РІСЃС‚Р°РІРєРµ РІСЃС‚СЂРµС‚РёС‚СЃСЏ РґСѓР±Р»РёРєР°С‚ РєР»СЋС‡Р° РёР»Рё СѓРЅРёРєР°Р»СЊРЅРѕРіРѕ РїРѕР»СЏ,
+ * С‚Рѕ РІРѕР·РЅРёРєРЅРµС‚ РѕС€РёР±РєР°!!!
  *
- * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РѕР±РЅРѕРІР»СЏСЋС‚СЃСЏ РґР°РЅРЅС‹Рµ РІ Р‘Р”
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё
+ * @param array $IndexesNames - РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РёРЅРґРµРєСЃРЅС‹С… РїРѕР»РµР№, 
+ * РєРѕС‚РѕСЂС‹Рµ РґРѕР»Р¶РЅС‹ РїСЂРѕРІРµСЂСЏС‚СЊСЃСЏ РЅР° РЅР°Р»РёС‡РёРµ РІ РЅРёС… РґР°РЅРЅС‹С…, РµСЃР»Рё РґР°РЅРЅС‹С… РІ СЌС‚РёСЉ РїРѕР»СЏС… РЅРµС‚,
+ * С‚Рѕ РїСЂРёРјРµРЅСЏРµС‚СЃСЏ РјРµС‚РѕРґ Insert
+ * @param array $UpdatableFieldsNames - РІСЃРµ РїРѕР»СЏ, РєРѕС‚РѕСЂС‹Рµ РјРѕРіСѓС‚ Р±С‹С‚СЊ РёР·РјРµРЅРµРЅС‹ Сѓ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚, 
+ * @param array $CurrentKeyFlag - РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РєР°РєРёРµ РїРѕР»СЏ РґР»СЏ РєР°Р¶РґРѕР№ С‚Р°Р±Р»РёС†С‹ РµСЃС‚СЊ РІ РјР°СЃСЃРёРІРµ $IndexesNames,
+ * "PRI" - РµСЃС‚СЊ РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡, "UNI" - РµСЃС‚СЊ С‚РѕР»СЊРєРѕ СѓРЅРёРєР°Р»СЊРЅР°С‹ РїРѕР»СЏ,
+ * 
+ * @return void
  */
-public function update()
+protected function generateUpdateQueryString(
+        TRMSafetyFields $SafetyFields,
+        TRMDataObjectInterface $DataObject,
+        array $IndexesNames,
+        array $UpdatableFieldsNames,
+        array $CurrentKeyFlag)
 {
-    if( !$this->DataObject->count() ) { return true; }
-    // массив с неудачно добавленными строками!!!
-    $ErrorRows = array();
+    if( !$DataObject->count() ) { return; }
+
+    foreach ($UpdatableFieldsNames as $TableName => $FieldsNames)
+    {
+        // РµСЃР»Рё РїСЂРѕРІРµСЂСЏРµРјС‹Рµ РґР°РЅРЅС‹Рµ РґР»СЏ РѕС‡РµСЂРµРґРЅРѕР№ С‚Р°Р±Р»РёС†С‹ РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РІ РїРµСЂРІРёС‡РЅРѕРј РєР»СЋС‡Рµ,
+        // РЅРѕ РѕРЅРё С‚Р°Рј РѕС‚СЃСѓС‚СЃРІСѓСЋС‚, Р·РЅР°С‡РёС‚ СЌС‚Рѕ РЅРѕРІР°СЏ Р·Р°РїРёСЃСЊ,
+        // РґРѕР±Р°РІР»СЏРµРј РµРµ Рё РїРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµР№
+        if( isset($CurrentKeyFlag[$TableName]) && $CurrentKeyFlag[$TableName] == "PRI" && !$DataObject->presentDataIn($TableName, $IndexesNames[$TableName] ) )
+        {
+            // РІ С„СѓРЅРєС†РёСЋ РґРѕР±Р°РІР»РµРЅРёСЏ
+            // РїРµСЂРµРґР°РµРј СЃР°РјРё РґР°РЅРЅС‹Рµ, РЅРѕРјРµСЂ СЃС‚СЂРѕРєРё РІ РѕР±СЉРµРєС‚Рµ РґР°РЅРЅС‹С… РёР· РєРѕС‚РѕСЂРѕР№ РІСЃС‚Р°РІР»СЏСЋС‚СЃСЏ РґР°РЅРЅС‹Рµ,
+            // Рё РіРґРµ РїРѕС‚РѕРј РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РѕР±РЅРѕРІР»РµРЅС‹ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅС‹Рµ РїРѕР»СЏ,
+            // РµСЃР»Рё С‚Р°РєРёРµ РѕР±РЅР°СЂСѓР¶Р°С‚СЃСЏ,
+            // Р° С‚Р°Рє Р¶Рµ РїРµСЂРµРґР°РµРј РјР°СЃСЃРёРІ СЃ РїРѕР»СЏРјРё РґРѕСЃС‚СѓРїРЅС‹РјРё РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ ,
+            // С‡С‚Рѕ Р±С‹ РЅРµ РїРѕР»СѓС‡Р°С‚СЊ РµРіРѕ Р·Р°РЅРѕРІРѕ СЂРїСЃС…РѕРґСѓСЏ СЂРµСЃСѓСЂСЃС‹...
+            // РІ СЌС‚РѕР№ СЂРµР°Р»РёР·Р°С†РёРё РјР°СЃСЃРёРІ РїРµСЂРµРґР°РµС‚СЃСЏ РїРѕ СЃСЃС‹Р»РєРµ!!!
+            $CurrentInsertId = $this->insertRowToOneTable($TableName, $DataObject, $FieldsNames);
+
+// РјРѕР¶РЅРѕ РјРµРЅСЏС‚СЊ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё Рё РІС‹Р·С‹РІР°С‚СЊ ON DUPLICATE KEY ... UPDATE
+//            $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row[$TableName], $FieldsNames);
+
+            // РµСЃР»Рё ID РЅРµ РІРµСЂРЅСѓР»СЃСЏ, Р·РЅР°С‡РёС‚ РѕР±РЅРѕРІР»РµРЅРёСЏ Р°РІС‚Рѕ-РёРЅРєСЂРµРјРµРЅС‚РЅРѕРіРѕ РїРѕР»СЏ РІ Р‘Р” РЅРµ РїСЂРѕРёР·РѕС€Р»Рѕ, 
+            // РїРµСЂРµС…РѕРґРёРј Рє РґСЂСѓРіРѕР№ С‚Р°Р±Р»РёС†Рµ
+            if( !$CurrentInsertId ) { continue; }
+
+            /**
+             * РЅСѓР¶РЅРѕ РѕР±РЅРѕРІРёС‚СЊ РґР°РЅРЅС‹Рµ РїРѕ Relation Сѓ РѕР±СЉРµРєС‚РѕРІ, 
+             * РєРѕС‚РѕСЂС‹Рµ СЃСЃС‹Р»Р°Р»РёСЃСЊ РЅР° РїРѕР»Рµ AUTO_INCREMENT С‚РѕР»СЊРєРѕ-С‡С‚Рѕ РґРѕР±Р°РІР»РµРЅРЅРѕР№ Р·Р°РїРёСЃРё
+             */
+            $this->checkAndSetAutoIncrementFieldsAfterInsert( $SafetyFields, $DataObject, $TableName, $CurrentInsertId);
+
+            // РїРѕСЃР»Рµ РґРѕР±Р°РІР»РµРЅРёСЏ, РїРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµР№ Р·Р°РїРёСЃРё РІ РѕР±СЉРµРєС‚Рµ РґР°РЅРЅС‹С…
+            continue;
+        }
+        else
+        {
+            // РµСЃР»Рё РґР°РЅРЅС‹Рµ РµСЃС‚СЊ РІ РїРµСЂРІРёС‡РЅРѕРј РєР»СЋС‡Рµ
+            // Р·РЅР°С‡РёС‚ Р·Р°РїРёСЃСЊ РґР»СЏ СЌС‚РѕР№ С‚Р°Р±Р»РёС†С‹ РЅСѓР¶РЅРѕ РѕР±РЅРѕРІРёС‚СЊ
+            $this->UpdateQueryString .= $this->generateUpdateRowForOneTableSQLString( $TableName, $DataObject, $FieldsNames, $IndexesNames[$TableName] );
+        }
+    }
+}
+
+/**
+ * РѕР±РЅРѕРІР»СЏРµС‚ Р·Р°РїРёСЃРё РІ С‚Р°Р±Р»РёС†Рµ Р‘Р” РґР°РЅРЅС‹РјРё РёР· РєРѕР»Р»РµРєС†РёРё РѕР±СЉРµРєС‚РѕРІ-РґР°РЅРЅС‹С… $DataCollection,
+ * РµСЃР»Рё Р·Р°РїРёСЃРё РµС‰Рµ РЅРµС‚ РІ С‚Р°Р±Р»РёС†Рµ, С‚.Рµ. РЅРµС‚ ID РґР»СЏ С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРё, 
+ * С‚Рѕ РґРѕР±Р°РІР»СЏРµС‚ РµРµ, РµСЃР»Рё РїСЂРё РІСЃС‚Р°РІРєРµ РІСЃС‚СЂРµС‚РёС‚СЃСЏ РґСѓР±Р»РёРєР°С‚ РєР»СЋС‡Р° РёР»Рё СѓРЅРёРєР°Р»СЊРЅРѕРіРѕ РїРѕР»СЏ,
+ * С‚Рѕ РІРѕР·РЅРёРєРЅРµС‚ РѕС€РёР±РєР°!!!
+ *
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
+ * @param TRMDataObjectsCollection $DataCollection - РєРѕР»Р»РµРєС†РёСЏ СЃ РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…
+ * 
+ * @throws TRMSqlQueryException
+ */
+public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection)
+{
+    // РѕС‡РёСЃС‚РєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ - РѕС€РёР±РѕРє Рё СЃРѕРѕР±С‰РµРЅРёСЏ Рѕ РЅРёС…
+    $this->clearState();
 
     $IndexesNames = array();
     $UpdatableFieldsNames = array();
     $CurrentKeyFlag = array();
 
-    try
-    {
-        $this->generateIndexesAndUpdatableFieldsNames($IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
-    }
-    catch (TRMDataSourceNoUpdatebleFieldsException $ex)
-    {
-        return false;
-    }
+    $this->generateIndexesAndUpdatableFieldsNames($SafetyFields, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
 
-    $MultiQueryStr = "";
-    foreach( $this->DataObject as $RowNum => $Row )
+    foreach( $DataCollection as $DataObject )
     {
-        foreach ($UpdatableFieldsNames as $TableName => $FieldsNames)
+        try
         {
-            try
-            {
-                // если проверяемые данные для очередной таблицы должны быть в первичном ключе,
-                // но они там отсутсвуют, значит это новая запись,
-                // добавляем ее и переходим к следующей
-                if( $CurrentKeyFlag[$TableName] == "PRI" && !$this->DataObject->presentDataIn($RowNum, $TableName, $IndexesNames[$TableName] ) )
-                {
-                    // в функцию добавления
-                    // передаем сами данные, номер строки в объекте данных из которой вставляются данные,
-                    // и где потом должны быть обновлены автоинкрементные поля,
-                    // если такие обнаружатся,
-                    // а так же передаем массив с полями доступными для обновления ,
-                    // что бы не получать его заново рпсходуя ресурсы...
-                    // в этой реализации массив передается по ссылке!!!
-                    $CurrentInsertId = $this->insertRowToOneTable($TableName, $Row[$TableName], $FieldsNames);
-                    // если ID не вернулся, значит обновления авто-инкрементного поля в БД не произошло, переходим к другой таблице
-                    if( !$CurrentInsertId ) { continue; }
-
-                    /**
-                     * нужно обновить данные по Relation у объектов, 
-                     * которые ссылались на поле AUTO_INCREMENT только-что добавленной записи
-                     */
-                    $this->checkAutoIncrementFieldUpdate($TableName, $RowNum, $CurrentInsertId);
-
-                    //$this->addNewRowToAndSetLastId( $Row, $RowNum, $UpdatableFieldsNames );
-                    // после добавления, переходим к следующей записи в объекте данных
-                    continue;
-                }
-                else
-                {
-                    // если данные есть в первичном или уникальном ключе
-                    // значит запись для этой таблицы нужно обновить
-                    $MultiQueryStr .= $this->makeUpdateRowQueryStrForOneTable( $TableName, $Row[$TableName], $FieldsNames, $IndexesNames[$TableName] );
-                }
-            }
-            catch( TRMSqlQueryException $e )
-            {
-                $ErrorRows[$RowNum] = $e->getMessage();
-            }
+            // С„СѓРЅРєС†РёСЏ РґРѕР±Р°РІР»СЏРµС‚ СЃС‚СЂРѕРєРё UPDATE Рє $this->UpdateQueryString
+            // РІ С‚РѕР¶Рµ РІСЂРµРјСЏ РІСЃС‚Р°РІРєРё INSERT РІС‹РїРѕР»РЅСЏСЋС‚СЃСЏ РјРіРЅРѕРІРµРЅРЅРѕ, 
+            // РєР°Рє С‚РѕР»СЊРєРѕ РІСЃС‚СЂРµС‚РёС‚СЃСЏ Р·Р°РїРёСЃСЊ Р±РµР· РєР»СЋС‡РµРІС‹С… РїРѕР»РµР№, С‡С‚Рѕ Р±С‹ РѕС‚СЃР»РµРґРёС‚СЊ LastID
+            $this->generateUpdateQueryString($SafetyFields, $DataObject, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
+        }
+        catch(TRMDataSourceSQLInsertException $e)
+        {
+            $this->setStateCode(1);
+            $this->addStateString( $e->getMessage() );
         }
     }
 
-    if(!empty($ErrorRows))
+    if( $this->getStateCode() )
     {
-        TRMLib::sp(__METHOD__ . " Часть записей не удалось обновить в БД ");
-        TRMLib::ap($ErrorRows);
+        throw new TRMSqlQueryException("РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ СЃР»РµРґСѓСЋС‰РёРµ Р·Р°РїРёСЃРё: " . $this->getStateString() );
     }
-
-    // в случае неудачи выбрасывается исключение!
-    if( !empty($MultiQueryStr) ) { $this->completeMultiQuery($MultiQueryStr); }
-    return true;
+    
+    if( !empty($this->UpdateQueryString) )
+    {
+        // С„Р°РєС‚РёС‡РµСЃРєРѕРµ РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР° UPDATE, 
+        // РІ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡Рё РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ!
+        $this->completeMultiQuery($this->UpdateQueryString);
+        $this->UpdateQueryString = "";
+    }
 }
 
 /**
- * формирует SQL-запрос для обновления данных только в одной таблице
+ * С„РѕСЂРјРёСЂСѓРµС‚ SQL-Р·Р°РїСЂРѕСЃ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ РґР°РЅРЅС‹С… С‚РѕР»СЊРєРѕ РІ РѕРґРЅРѕР№ С‚Р°Р±Р»РёС†Рµ
  * 
- * @param string $TableName
- * @param array $Row
- * @param array $FieldsNames
- * @param array $WhereFieldsNamesForTable
- * @return string
+ * @param string $TableName - С‚Р°Р±Р»РёС†Р°, РІ РєРѕС‚РѕСЂРѕР№ РЅСѓР¶РЅРѕ РѕР±РЅРѕРІРёС‚СЊ РґР°РЅРЅС‹Рµ
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё, РІ РєРѕС‚РѕСЂРѕРј РµСЃС‚СЊ РґР°РЅРЅС‹Рµ РґР»СЏ С‚Р°Р±Р»РёС†С‹ $TableName
+ * @param array $FieldsNames - РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№, РєРѕС‚РѕСЂС‹Рµ РјРѕР¶РЅРѕ РѕР±РЅРѕРІР»СЏС‚СЊ РІ СЌС‚РѕР№ С‚Р°Р±Р»РёС†Рµ
+ * @param array $WhereFieldsNamesForTable - РјР°СЃСЃРёРІ СЃ СѓСЃР»РѕРІРёСЏРјРё РґР»СЏ РїРѕРёСЃРєР° РѕР±РЅРѕРІР»СЏРµРјС‹С… РїРѕР»РµР№
+ * 
+ * @return string - СЃС‚СЂРѕРєР° СЃС„РѕСЂРјРёСЂРѕРІР°РЅРЅРѕРіРѕ SQL UPDATE-Р·Р°РїСЂРѕСЃР°
  */
-private function makeUpdateRowQueryStrForOneTable( $TableName, array &$Row, array &$FieldsNames, array &$WhereFieldsNamesForTable )
+private function generateUpdateRowForOneTableSQLString( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames, array &$WhereFieldsNamesForTable )
 {
+    $Row = $DataObject[$TableName];
     $UpdateQuery = "UPDATE `{$TableName}` SET ";
     foreach( $FieldsNames as $FieldName )
     {
-        $UpdateQuery .= "`{$FieldName}` = '" . addcslashes( $Row[ $FieldName ], "'" ) . "',";
+        $UpdateQuery .= "`{$FieldName}` = '" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "',";
     }
     $UpdateQuery = rtrim($UpdateQuery, ",");
 
-    // все вызовы этой функуии только из цикла по массиву с заполненными полями
+    // РІСЃРµ РІС‹Р·РѕРІС‹ СЌС‚РѕР№ С„СѓРЅРєСѓРёРё С‚РѕР»СЊРєРѕ РёР· С†РёРєР»Р° РїРѕ РјР°СЃСЃРёРІСѓ СЃ Р·Р°РїРѕР»РЅРµРЅРЅС‹РјРё РїРѕР»СЏРјРё
 //    if( !empty($WhereFieldsNamesForTable) )
     {
         $UpdateQuery .= " WHERE ";
 
         foreach( $WhereFieldsNamesForTable as $FieldName )
         {
-            $UpdateQuery .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( $Row[ $FieldName ], "'" ) . "' AND ";
+            $UpdateQuery .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "' AND ";
         }
         $UpdateQuery = rtrim($UpdateQuery, "AND ");
     }
@@ -914,192 +1228,287 @@ private function makeUpdateRowQueryStrForOneTable( $TableName, array &$Row, arra
 }
 
 /**
- * добавляет данные в одну таблицу обычным INSERT INTO ...
+ * Р¤РѕСЂРјРёСЂСѓРµС‚ СЃС‚СЂРѕРєСѓ SQL-Р·Р°РїСЂРѕСЃР° РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РґР°РЅРЅС‹С… РІ РѕРґРЅСѓ С‚Р°Р±Р»РёС†Сѓ, 
+ * РёСЃРїРѕР»СЊР·СѓСЏ РѕР±С‹С‡РЅС‹Р№ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё INSERT INTO ...
  * 
- * @param string $TableName - имя таблицы, в которую вставлются данные
- * @param array $Row - одномерный ассоциативный массив-строка с данными = array( FieldName1 => data1, FieldName2 => data2, ... )
- * @param array $FieldsNames - одномерный массив с именами полей таблицы, в которые будут добавлены данные
- * @return int - insert_id (auto_increment)
- * @throws TRMDataSourceSQLInsertException
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РІ РєРѕС‚РѕСЂСѓСЋ РІСЃС‚Р°РІР»СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё, 
+ * РІ РєРѕС‚РѕСЂРѕРј РµСЃС‚СЊ РїРѕРґРјР°СЃСЃРёРІ СЃ РёРЅРґРµРєСЃРѕРј $TableName = array( FieldName1 => data1, FieldName2 => data2, ... )
+ * @param array $FieldsNames - РѕРґРЅРѕРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹, 
+ * РІ РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РґРѕР±Р°РІР»РµРЅС‹ РґР°РЅРЅС‹Рµ - РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»СЏ
+ * 
+ * @return string - СЃС„РѕСЂРјРёСЂРѕРІР°РЅРЅР°СЏ СЃС‚СЂРѕРєР° SQL-Р·Р°РїСЂРѕСЃР° INSERT INTO ...
  */
-private function insertRowToOneTable( $TableName, array &$Row, array &$FieldsNames )
+private function generateInsertRowToOneTableSQLString( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames )
 {
-    // собираем массив с именами полей в строчку,
-    // обрамляя имя каждого поля апострофами `
+    $Row = $DataObject[$TableName];
+    // СЃРѕР±РёСЂР°РµРј РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ РІ СЃС‚СЂРѕС‡РєСѓ,
+    // РѕР±СЂР°РјР»СЏСЏ РёРјСЏ РєР°Р¶РґРѕРіРѕ РїРѕР»СЏ Р°РїРѕСЃС‚СЂРѕС„Р°РјРё `
     $FieldsNamesStr = "`" . implode("`,`", $FieldsNames) . "`";
     $InsertQuery = "INSERT INTO `{$TableName}` ({$FieldsNamesStr}) VALUES(";
     foreach( $FieldsNames as $FieldName )
     {
-        $InsertQuery .= "'" . addcslashes( $Row[ $FieldName ], "'" ) . "',";
+        $InsertQuery .= "'" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "',";
     }
-    $InsertQuery = rtrim($InsertQuery, ",") . ");";
+    return rtrim($InsertQuery, ",") . ");";
+}
 
-    // не можем вызвать completeMultiQuery, так как надо отслеживать insert_id для каждой таблицы!!!
+/**
+ * РґРѕР±Р°РІР»СЏРµС‚ РґР°РЅРЅС‹Рµ РІ РѕРґРЅСѓ С‚Р°Р±Р»РёС†Сѓ РѕР±С‹С‡РЅС‹Рј INSERT INTO ...
+ * 
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РІ РєРѕС‚РѕСЂСѓСЋ РІСЃС‚Р°РІР»СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё, 
+ * РІ РєРѕС‚РѕСЂРѕРј РµСЃС‚СЊ РїРѕРґРјР°СЃСЃРёРІ СЃ РёРЅРґРµРєСЃРѕРј $TableName = array( FieldName1 => data1, FieldName2 => data2, ... )
+ * @param array $FieldsNames - РѕРґРЅРѕРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹, 
+ * РІ РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РґРѕР±Р°РІР»РµРЅС‹ РґР°РЅРЅС‹Рµ - РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»СЏ
+ * 
+ * @return int - insert_id (auto_increment)
+ * @throws TRMDataSourceSQLInsertException
+ */
+private function insertRowToOneTable( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames )
+{
+    $InsertQuery = $this->generateInsertRowToOneTableSQLString($TableName, $DataObject, $FieldsNames);
+
+    // РЅРµ РјРѕР¶РµРј РІС‹Р·РІР°С‚СЊ completeMultiQuery, С‚Р°Рє РєР°Рє РЅР°РґРѕ РѕС‚СЃР»РµР¶РёРІР°С‚СЊ insert_id РґР»СЏ РєР°Р¶РґРѕР№ С‚Р°Р±Р»РёС†С‹!!!
     if( !$this->MySQLiObject->query($InsertQuery) )
     {
-        throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " );
+        throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " . get_class($this) );
     }
     return $this->MySQLiObject->insert_id;
 }
 
 /**
- * добавляет данные в одну таблицу, 
- * используя метод вставки INSERT INTO ... ON DUPLICATE KEY UPDATE
+ * Р¤РѕСЂРјРёСЂСѓРµС‚ СЃС‚СЂРѕРєСѓ SQL-Р·Р°РїСЂРѕСЃР° РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РґР°РЅРЅС‹С… РІ РѕРґРЅСѓ С‚Р°Р±Р»РёС†Сѓ, 
+ * РёСЃРїРѕР»СЊР·СѓСЏ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё INSERT INTO ... ON DUPLICATE KEY UPDATE
  * 
- * @param string $TableName - имя таблицы, в которую вставлются данные
- * @param array $Row - одномерный ассоциативный массив-строка с данными = array( FieldName1 => data1, FieldName2 => data2, ... )
- * @param array $FieldsNames - одномерный массив с именами полей таблицы, в которые будут добавлены данные
- * @return int - insert_id (auto_increment)
- * @throws TRMDataSourceSQLInsertException
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РІ РєРѕС‚РѕСЂСѓСЋ РІСЃС‚Р°РІР»СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё, 
+ * РІ РєРѕС‚РѕСЂРѕРј РµСЃС‚СЊ РїРѕРґРјР°СЃСЃРёРІ СЃ РёРЅРґРµРєСЃРѕРј $TableName = array( FieldName1 => data1, FieldName2 => data2, ... )
+ * @param array $FieldsNames - РѕРґРЅРѕРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹, 
+ * РІ РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РґРѕР±Р°РІР»РµРЅС‹ РґР°РЅРЅС‹Рµ - РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»СЏ
+ * 
+ * @return string - СЃС„РѕСЂРјРёСЂРѕРІР°РЅРЅР°СЏ СЃС‚СЂРѕРєР° SQL-Р·Р°РїСЂРѕСЃР° INSERT INTO ... ON DUPLICATE KEY UPDATE
  */
-private function insertODKURowToOneTable( $TableName, array &$Row, array &$FieldsNames )
+private function generateInsertODKURowToOneTableSQLString( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames )
 {
-    // собираем массив с именами полей в строчку,
-    // обрамляя имя каждого поля апострофами `
+    $Row = $DataObject[$TableName];
+    // СЃРѕР±РёСЂР°РµРј РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ РІ СЃС‚СЂРѕС‡РєСѓ,
+    // РѕР±СЂР°РјР»СЏСЏ РёРјСЏ РєР°Р¶РґРѕРіРѕ РїРѕР»СЏ Р°РїРѕСЃС‚СЂРѕС„Р°РјРё `
     $FieldsNamesStr = "`" . implode("`,`", $FieldsNames) . "`";
     $InsertQuery = "INSERT INTO `{$TableName}` ({$FieldsNamesStr}) VALUES(";
     $ODKUStr = "ON DUPLICATE KEY UPDATE ";
     foreach( $FieldsNames as $FieldName )
     {
-        $InsertQuery .= "'" . addcslashes( $Row[ $FieldName ], "'" ) . "',";
+        $InsertQuery .= "'" . addcslashes( trim($Row[ $FieldName ], "'"), "'" ) . "',";
         $ODKUStr .= "`{$FieldName}` = VALUES(`{$FieldName}`),";
-
     }
-    $InsertQuery = rtrim($InsertQuery, ",") . ")" . rtrim($ODKUStr, ",") . ";";
+    return rtrim($InsertQuery, ",") . ")" . rtrim($ODKUStr, ",") . ";";
+}
 
-    // не можем вызвать completeMultiQuery, так как надо отслеживать insert_id для каждой таблицы!!!
+/**
+ * РґРѕР±Р°РІР»СЏРµС‚ РґР°РЅРЅС‹Рµ РІ РѕРґРЅСѓ С‚Р°Р±Р»РёС†Сѓ, 
+ * РёСЃРїРѕР»СЊР·СѓСЏ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё INSERT INTO ... ON DUPLICATE KEY UPDATE
+ * 
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РІ РєРѕС‚РѕСЂСѓСЋ РІСЃС‚Р°РІР»СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё, 
+ * РІ РєРѕС‚РѕСЂРѕРј РµСЃС‚СЊ РїРѕРґРјР°СЃСЃРёРІ СЃ РёРЅРґРµРєСЃРѕРј $TableName = array( FieldName1 => data1, FieldName2 => data2, ... )
+ * @param array $FieldsNames - РѕРґРЅРѕРјРµСЂРЅС‹Р№ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ С‚Р°Р±Р»РёС†С‹, 
+ * РІ РєРѕС‚РѕСЂС‹Рµ Р±СѓРґСѓС‚ РґРѕР±Р°РІР»РµРЅС‹ РґР°РЅРЅС‹Рµ - РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё РїРѕР»СЏ
+ * 
+ * @return int - insert_id (auto_increment)
+ * @throws TRMDataSourceSQLInsertException
+ */
+private function insertODKURowToOneTable( $TableName, TRMDataObjectInterface $DataObject, array &$FieldsNames )
+{
+    $InsertQuery = $this->generateInsertODKURowToOneTableSQLString($TableName, $DataObject, $FieldsNames);
+    // РЅРµ РјРѕР¶РµРј РІС‹Р·РІР°С‚СЊ completeMultiQuery, С‚Р°Рє РєР°Рє РЅР°РґРѕ РѕС‚СЃР»РµР¶РёРІР°С‚СЊ insert_id РґР»СЏ РєР°Р¶РґРѕР№ С‚Р°Р±Р»РёС†С‹!!!
     if( !$this->MySQLiObject->query($InsertQuery) )
     {
-        throw new TRMDataSourceSQLInsertException( __METHOD__ . " не удалось добавить запись: [{$InsertQuery}]" );
+        throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " . get_class($this) );
     }
     return $this->MySQLiObject->insert_id;
 }
 
 /**
- * добавляет новую запись в БД, 
- * в данной версии вызывает insertODKU(), 
- * т.е. реализует метод вставки INSERT INTO ... ON DUPLICATE KEY UPDATE
+ * РґРѕР±Р°РІР»СЏРµС‚ Р·Р°РїРёСЃРё РІ С‚Р°Р±Р»РёС†С‹ Р‘Р” РёР· РѕР±СЉРµРєС‚Р°-РґР°РЅРЅС‹С… DataObject,
+ * РµСЃР»Рё РїСЂРё РІСЃС‚Р°РІРєРµ РІСЃС‚СЂРµС‚РёС‚СЃСЏ РґСѓР±Р»РёРєР°С‚ РєР»СЋС‡Р° РёР»Рё СѓРЅРёРєР°Р»СЊРЅРѕРіРѕ РїРѕР»СЏ,
+ * С‚Рѕ РІРѕР·РЅРёРєРЅРµС‚ РѕС€РёР±РєР°!!!
  *
- * @return boolean - результат работы update(), в случае успеха - true, иначе - false
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР°РЅРЅС‹Рµ РєРѕС‚РѕСЂРѕРіРѕ РІСЃС‚Р°РІР»СЏСЋС‚СЃСЏ Р‘Р”
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё
+ * @param array $UpdatableFieldsNames - РІСЃРµ РїРѕР»СЏ, РєРѕС‚РѕСЂС‹Рµ РјРѕРіСѓС‚ Р±С‹С‚СЊ РёР·РјРµРЅРµРЅС‹ Сѓ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚, 
+ * С‚Р°Рє Р¶Рµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ РґР»СЏ РїРѕРёСЃРєР° РѕР±СЉРµРєС‚Р°, РµСЃР»Рё РЅРµ Р·Р°РґР°РЅС‹ РёРЅРґРµРєСЃРЅС‹Рµ РїРѕР»СЏ $IndexesNames
+ * @param array $CurrentKeyFlag - РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ РєР°РєРёРµ РїРѕР»СЏ РµСЃС‚СЊ РґР»СЏ РєР°Р¶РґРѕР№ С‚Р°Р±Р»РёС†С‹,
+ * РµСЃР»Рё $CurrentKeyFlag[TableN] === "PRI" - Р·РЅР°С‡РёС‚ РІ TableN РµСЃС‚СЊ РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡,
+ * РµСЃР»Рё $CurrentKeyFlag[TableN] === "UNI" - Р·РЅР°С‡РёС‚ РµСЃС‚СЊ С‚РѕР»СЊРєРѕ СѓРЅРёРєР°Р»СЊРЅР°С‹ РїРѕР»СЏ,
+ * РµСЃР»Рё $CurrentKeyFlag[TableN] РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ, 
+ * Р·РЅР°С‡РёС‚ РІ СЌС‚РѕР№ С‚Р°Р±Р»РёС†Рµ РЅРµС‚ РЅРё РїРµСЂРІРёС‡РЅС‹С…, РЅРё СѓРЅРёРєР°Р»СЊРЅС‹С… РєР»СЋС‡РµР№
+ * @param boolean $ODKUFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё СЃ Р·Р°РјРµРЅРѕР№, РµСЃР»Рё РІСЃС‚СЂРµС‡Р°СЋС‚СЃСЏ РґСѓР±Р»РёРєР°С‚С‹ РєР»СЋС‡РµРІС‹С… РїРѕР»РµР№,
+ * ON DUPLICATE KEY UPDATE
+ * 
+ * @return void
  */
-public function insert()
+protected function generateInsertQueryString(
+        TRMSafetyFields $SafetyFields,
+        TRMDataObjectInterface $DataObject,
+        array $UpdatableFieldsNames,
+        array $CurrentKeyFlag,
+        $ODKUFlag = false)
 {
-    return $this->insertODKU();
+    // РµСЃР»Рё РІ РѕР±СЉРµРєС‚Рµ РґР°РЅРЅС‹С… РЅРµС‚ С‚Р°Р±Р»РёС†, Р·Р°РІРµСЂС€Р°РµРј РІС‹РїРѕР»РЅРµРЅРёРµ
+    if( !($TableCount = $DataObject->count() ) ) { return; }
+
+    foreach ($UpdatableFieldsNames as $TableName => $FieldsNames)
+    {
+        // РµСЃР»Рё РІ С‚Р°Р±Р»РёС†Рµ РµСЃС‚СЊ РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡,
+        // Р·РЅР°С‡РёС‚ РґРѕР±Р°РІР»СЏРµРј Р·Р°РїРёСЃСЊ СЃСЂР°Р·Сѓ Рё 
+        // РїСЂРѕРІРµСЂСЏРµРј РЅР° РѕР±РЅРѕРІР»РµРЅРёРµ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅС‹С… РїРѕР»РµР№!
+        if( isset($CurrentKeyFlag[$TableName]) && $CurrentKeyFlag[$TableName] == "PRI" )
+        {
+            $CurrentInsertId = null;
+            if(!$ODKUFlag)
+            {
+                $CurrentInsertId = $this->insertRowToOneTable($TableName, $DataObject, $FieldsNames);
+            }
+            // РјРѕР¶РЅРѕ РјРµРЅСЏС‚СЊ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё Рё РІС‹Р·С‹РІР°С‚СЊ ON DUPLICATE KEY ... UPDATE
+            else
+            {
+                $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $DataObject, $FieldsNames);
+            }
+            // РµСЃР»Рё РІРµСЂРЅСѓР»СЃСЏ $CurrentInsertId, 
+            // Р·РЅР°С‡РёС‚ РїСЂРѕРёР·РѕС€Р»Рѕ РѕР±РЅРѕРІР»РµРЅРёСЏ Р°РІС‚Рѕ-РёРЅРєСЂРµРјРµРЅС‚РЅРѕРіРѕ РїРѕР»СЏ РґР»СЏ Р·Р°РїРёСЃРё РІ РѕС‡РµСЂРµРґРЅСѓСЋ С‚Р°Р±Р»РёС†Сѓ, 
+            if( $CurrentInsertId )
+            {
+                // РЅСѓР¶РЅРѕ РѕР±РЅРѕРІРёС‚СЊ РґР°РЅРЅС‹Рµ РїРѕ Relation Сѓ РѕР±СЉРµРєС‚РѕРІ, 
+                // РєРѕС‚РѕСЂС‹Рµ СЃСЃС‹Р»Р°Р»РёСЃСЊ РЅР° РїРѕР»Рµ AUTO_INCREMENT С‚РѕР»СЊРєРѕ-С‡С‚Рѕ РґРѕР±Р°РІР»РµРЅРЅРѕР№ Р·Р°РїРёСЃРё
+                $this->checkAndSetAutoIncrementFieldsAfterInsert( $SafetyFields, $DataObject, $TableName, $CurrentInsertId);
+            }
+        }
+        // РµСЃР»Рё РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡,
+        // Р·РЅР°С‡РёС‚ РЅРµ РїСЂРѕРІРµСЂСЏРµРј РЅР° РѕР±РЅРѕРІР»РµРЅРёРµ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅС‹С… РїРѕР»РµР№!
+        else
+        {
+            if(!$ODKUFlag)
+            {
+                $this->InsertQueryString 
+                    .= $this->generateInsertRowToOneTableSQLString($TableName, $DataObject, $FieldsNames);
+            }
+            // РјРѕР¶РЅРѕ РјРµРЅСЏС‚СЊ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё Рё РІС‹Р·С‹РІР°С‚СЊ ON DUPLICATE KEY ... UPDATE
+            else
+            {
+                $this->InsertQueryString 
+                    .= $this->generateInsertODKURowToOneTableSQLString($TableName, $DataObject, $FieldsNames);
+            }
+        }
+    }
 }
 
 /**
- * добавляет новую запись в БД, 
- * в случае дублирования ключей, обновляет зпись
- * INSERT ... ON DUPLICATE KEY UPDATE
- *
- * @return boolean - результат работы update(), в случае успеха - true, иначе - false
+ * РґРѕР±Р°РІР»СЏРµС‚ РЅРѕРІС‹Рµ Р·Р°РїРёСЃРё РІ Р‘Р” РёР· РєРѕР»Р»РµРєС†РёРё $DataCollection, 
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ РґР°РЅРЅС‹Рµ РІ Р‘Р”
+ * @param TRMDataObjectsCollection $DataCollection - РєРѕР»Р»РµРєС†РёСЏ СЃ РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…
+ * @param boolean $ODKUFlag - РµСЃР»Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ TRUE, 
+ * С‚Рѕ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РјРµС‚РѕРґ РІСЃС‚Р°РІРєРё СЃ Р·Р°РјРµРЅРѕР№, РµСЃР»Рё РІСЃС‚СЂРµС‡Р°СЋС‚СЃСЏ РґСѓР±Р»РёРєР°С‚С‹ РєР»СЋС‡РµРІС‹С… РїРѕР»РµР№,
+ * ON DUPLICATE KEY UPDATE, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ = FALSE - РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РѕР±С‹С‡РЅР°СЏ РІСЃС‚Р°РІРєР°
+ * 
+ * @throws TRMSqlQueryException
  */
-public function insertODKU()
+public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection, $ODKUFlag = false )
 {
-    if( !$this->DataObject->count() ) { return true; }
-    // массив с неудачно добавленными строками!!!
-    $ErrorRows = array();
+    // РѕС‡РёСЃС‚РєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ - РѕС€РёР±РѕРє Рё СЃРѕРѕР±С‰РµРЅРёСЏ Рѕ РЅРёС…
+    $this->clearState();
 
     $IndexesNames = array();
     $UpdatableFieldsNames = array();
     $CurrentKeyFlag = array();
 
-    try
-    {
-        $this->generateIndexesAndUpdatableFieldsNames($IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
-    }
-    catch (TRMDataSourceNoUpdatebleFieldsException $ex)
-    {
-        return false;
-    }
+    $this->generateIndexesAndUpdatableFieldsNames($SafetyFields, $IndexesNames, $UpdatableFieldsNames, $CurrentKeyFlag);
 
-    //$MultiQueryStr = "";
-    // каждая запись добавляется отдельным SQL-запросом, что бы отследить AUTO_INCREMENT !!!
-    foreach( $this->DataObject as $RowNum => $Row )
+    foreach( $DataCollection as $DataObject )
     {
-        foreach ($UpdatableFieldsNames as $TableName => $FieldsNames)
+        try
         {
-            try
-            {
-                // в функцию добавления
-                // передаем сами данные, номер строки в объекте данных из которой вставляются данные,
-                // и где потом должны быть обновлены автоинкрементные поля,
-                // если такие обнаружатся,
-                // а так же передаем массив с полями доступными для обновления ,
-                // что бы не получать его заново расходуя ресурсы...
-                // в этой реализации массив передается по ссылке!!!
-                $CurrentInsertId = $this->insertODKURowToOneTable($TableName, $Row[$TableName], $FieldsNames);
-                // если ID не вернулся, значит обновления авто-инкрементного поля в БД не произошло, переходим к другой таблице
-                if( !$CurrentInsertId ) { continue; }
-
-                /**
-                 * нужно обновить данные по Relation у объектов, 
-                 * которые ссылались на поле AUTO_INCREMENT только-что добавленной записи
-                 */
-                $this->checkAutoIncrementFieldUpdate($TableName, $RowNum, $CurrentInsertId);
-
-                //$this->addNewRowToAndSetLastId( $Row, $RowNum, $UpdatableFieldsNames );
-                // после добавления, переходим к следующей записи в объекте данных
-                continue;
-            }
-            catch( TRMSqlQueryException $e )
-            {
-                $ErrorRows[$RowNum] = $e->getMessage();
-            }
-            //$MultiQueryStr .= $this->makeUpdateRowQueryStr( $Row, $UpdatableFieldsNames, $IndexesNames );
+            // С„СѓРЅРєС†РёСЏ РґРѕР±Р°РІР»СЏРµС‚ СЃС‚СЂРѕРєРё INSERT-Р·Р°РїСЂРѕСЃРѕРІ Рє $this->InsertQueryString
+            // С‚РѕР»СЊРєРѕ РµСЃР»Рё РІ РѕР±СЉРµРєС‚Рµ 1 С‚Р°Р±Р»РёС†Р° Рё РЅРµС‚ РёРЅРґРµРєСЃРЅС‹С… РїРѕР»РµР№ PRI
+            // РёРЅР°С‡Рµ РІСЃС‚Р°РІРєРё INSERT РІС‹РїРѕР»РЅСЏСЋС‚СЃСЏ РјРіРЅРѕРІРµРЅРЅРѕ, 
+            // РєР°Рє С‚РѕР»СЊРєРѕ РІСЃС‚СЂРµС‚РёС‚СЃСЏ Р·Р°РїРёСЃСЊ Р±РµР· РєР»СЋС‡РµРІС‹С… РїРѕР»РµР№, С‡С‚Рѕ Р±С‹ РѕС‚СЃР»РµРґРёС‚СЊ LastID
+            $this->generateInsertQueryString($SafetyFields, $DataObject, $UpdatableFieldsNames, $CurrentKeyFlag, $ODKUFlag);
+        }
+        catch(TRMDataSourceSQLInsertException $e)
+        {
+            $this->setStateCode(1);
+            $this->addStateString( $e->getMessage() );
         }
     }
 
-    if(!empty($ErrorRows))
+    if( $this->getStateCode() )
     {
-        TRMLib::sp(__METHOD__ . " Часть записей не удалось обновить в БД ");
-        TRMLib::ap($ErrorRows);
+        throw new TRMSqlQueryException("РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ СЃР»РµРґСѓСЋС‰РёРµ Р·Р°РїРёСЃРё: " . $this->getStateString() );
     }
-
-    // в случае неудачи выбрасывается исключение!
-    //if( !empty($MultiQueryStr) ) { $this->completeMultiQuery($MultiQueryStr); }
-    return true;
+    
+    if( !empty($this->InsertQueryString) )
+    {
+        // С„Р°РєС‚РёС‡РµСЃРєРѕРµ РІС‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР° INSERT, 
+        // РІ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡Рё РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ!
+        $this->completeMultiQuery($this->InsertQueryString);
+        $this->InsertQueryString = "";
+    }
 }
 
+
 /**
- * проверяет связь только что обновленного поля AUTO_INCREMENT в $TableName
- * с другими таблицами, если на это поле кто-то ссылается, то обновляет значение на вновь установленное
+ * РїСЂРѕРІРµСЂСЏРµС‚ СЃРІСЏР·СЊ С‚РѕР»СЊРєРѕ С‡С‚Рѕ РѕР±РЅРѕРІР»РµРЅРЅРѕРіРѕ РїРѕР»СЏ AUTO_INCREMENT РІ $TableName
+ * СЃ РґСЂСѓРіРёРјРё С‚Р°Р±Р»РёС†Р°РјРё, РµСЃР»Рё РЅР° СЌС‚Рѕ РїРѕР»Рµ РєС‚Рѕ-С‚Рѕ СЃСЃС‹Р»Р°РµС‚СЃСЏ, С‚Рѕ РѕР±РЅРѕРІР»СЏРµС‚ Р·РЅР°С‡РµРЅРёРµ РЅР° РІРЅРѕРІСЊ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРµ
  * 
- * @param type $TableName - имя таблицы, где произошло обновление автоинкрементного поля
- * @param type $RowNum - номер строки с данными в DataObject
- * @param type $CurrentInsertId - полученное ID после выполенеия оператора INSERT в MySQL
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё
+ * @param string $TableName - РёРјСЏ С‚Р°Р±Р»РёС†С‹, РіРґРµ РїСЂРѕРёР·РѕС€Р»Рѕ РѕР±РЅРѕРІР»РµРЅРёРµ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅРѕРіРѕ РїРѕР»СЏ
+ * @param string $CurrentInsertId - РїРѕР»СѓС‡РµРЅРЅРѕРµ ID РїРѕСЃР»Рµ РІС‹РїРѕР»РµРЅРµРёСЏ РѕРїРµСЂР°С‚РѕСЂР° INSERT РІ MySQL
  */
-private function checkAutoIncrementFieldUpdate( $TableName, $RowNum, $CurrentInsertId)
+private function checkAndSetAutoIncrementFieldsAfterInsert( 
+        TRMSafetyFields $SafetyFields, 
+        TRMDataObjectInterface $DataObject, 
+        $TableName, 
+        $CurrentInsertId
+    )
 {
-    // getAutoIncrementFieldsNamesFor возвращает массив с auto_increment полями для таблицы $TableName
-    // при правильной схеме такое поле должно быть ОДНО !
-    $AutoIncFieldsArray = $this->SafetyFields->getAutoIncrementFieldsNamesFor($TableName);
-    // если в схеме Дата-маппера для данной таблицы не описаны поля auti_increment, 
-    // завершаем выполнение
+    if( !($TableCount = $DataObject->count()) ) { return; }
+    // getAutoIncrementFieldsNamesFor РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ 
+    // СЃ auto_increment РїРѕР»СЏРјРё РґР»СЏ С‚Р°Р±Р»РёС†С‹ $TableName
+    // РїСЂРё РїСЂР°РІРёР»СЊРЅРѕР№ СЃС…РµРјРµ С‚Р°РєРѕРµ РїРѕР»Рµ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ РћР”РќРћ !
+    $AutoIncFieldsArray = $SafetyFields->getAutoIncrementFieldsNamesFor($TableName);
+    // РµСЃР»Рё РІ СЃС…РµРјРµ Р”Р°С‚Р°-РјР°РїРїРµСЂР° РґР»СЏ РґР°РЅРЅРѕР№ С‚Р°Р±Р»РёС†С‹ РЅРµ РѕРїРёСЃР°РЅС‹ РїРѕР»СЏ auto_increment, 
+    // Р·Р°РІРµСЂС€Р°РµРј РІС‹РїРѕР»РЅРµРЅРёРµ
     if( empty($AutoIncFieldsArray) ) { return; }
 
-    // если автоинкрементные поля найдены,
-    // то теперь для каждого такого поля
+    // РµСЃР»Рё Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅС‹Рµ РїРѕР»СЏ РЅР°Р№РґРµРЅС‹,
+    // С‚Рѕ С‚РµРїРµСЂСЊ РґР»СЏ РєР°Р¶РґРѕРіРѕ С‚Р°РєРѕРіРѕ РїРѕР»СЏ
     foreach($AutoIncFieldsArray as $AutoIncFieldName )
     {
-        // обновляем данные в автоинкрементном поле для самого объекта 
-        // добавленного в очередную таблицу $TableName
-        $this->DataObject->setData($RowNum, $TableName, $AutoIncFieldName, $CurrentInsertId);
-        // получаем массив ссылаюшихся (зависимых) полей по всем таблицам
-        $BackRelationArray = $this->SafetyFields->getBackRelationFor($TableName, $AutoIncFieldName);
+        // РѕР±РЅРѕРІР»СЏРµРј РґР°РЅРЅС‹Рµ РІ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅРѕРј РїРѕР»Рµ РґР»СЏ СЃР°РјРѕРіРѕ РѕР±СЉРµРєС‚Р° 
+        // РґРѕР±Р°РІР»РµРЅРЅРѕРіРѕ РІ РѕС‡РµСЂРµРґРЅСѓСЋ С‚Р°Р±Р»РёС†Сѓ $TableName
+        $DataObject->setData($TableName, $AutoIncFieldName, $CurrentInsertId);
+        // РµСЃР»Рё РІ РѕР±СЉРµРєС‚Рµ С‚РѕР»СЊРєРѕ РѕРґРЅР° С‚Р°Р±Р»РёС†Р°, 
+        // С‚Рѕ РЅРёРєР°РєРёС… СЃРІСЏР·РµР№ РІРЅСѓС‚СЂРё РѕР±СЉРµРєС‚Р° Р±С‹С‚СЊ РЅРµ РјРѕР¶РµС‚
+        // РїРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµРјСѓ РїРѕР»СЋ
+        if( $TableCount == 1 ) { continue; }
+        // РїРѕР»СѓС‡Р°РµРј РјР°СЃСЃРёРІ СЃСЃС‹Р»Р°СЋС€РёС…СЃСЏ (Р·Р°РІРёСЃРёРјС‹С…) РїРѕР»РµР№ РїРѕ РІСЃРµРј С‚Р°Р±Р»РёС†Р°Рј
+        $BackRelationArray = $SafetyFields->getBackRelationFor($TableName, $AutoIncFieldName);
         if( empty($BackRelationArray) ) { continue; }
 
-        // для всех объектов
+        // РґР»СЏ РІСЃРµС… РѕР±СЉРµРєС‚РѕРІ
         foreach( $BackRelationArray as $BackTableName => $BackFieldsNames )
         {
-            // во все ссылающиеся поля 
+            // РІРѕ РІСЃРµ СЃСЃС‹Р»Р°СЋС‰РёРµСЃСЏ РїРѕР»СЏ 
             foreach( $BackFieldsNames as $BackFieldName )
             {
-                // устанавливаем новые данные ссылающегося поля!!!
-                // только если оно само не является автоинкрементным
-                if( !$this->SafetyFields->isFieldAutoIncrement($BackTableName, $BackFieldName) )
+                // СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј РЅРѕРІС‹Рµ РґР°РЅРЅС‹Рµ СЃСЃС‹Р»Р°СЋС‰РµРіРѕСЃСЏ РїРѕР»СЏ!!!
+                // С‚РѕР»СЊРєРѕ РµСЃР»Рё РѕРЅРѕ СЃР°РјРѕ РЅРµ СЏРІР»СЏРµС‚СЃСЏ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅС‹Рј
+                if( !$SafetyFields->isFieldAutoIncrement($BackTableName, $BackFieldName) )
                 {
-                    $this->DataObject->setData($RowNum, $BackTableName, $BackFieldName, $CurrentInsertId);
+                    $DataObject->setData($BackTableName, $BackFieldName, $CurrentInsertId);
                 }
             }
         }
@@ -1107,25 +1516,96 @@ private function checkAutoIncrementFieldUpdate( $TableName, $RowNum, $CurrentIns
 }
 
 /**
- * удаляет записи коллекции из таблиц БД,
- * из основной таблицы удаляются записи, которые удовлетворяют значению сохраненного ID-поля,
- * если такого нет, то сравниваются на совпадение значения из всех полей 
- * (доступных для записи, которые имют флаг UPDATABLE_FIELD) и найденная запись удаляется,
- * так же удалются записи из дочерних таблиц, 
- * если у них стоит хотя бы одно поле доступное для редактирования - UPDATABLE_FIELD
+ * СѓРґР°Р»СЏРµС‚ Р·Р°РїРёСЃРё РєРѕР»Р»РµРєС†РёРё РёР· С‚Р°Р±Р»РёС† Р‘Р”,
+ * РёР· РѕСЃРЅРѕРІРЅРѕР№ С‚Р°Р±Р»РёС†С‹ СѓРґР°Р»СЏСЋС‚СЃСЏ Р·Р°РїРёСЃРё, РєРѕС‚РѕСЂС‹Рµ СѓРґРѕРІР»РµС‚РІРѕСЂСЏСЋС‚ Р·РЅР°С‡РµРЅРёСЋ СЃРѕС…СЂР°РЅРµРЅРЅРѕРіРѕ ID-РїРѕР»СЏ,
+ * РµСЃР»Рё С‚Р°РєРѕРіРѕ РЅРµС‚, С‚Рѕ СЃСЂР°РІРЅРёРІР°СЋС‚СЃСЏ РЅР° СЃРѕРІРїР°РґРµРЅРёРµ Р·РЅР°С‡РµРЅРёСЏ РёР· РІСЃРµС… РїРѕР»РµР№ 
+ * (РґРѕСЃС‚СѓРїРЅС‹С… РґР»СЏ Р·Р°РїРёСЃРё, РєРѕС‚РѕСЂС‹Рµ РёРјСЋС‚ С„Р»Р°Рі UPDATABLE_FIELD) Рё РЅР°Р№РґРµРЅРЅР°СЏ Р·Р°РїРёСЃСЊ СѓРґР°Р»СЏРµС‚СЃСЏ,
+ * С‚Р°Рє Р¶Рµ СѓРґР°Р»СЋС‚СЃСЏ Р·Р°РїРёСЃРё РёР· РґРѕС‡РµСЂРЅРёС… С‚Р°Р±Р»РёС†, 
+ * РµСЃР»Рё Сѓ РЅРёС… СЃС‚РѕРёС‚ С…РѕС‚СЏ Р±С‹ РѕРґРЅРѕ РїРѕР»Рµ РґРѕСЃС‚СѓРїРЅРѕРµ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ - UPDATABLE_FIELD
  * 
- * @return boolean - возвращает результат запроса DELETE
+ * @param TRMDataObjectInterface $DataObject - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё
+ * @param array $IndexesNames - РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РёРЅРґРµРєСЃРЅС‹С… РїРѕР»РµР№, 
+ * РєРѕС‚РѕСЂС‹Рµ РґРѕР»Р¶РЅС‹ РїСЂРѕРІРµСЂСЏС‚СЊСЃСЏ РїСЂРё РїРѕРёСЃРєРµ РІ Р‘Р” РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ СЃ С‚РµРєСѓС‰РёРј СѓРґР°Р»СЏРµРјС‹Рј РѕР±СЉРµС‚РѕРј 
+ * @param array $UpdatableFieldsNames - РІСЃРµ РїРѕР»СЏ, РєРѕС‚РѕСЂС‹Рµ РјРѕРіСѓС‚ Р±С‹С‚СЊ РёР·РјРµРЅРµРЅС‹ Сѓ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚, 
+ * С‚Р°Рє Р¶Рµ РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ РґР»СЏ РїРѕРёСЃРєР° РѕР±СЉРµРєС‚Р°, РµСЃР»Рё РЅРµ Р·Р°РґР°РЅС‹ РёРЅРґРµРєСЃРЅС‹Рµ РїРѕР»СЏ $IndexesNames
+ * @param string $DeleteFromStr - Р·Р°СЂР°РЅРµРµ СЃС„РѕСЂРјРёСЂРѕРІР°РЅРЅР°СЏ СЃС‚СЂРѕРєР° СЃРѕ СЃРїРёСЃРєРѕРј С‚Р°Р±Р»РёС†, РёР· РєРѕС‚РѕСЂС‹С… РїСЂРѕРёСЃС…РѕРґРёС‚ СѓРґР°Р»РµРЅРёРµ,
+ * СЌС‚Р° СЃС‚СЂРѕРєР° РѕРґРёРЅР°РєРѕРІР°СЏ РґР»СЏ РІСЃРµС… Р·Р°РїРёСЃРµР№, 
+ * @param string $UsingStr - СЃС‚СЂРѕРєР° РґР»СЏ СЃРµРєС†РёРё Delete-Р·Р°РїСЂРѕСЃР° USING 
+ * `table1` as `table1`, `description` as `description` 
+ * (Р±РµР· СЃР»РѕРІР° USING)
  */
-public function delete()
+protected function generateDeleteQueryString(
+        TRMDataObjectInterface $DataObject, 
+        array &$IndexesNames, 
+        array &$UpdatableFieldsNames,
+        $DeleteFromStr,
+        $UsingStr)
 {
-    if( !$this->DataObject->count() ) { return true; }
+    if( !$DataObject->count() ) { return; }
 
+    $CurrentWhereString = "";
+    // $UpdatableFieldsNames - РЅСѓР¶РµРЅ С‚РѕР»СЊРєРѕ РґР»СЏ СЃРїРёСЃРєР° С‚Р°Р±Р»РёС†, РІ РєРѕС‚РѕСЂС‹С… РµСЃС‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ РґР°РЅРЅС‹Рµ,
+    // С‚.Рµ. РєРѕС‚РѕСЂС‹Рµ РјРѕР¶РЅРѕ СѓРґР°Р»СЏС‚СЊ...
+    foreach( array_keys($UpdatableFieldsNames) as $TableName )
+    {
+        // РµСЃР»Рё $IndexesNames[$TableName] РїСѓСЃС‚РѕР№, 
+        // Р·РЅР°С‡РёС‚ РґР»СЏ СЌС‚РѕР№ С‚Р°Р±Р»РёС†С‹ РЅРµС‚ РїРѕР»РµР№ РґР»СЏ СЃРµРєС†РёРё WHERE РІ DELETE-Р·Р°РїСЂРѕСЃРµ,
+        // РїРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµР№ С‚Р°Р±Р»РёС†Рµ
+        if( empty( $IndexesNames[$TableName] ) ) { continue; }
+
+        // РёРЅР°С‡Рµ РІ $IndexesNames[$TableName] РїРµСЂРµС‡РёСЃР»РµРЅС‹ РїРѕР»СЏ РґР»СЏ СѓСЃР»РѕРІРё WHERE РІ DELETE-Р·Р°РїСЂРѕСЃРµ,
+        // Р° РёРјРµРЅРЅРѕ...
+        // РµСЃР»Рё РёРЅРґРµРєСЃРЅС‹Рµ РїРѕР»СЏ Р±С‹Р»Рё РЅРµ РѕРїСЂРµРґРµР»РµРЅС‹ РІ DataMapper,
+        // С‚РѕРіРґР° РІ $IndexesNames[$TableName] РїРѕРїР°РґСѓС‚ РІСЃРµ РїРѕР»СЏ РґР»СЏ РґР°РЅРЅРѕР№ С‚Р°Р±Р»РёС†С‹,
+        // С‚РѕРіРґР° СѓРґР°Р»СЏРµРј РІСЃРµ Р·Р°РїРёСЃРё РёР· Р‘Р”, 
+        // РґР»СЏ РєРѕС‚РѕСЂС‹С… Р·РЅР°С‡РµРЅРёСЏ РїРѕР»РµР№ РІ Р‘Р” Рё РІ РѕР±СЉРµРєС‚Рµ РґР°РЅРЅС‹С… СЃРѕРІРїР°РґР°СЋС‚!!!
+        // Р·Р° СЌС‚Рѕ РѕС‚РІРµС‡Р°РµС‚ 3-Р№ СЌР»РµРјРµРЅС‚ РјР°СЃСЃРёРІР° $Keys => * РІ С„СѓРЅРєС†РёРё generateIndexesAndUpdatableFieldsNames
+        foreach( $IndexesNames[$TableName] as $FieldName )
+        {
+            // РѕР±РѕСЂР°С‡РёРІР°РµРј РїСЂРѕРІРµСЂСЏРµРјС‹Рµ РґР°РЅРЅС‹Рµ РІ Р°РїРѕСЃС‚СЂРѕС„С‹ Рё СЌРєСЂР°РЅРёСЂСѓРµРј РёС… 
+            $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" 
+                . addcslashes( trim( $DataObject[$TableName][ $FieldName ], "'" ), "'" ) 
+                . "' AND ";
+        }
+    }
+
+    // РµСЃР»Рё СЃС„РѕСЂРјРёСЂРѕРІР°РЅС‹ СѓСЃР»РѕРІРёСЏ РґР»СЏ РїРѕСЃРєР° СѓРґР°Р»СЏРµРјРѕРіРѕ РѕР±СЉРµРєС‚Р° РІ Р‘Р”,
+    // С‚Рѕ РґРѕР±Р°РІР»СЏРµРј РѕС‡РµСЂРµРґРЅСѓСЋ СЃС‚СЂРѕРєСѓ DELETE Рє Р·Р°РїСЂРѕСЃСѓ
+    if( !empty($CurrentWhereString) )
+    {
+        $this->DeleteQueryString .= "DELETE FROM "
+                . $DeleteFromStr
+                . " USING "
+                . $UsingStr
+                ." WHERE "
+                . rtrim($CurrentWhereString, "AND ")
+                . ";";
+    }
+}
+
+/**
+ * СѓРґР°Р»СЏРµС‚ Р·Р°РїРёСЃРё РєРѕР»Р»РµРєС†РёРё РёР· С‚Р°Р±Р»РёС† Р‘Р”,
+ * РёР· РѕСЃРЅРѕРІРЅРѕР№ С‚Р°Р±Р»РёС†С‹ СѓРґР°Р»СЏСЋС‚СЃСЏ Р·Р°РїРёСЃРё, РєРѕС‚РѕСЂС‹Рµ СѓРґРѕРІР»РµС‚РІРѕСЂСЏСЋС‚ Р·РЅР°С‡РµРЅРёСЋ СЃРѕС…СЂР°РЅРµРЅРЅРѕРіРѕ ID-РїРѕР»СЏ,
+ * РµСЃР»Рё С‚Р°РєРѕРіРѕ РЅРµС‚, С‚Рѕ СЃСЂР°РІРЅРёРІР°СЋС‚СЃСЏ РЅР° СЃРѕРІРїР°РґРµРЅРёРµ Р·РЅР°С‡РµРЅРёСЏ РёР· РІСЃРµС… РїРѕР»РµР№ 
+ * (РґРѕСЃС‚СѓРїРЅС‹С… РґР»СЏ Р·Р°РїРёСЃРё, РєРѕС‚РѕСЂС‹Рµ РёРјРµСЋС‚ С„Р»Р°Рі UPDATABLE_FIELD) Рё РЅР°Р№РґРµРЅРЅР°СЏ Р·Р°РїРёСЃСЊ СѓРґР°Р»СЏРµС‚СЃСЏ,
+ * С‚Р°Рє Р¶Рµ СѓРґР°Р»СЋС‚СЃСЏ Р·Р°РїРёСЃРё РёР· РґРѕС‡РµСЂРЅРёС… С‚Р°Р±Р»РёС†, 
+ * РµСЃР»Рё Сѓ РЅРёС… СЃС‚РѕРёС‚ С…РѕС‚СЏ Р±С‹ РѕРґРЅРѕ РїРѕР»Рµ РґРѕСЃС‚СѓРїРЅРѕРµ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ - UPDATABLE_FIELD
+ * 
+ * @param TRMSafetyFields $SafetyFields - DataMapper, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ С„РѕСЂРјРёСЂСѓРµС‚СЃСЏ РІС‹Р±РѕСЂРєР° РёР· Р‘Р”
+ * @param TRMDataObjectsCollection $DataCollection - РєРѕР»Р»РµРєС†РёСЏ СЃ РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…
+ * 
+ * @return boolean - РІРѕР·РІСЂР°С‰Р°РµС‚ СЂРµР·СѓР»СЊС‚Р°С‚ Р·Р°РїСЂРѕСЃР° DELETE
+ */
+public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection)
+{
     $IndexesNames = array();
     $UpdatableFieldsNames = array();
 
-    // проверяем сначала на первичный ключ. затем на уникальные ключи ля идентификации записи для удаления,
-    // и если не найдены, тогда используем для сравнения все поля записи , что бы по ним по все идентифицировать запись
-    $this->generateIndexesAndUpdatableFieldsNames($IndexesNames, $UpdatableFieldsNames);
+    // РїСЂРѕРІРµСЂСЏРµРј СЃРЅР°С‡Р°Р»Р° РЅР° РїРµСЂРІРёС‡РЅС‹Р№ РєР»СЋС‡,
+    // Р·Р°С‚РµРј РЅР° СѓРЅРёРєР°Р»СЊРЅС‹Рµ РєР»СЋС‡Рё РґР»СЏ РёРґРµРЅС‚РёС„РёРєР°С†РёРё Р·Р°РїРёСЃРё РґР»СЏ СѓРґР°Р»РµРЅРёСЏ,
+    // Рё РµСЃР»Рё РЅРµ РЅР°Р№РґРµРЅС‹, С‚РѕРіРґР° РёСЃРїРѕР»СЊР·СѓРµРј РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ РІСЃРµ РїРѕР»СЏ Р·Р°РїРёСЃРё , 
+    // С‡С‚Рѕ Р±С‹ РїРѕ РЅРёРј РїРѕ РІСЃРµ РёРґРµРЅС‚РёС„РёС†РёСЂРѕРІР°С‚СЊ Р·Р°РїРёСЃСЊ
+    $this->generateIndexesAndUpdatableFieldsNames($SafetyFields, $IndexesNames, $UpdatableFieldsNames);
 
     $DeleteFromStr = "`" . implode("`,`", array_keys($UpdatableFieldsNames) ) . "`";
     $UsingStr = "";
@@ -1135,66 +1615,41 @@ public function delete()
     }
     $UsingStr = rtrim($UsingStr, ",");
 
-    $MultiQueryStr = "";
-    // проходим по всем строкам из объекта данных
-    foreach ($this->DataObject as $Row)
+    foreach( $DataCollection as $DataObject )
     {
-        $CurrentWhereString = "";
-        // $UpdatableFieldsNames - нужен только для списка таблиц, в которых есть доступные для изменения данные,
-        // т.е. которые можно удалять...
-        foreach( array_keys($UpdatableFieldsNames) as $TableName )
-        {
-            // если $IndexesNames[$TableName] пустой, то нет полей для секции WHERE в DELETE-запросе
-            // значит переходим к следующей таблице
-            if( empty( $IndexesNames[$TableName] ) ) { continue; }
-
-            // иначе в $IndexesNames[$TableName] перечислены поля для поиска в секции WHERE в DELETE-запросе,
-            // а именно...
-            // если индексные поля были не определены в DataMapper,
-            // тогда в $IndexesNames[$TableName] попадут все поля для данной таблицы,
-            // тогда удаляем все записи из БД, 
-            // в которых значения полей в БД и в объекте данных совпадают!!!
-            // за это отвечает 3-й элемент массива $Keys => * в функции generateIndexesAndUpdatableFieldsNames
-            foreach( $IndexesNames[$TableName] as $FieldName )
-            {
-                $CurrentWhereString .= "`{$TableName}`.`{$FieldName}` = '" . addcslashes( $Row[ $FieldName ], "'" ) . "' AND ";
-            }
-        }
-
-        if( !empty($CurrentWhereString) )
-        {
-            $MultiQueryStr .= "DELETE FROM "
-                    . $DeleteFromStr
-                    . " USING "
-                    . $UsingStr
-                    ." WHERE "
-                    . rtrim($CurrentWhereString, "AND ")
-                    . ";";
-        }
-
+        $this->generateDeleteQueryString($DataObject, $IndexesNames, $UpdatableFieldsNames, $DeleteFromStr, $UsingStr);
     }
 
-    if( !empty($MultiQueryStr) ) { $this->completeMultiQuery($MultiQueryStr); }
+    if( !empty($this->DeleteQueryString) )
+    {
+        $this->completeMultiQuery($this->DeleteQueryString);
+        $this->DeleteQueryString = "";
+    }
     return true;
 }
 
 /**
- * выполняет запрос из нескольких (или одного) SQL-выражений
- * и завершает выполнение, очищает буфер для возможности выполнения следующих запросов, 
- * перебирает все результаты
+ * РІС‹РїРѕР»РЅСЏРµС‚ Р·Р°РїСЂРѕСЃ РёР· РЅРµСЃРєРѕР»СЊРєРёС… (РёР»Рё РѕРґРЅРѕРіРѕ) SQL-РІС‹СЂР°Р¶РµРЅРёР№
+ * Рё Р·Р°РІРµСЂС€Р°РµС‚ РІС‹РїРѕР»РЅРµРЅРёРµ, РѕС‡РёС‰Р°РµС‚ Р±СѓС„РµСЂ РґР»СЏ РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё РІС‹РїРѕР»РЅРµРЅРёСЏ СЃР»РµРґСѓСЋС‰РёС… Р·Р°РїСЂРѕСЃРѕРІ, 
+ * РїРµСЂРµР±РёСЂР°РµС‚ РІСЃРµ СЂРµР·СѓР»СЊС‚Р°С‚С‹
  * 
- * @param string $querystring - строка SQL-запроса
- * @throws TRMSqlQueryException - в случае неудачного запроса выбрасывается исключение!
+ * @param string $querystring - СЃС‚СЂРѕРєР° SQL-Р·Р°РїСЂРѕСЃР°
+ * @throws TRMSqlQueryException - РІ СЃР»СѓС‡Р°Рµ РЅРµСѓРґР°С‡РЅРѕРіРѕ Р·Р°РїСЂРѕСЃР° РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ!
  */
-private function completeMultiQuery($querystring)
+public function completeMultiQuery($querystring)
 {
     if( !$this->MySQLiObject->multi_query($querystring) )
     {
-        throw new TRMSqlQueryException( __METHOD__ . " Запрос выполнить не удалось [{$querystring}] - Ошибка #(" . $this->MySQLiObject->sqlstate . "): " . $this->MySQLiObject->error );
+        throw new TRMSqlQueryException( 
+                __METHOD__ 
+                . " Р—Р°РїСЂРѕСЃ РІС‹РїРѕР»РЅРёС‚СЊ РЅРµ СѓРґР°Р»РѕСЃСЊ [{$querystring}] - РћС€РёР±РєР° #(" 
+                . $this->MySQLiObject->sqlstate . "): " 
+                . $this->MySQLiObject->error 
+            );
     }
     if( $this->MySQLiObject->insert_id ) { $this->LastId = $this->MySQLiObject->insert_id; }
 
-    // очистка после multi_query($query), иначе следующие запросы не сработают
+    // РѕС‡РёСЃС‚РєР° РїРѕСЃР»Рµ multi_query($query), РёРЅР°С‡Рµ СЃР»РµРґСѓСЋС‰РёРµ Р·Р°РїСЂРѕСЃС‹ РЅРµ СЃСЂР°Р±РѕС‚Р°СЋС‚
     while($this->MySQLiObject->more_results())
     {
         $this->MySQLiObject->next_result();

@@ -3,166 +3,68 @@
 namespace TRMEngine\DataObject;
 
 use TRMEngine\DataObject\Exceptions\TRMDataObjectContainerNoMainException;
-use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongDependenceObjectException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongDependenceTypeException;
+use TRMEngine\DataObject\Exceptions\TRMDataObjectsContainerWrongIndexException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsContainerInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
-use TRMEngine\DataObject\Interfaces\TRMRelationDataObjectsContainerInterface;
+use TRMEngine\DataObject\Interfaces\TRMParentedCollectionInterface;
+use TRMEngine\DataObject\Interfaces\TRMTypedCollectionInterface;
 
 /**
- * класс контейнер объектов данных, используется для составных объектов.
+ * РєР»Р°СЃСЃ РєРѕРЅС‚РµР№РЅРµСЂ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…, РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РґР»СЏ СЃРѕСЃС‚Р°РІРЅС‹С… РѕР±СЉРµРєС‚РѕРІ.
  * 
- * Используется 
- * 1. как для объектов-детей,
- * например, для составного продукта со всеми дополнительными коллекциями и объектами,
- * которые зависят от ID-главного объекта
- * (коллекции характеристик, комплектующие продукты, доп.изображения и т.д.)
+ * РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ 
+ * 1. РєР°Рє РґР»СЏ РєРѕР»Р»РµРєС†РёР№ РѕР±СЉРµРєС‚РѕРІ-РґРµС‚РµР№,
+ * РЅР°РїСЂРёРјРµСЂ, РґР»СЏ СЃРѕСЃС‚Р°РІРЅРѕРіРѕ РїСЂРѕРґСѓРєС‚Р° СЃРѕ РІСЃРµРјРё РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹РјРё РєРѕР»Р»РµРєС†РёСЏРјРё Рё РѕР±СЉРµРєС‚Р°РјРё,
+ * РєРѕС‚РѕСЂС‹Рµ Р·Р°РІРёСЃСЏС‚ РѕС‚ ID-РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
+ * (РєРѕР»Р»РµРєС†РёРё С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРє, РєРѕРјРїР»РµРєС‚СѓСЋС‰РёРµ РїСЂРѕРґСѓРєС‚С‹, РґРѕРї.РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РґР»СЏ С‚РѕРІР°СЂР° Рё С‚.Рґ.)
  * 
- * 2. так и для зависимостей,
- * когда есть главный объект и объекты-зависимости,
- * от которых главный объект зависит и с связан через их ID.
- * Сами зависимости являются автономными сущностями, например,
- * производитель никак не зависит от товара, 
- * но товар связан через свой ID_vendor и зависит от производителя по его ID...
+ * 2. С‚Р°Рє Рё РґР»СЏ РєРѕР»Р»РµРєС†РёСЏ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ (РєР°Рє РїСЂР°РІРёР»Рѕ РІ РєРѕР»Р»РµРєС†РёРё РєР°Р¶РґРѕРіРѕ С‚РёРїР° С‚РѕР»СЊРєРѕ РѕРґРЅР° Р·Р°РІРёСЃРёРјРѕСЃС‚Рё),
+ * РєРѕРіРґР° РµСЃС‚СЊ РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚ Рё РѕР±СЉРµРєС‚С‹-Р·Р°РІРёСЃРёРјРѕСЃС‚Рё,
+ * РѕС‚ РєРѕС‚РѕСЂС‹С… РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚ Р·Р°РІРёСЃРёС‚ Рё СЃРІСЏР·Р°РЅ СЃ РЅРёРјРё С‡РµСЂРµР· РёС… ID.
+ * РЎР°РјРё Р·Р°РІРёСЃРёРјРѕСЃС‚Рё СЏРІР»СЏСЋС‚СЃСЏ Р°РІС‚РѕРЅРѕРјРЅС‹РјРё СЃСѓС‰РЅРѕСЃС‚СЏРјРё, РЅР°РїСЂРёРјРµСЂ,
+ * РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊ РЅРёРєР°Рє РЅРµ Р·Р°РІРёСЃРёС‚ РѕС‚ С‚РѕРІР°СЂР°, 
+ * РЅРѕ С‚РѕРІР°СЂ СЃРІСЏР·Р°РЅ С‡РµСЂРµР· СЃРІРѕР№ ID_vendor Рё Р·Р°РІРёСЃРёС‚ РѕС‚ РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЏ РїРѕ РµРіРѕ ID...
  */
-abstract class TRMDataObjectsContainer implements 
-        TRMDataObjectsContainerInterface, 
-        TRMRelationDataObjectsContainerInterface
+class TRMDataObjectsContainer implements TRMDataObjectsContainerInterface
 {
+const MAIN_INDEX = "Main";
+const CHILDRENS_INDEX = "Childrens";
+const DEPENDENCIES_INDEX = "Dependencies";
+
 /**
- * @var TRMIdDataObjectInterface - основной объект с уникальным идентификатором ID,
- * по униакльному ID объекты в контейнере связываются с главным объектом
+ * @var TRMIdDataObjectInterface - РѕСЃРЅРѕРІРЅРѕР№ РѕР±СЉРµРєС‚ СЃ СѓРЅРёРєР°Р»СЊРЅС‹Рј РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј ID,
+ * РїРѕ СѓРЅРёР°РєР»СЊРЅРѕРјСѓ ID РѕР±СЉРµРєС‚С‹ РІ РєРѕРЅС‚РµР№РЅРµСЂРµ СЃРІСЏР·С‹РІР°СЋС‚СЃСЏ СЃ РіР»Р°РІРЅС‹Рј РѕР±СЉРµРєС‚РѕРј
  */
 protected $MainDataObject;
 /**
- * @var array(TRMDataObjectInterface) - массив объектов данных, дополняющих основной объект, 
- * например коллекция характеристик, доп.изображения, комплекты, скидки и т.д.
+ * @var array(TRMTypedCollectionInterface) - РјР°СЃСЃРёРІ СЃ РєРѕР»Р»РµРєС†РёСЏРјРё РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…, РґРѕРїРѕР»РЅСЏСЋС‰РёС… РѕСЃРЅРѕРІРЅРѕР№ РѕР±СЉРµРєС‚, 
+ * РЅР°РїСЂРёРјРµСЂ РєРѕР»Р»РµРєС†РёСЏ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРє, РґРѕРї.РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РєРѕРјРїР»РµРєС‚С‹, СЃРєРёРґРєРё Рё С‚.Рґ.
  */
-protected $ObjectsArray = array();
+protected $ChildCollectionsArray = array();
 /**
- * @var integer - текущая позиция указателя, для реализации интерфейса итератора - Iterator
+ * @var array(TRMIdDataObjectInterface) - РјР°СЃСЃРёРІ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…, РґРѕРїРѕР»РЅСЏСЋС‰РёС… РѕСЃРЅРѕРІРЅРѕР№ РѕР±СЉРµРєС‚, 
+ * РЅР°РїСЂРёРјРµСЂ РєРѕР»Р»РµРєС†РёСЏ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРє, РґРѕРї.РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РєРѕРјРїР»РµРєС‚С‹, СЃРєРёРґРєРё Рё С‚.Рґ.
+ */
+protected $DependenciesObjectsArray = array();
+/**
+ * @var array - РјР°СЃСЃРёРІ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№, 
+ * РєР°Р¶РґС‹Р№ СЌР»РµРјРµРЅС‚ РјР°СЃСЃРёРІР° - СЌС‚Рѕ РїРѕРёРјРµРЅРѕРІР°РЅРЅС‹Р№ СЌР»РµРјРµРЅС‚ СЃ РїРѕРґРјР°СЃСЃРёРІРѕРј,
+ * СЃРѕРґРµСЂР¶Р°С‰РёРј РёРјСЏ СЃСѓР±-РѕР±СЉРµРєС‚Р° РІ РіР»Р°РІРЅРѕРј РѕР±СЉРµРєС‚Рµ Рё РёРјСЏ РїРѕР»СЏ СЌС‚РѕРіРѕ СЃСѓР±-РѕР±СЉРµРєС‚Р°
+ * РґР»СЏ СЃРІСЏР·Рё СЃ ID-Р·Р°РІРёСЃРёРјРѕСЃС‚Рё
+ * (..., "ObjectIndex" => array( "RelationSubObjectName" => type, "RelationFieldName" =>fieldname ), ... )
+ */
+protected $DependenciesFieldsArray = array();
+
+/**
+ * @var integer - С‚РµРєСѓС‰Р°СЏ РїРѕР·РёС†РёСЏ СѓРєР°Р·Р°С‚РµР»СЏ, РґР»СЏ СЂРµР°Р»РёР·Р°С†РёРё РёРЅС‚РµСЂС„РµР№СЃР° РёС‚РµСЂР°С‚РѕСЂР° - Iterator
  */
 private $Position = 0;
 
 
 /**
- * @var array(TRMIdDataObjectInterface) - массив объектов данных, дополняющих основной объект, 
- * например коллекция характеристик, доп.изображения, комплекты, скидки и т.д.
- */
-protected $DependenciesObjectsArray = array();
-/**
- * @var array - массив зависимостей, 
- * каждый элемент массива - это поименованный элемент с подмассивом,
- * содержащим имя суб-объекта в главном объекте и имя поля этого суб-объекта
- * для связи с ID-зависимости
- * (..., "ObjectIndex" => array( "RelationSubObjectName" => type, "RelationFieldName" =>fieldname ), ... )
- */
-protected $DependenciesArray = array();
-
-
-/**
- * помещает объект данных с именем $Index в массив-контейнер зависимостей, 
- * сохраняется только ссылка, объект не клонируется!!!
- * 
- * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMIdDataObjectInterface $do - добавляемый объект
- * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
- * @param string $FieldName - имя поля основного суб-объекта в главном объекте, по которому связывается зависимость
- */
-public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName )
-{
-    $this->DependenciesArray[$Index] = array( strval($ObjectName), strval($FieldName) ); 
-    
-    $this->setDataObject($Index, $do);
-}
-
-/**
- * возвращает массив с именами полей зависимости с индексом $Index
- * 
- * @param string $Index - имя/номер-индекс объекта в контейнере
- * 
- * @return array - имя суб-объекта и поля в суб-объекте главного объекта, 
- * по которому установлена связь с ID зависимости под индексом $Index
- */
-public function getDependence($Index)
-{
-    return isset($this->DependenciesArray[$Index]) ? $this->DependenciesArray[$Index] : null;
-}
-
-/**
- * возвращает объект зависимости с индексом $Index из контейнера объектов
- * 
- * @param string $Index - имя/номер-индекс объекта в контейнере
- * 
- * @return array - имя суб-объекта и поля в суб-объекте главного объекта, 
- * по которому установлена связь с ID зависимости под индексом $Index
- */
-public function getDependenceObject($Index)
-{
-    return $this->getDataObject($Index);
-}
-
-/**
- * 
- * @param string $Index - индекс объекта в контейнере
- * @return bool - если объект в контейнере под этим индексом зафиксирован как зависимый от главного,
- * например, список характеристик для товара, то вернется true, если зависимость не утсанвлена, то - false
- */
-public function isDependence($Index)
-{
-    return key_exists($Index, $this->DependenciesArray);
-}
-
-/**
- * @return array - массив массивов с зависимостями вида:
- * array("ObjectName" => array( "RelationSubObjectName" => type, "RelationFieldName" =>fieldname ), ... )
- */
-public function getDependenciesArray()
-{
-    return $this->DependenciesArray;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * магический метод,
- * позволяет получать объекты из контейнера обращаясь к ним как к свойствам класса
- * TRMDataObjectsContainer->ObjectName
- * 
- * @param string $name - имя свойства-объекта
- * @return TRMDataObjectInterface
- */
-public function __get($name)
-{
-    return $this->getDataObject($name);
-}
-/**
- * магический метод,
- * позволяет добавлять объекты в контейнер, обращаясь к ним как к свойствам класса
- * TRMDataObjectsContainer->ObjectName = $value;
- * 
- * @param string $name
- * @param TRMDataObjectInterface $value
- */
-/*
-public function __set($name, $value)
-{
-    $this->setDataObject($name, $value);
-}
-*/
-
-/**
- * @return TRMIdDataObjectInterface - возвращает главный (сохраненный под 0-м номером в массиве) объект данных
+ * @return TRMIdDataObjectInterface - РІРѕР·РІСЂР°С‰Р°РµС‚ РіР»Р°РІРЅС‹Р№ (СЃРѕС…СЂР°РЅРµРЅРЅС‹Р№ РїРѕРґ 0-Рј РЅРѕРјРµСЂРѕРј РІ РјР°СЃСЃРёРІРµ) РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С…
  */
 public function getMainDataObject()
 {
@@ -170,156 +72,336 @@ public function getMainDataObject()
 }
 
 /**
- * устанавливает главный объект данных,
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С…,
  * 
- * @param TRMIdDataObjectInterface $do - главный объект данных
+ * @param TRMIdDataObjectInterface $do - РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С…
  */
 public function setMainDataObject(TRMIdDataObjectInterface $do)
 {
     $this->MainDataObject = $do;
 }
 
-/**
- * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
- * 
- * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectInterface $do - добавляемый объект
- */
-public function setChildObject($Index, Interfaces\TRMParentedDataObjectInterface $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
-{
-    $do->setParentDataObject($this);
 
-    $this->setDataObject($Index, $do);
+/**
+ * РїРѕРјРµС‰Р°РµС‚ РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С… СЃ РёРјРµРЅРµРј $Index РІ РјР°СЃСЃРёРІ-РєРѕРЅС‚РµР№РЅРµСЂ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№, 
+ * СЃРѕС…СЂР°РЅСЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ СЃСЃС‹Р»РєР°, РѕР±СЉРµРєС‚ РЅРµ РєР»РѕРЅРёСЂСѓРµС‚СЃСЏ!!!
+ * 
+ * @param string $Index - РёРјСЏ/РЅРѕРјРµСЂ-РёРЅРґРµРєСЃ, РїРѕРґ РєРѕС‚РѕСЂС‹Рј Р±СѓРґРµС‚ СЃРѕС…СЂР°РЅРµРЅ РѕР±СЉРµРєС‚ РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
+ * @param string $dotype - С‚РёРї РѕР±СЉРµРєС‚Р°-Р·Р°РІРёСЃРёРјРѕСЃС‚Рё, РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РґР»СЏ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
+ * @param string $ObjectName - РёРјСЏ СЃСѓР±-РѕР±СЉРµРєС‚Р° РІ РіР»Р°РІРЅРѕРј РѕР±СЉРµРєС‚Рµ, РїРѕ РєРѕС‚РѕСЂРѕРјСѓ СЃРІСЏР·С‹РІР°РµС‚СЃСЏ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ
+ * @param string $FieldName - РёРјСЏ РїРѕР»СЏ РѕСЃРЅРѕРІРЅРѕРіРѕ СЃСѓР±-РѕР±СЉРµРєС‚Р° РІ РіР»Р°РІРЅРѕРј РѕР±СЉРµРєС‚Рµ, 
+ * РїРѕ РєРѕС‚РѕСЂРѕРјСѓ СѓСЃС‚Р°РЅРѕРІР»РµРЅР° СЃРІСЏР·СЊ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊСЋ
+ */
+public function setDependence($Index, $dotype, $ObjectName, $FieldName )
+{
+    if( !class_exists($dotype) )
+    {
+        throw new TRMDataObjectsContainerWrongDependenceTypeException( 
+                get_class($this) . " - " . __METHOD__ . " - " . $dotype 
+            );
+    }
+    $this->DependenciesFieldsArray[$Index] = array( strval($ObjectName), strval($FieldName), $dotype );
+    // РµСЃР»Рё РІ РјР°СЃСЃРёРІРµ РѕР±СЉРµРєС‚РѕРІ-Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№ РґР°РЅРЅРѕРіРѕ С‚РёРїР° РµС‰Рµ РЅРµС‚ РѕР±СЉРµРєС‚Р°,
+    // РёР»Рё С‚Р°Рј СЃРѕС…СЂР°РЅРµРЅ РѕР±СЉРµРєС‚ РґСЂСѓРіРѕРіРѕ С‚РёРїР° РѕС‚ $dotype,
+    // С‚Рѕ СЃРѕР·РґР°РµРј РїСѓСЃС‚РѕР№ СЌР»РµРјРµРЅС‚ РјР°СЃСЃРёРІР°
+    if( !key_exists( $dotype, $this->DependenciesObjectsArray ) ||
+        get_class($this->DependenciesObjectsArray[$dotype]) !== $dotype   )
+    {
+        $this->DependenciesObjectsArray[$dotype] = null;
+    }
 }
 
 /**
- * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
+ * РїРѕРјРµС‰Р°РµС‚ РѕР±СЉРµРєС‚ РІ РјР°СЃСЃРёРІ-РєРѕРЅС‚РµР№РЅРµСЂ Р·Р°РІРёСЃРёРјРѕСЃС‚РµР№,
+ * РёРЅРґРµРєСЃ РІ РјР°СЃСЃРёРІРµ Р±СѓРґРµС‚ СЃРѕРѕС‚РІРµС‚СЃРІРѕРІР°С‚СЊ С‚РёРїСѓ РѕР±СЉРµРєС‚Р°!
+ * СЃРѕС…СЂР°РЅСЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ СЃСЃС‹Р»РєР°, РѕР±СЉРµРєС‚ РЅРµ РєР»РѕРЅРёСЂСѓРµС‚СЃСЏ!!!
  * 
- * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectInterface $do - добавляемый объект
+ * @param TRMIdDataObjectInterface $do - РѕР±СЉРµРєС‚ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё, РєРѕС‚РѕСЂС‹Р№ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РґР»СЏ РґР°РЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
  */
-private function setDataObject($Index, TRMDataObjectInterface $do) // был TRMParentedDataObject, но позже сделал для все объектов данных
+public function setDependenceObject( TRMIdDataObjectInterface $do )
 {
-    $this->ObjectsArray[$Index] = $do;
+    $dotype = get_class($do);
+    foreach( $this->DependenciesFieldsArray as $DependenceField )
+    {
+        if( $DependenceField[2] === $dotype )
+        {
+            $this->MainDataObject->setData( $DependenceField[0], $DependenceField[1], $do->getId() );
+            $this->DependenciesObjectsArray[$dotype] = $do;
+            return;
+        }
+    }
+    
+    // РµСЃР»Рё РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅР° СЃРІСЏР·СЊ СЃ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊСЋ, С‚Рѕ РІС‹Р±СЂР°СЃС‹РІР°РµРј РёСЃРєР»СЋС‡РµРЅРёРµ
+    throw new TRMDataObjectsContainerWrongDependenceObjectException( 
+            get_class($this) . __METHOD__ . " - " . $dotype 
+        );
 }
 
 /**
- * возвращает объект из контейнера под номером $Index
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё СЃ РёРЅРґРµРєСЃРѕРј $Index
  * 
- * @param integer $Index - номер объекта в контейнере
+ * @param string $Index - РёРјСЏ/РЅРѕРјРµСЂ-РёРЅРґРµРєСЃ РѕР±СЉРµРєС‚Р° РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
  * 
- * @return TRMDataObjectInterface - объект из контейнера
+ * @return array - РёРјСЏ СЃСѓР±-РѕР±СЉРµРєС‚Р° Рё РїРѕР»СЏ РІ СЃСѓР±-РѕР±СЉРµРєС‚Рµ РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°, 
+ * РїРѕ РєРѕС‚РѕСЂРѕРјСѓ СѓСЃС‚Р°РЅРѕРІР»РµРЅР° СЃРІСЏР·СЊ СЃ ID Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РїРѕРґ РёРЅРґРµРєСЃРѕРј $Index
  */
-public function getDataObject($Index)
+public function getDependenceField($Index)
 {
-    if( isset($this->ObjectsArray[$Index]) ) { return $this->ObjectsArray[$Index]; }
+    return isset($this->DependenciesFieldsArray[$Index]) ? $this->DependenciesFieldsArray[$Index] : null;
+}
+/**
+ * 
+ * @return array(TRMIdDataObjectInterface) - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ 
+ * СЃРѕ РІСЃРµРјРё Р·Р°РІРёСЃРёРјРѕСЃСЏС‚Рё РґР»СЏ РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р° РёР· РєРѕРЅС‚РµР№РЅРµСЂР°
+ */
+public function getDependenciesObjectsArray()
+{
+    return $this->DependenciesObjectsArray;
+}
+
+/**
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё СЃ РёРЅРґРµРєСЃРѕРј $Index РёР· РєРѕРЅС‚РµР№РЅРµСЂР° РѕР±СЉРµРєС‚РѕРІ
+ * 
+ * @param string $dotype - С‚РёРї РѕР±СЉРµРєС‚Р°-Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
+ * 
+ * @return TRMIdDataObjectInterface - РєРѕР»Р»РµРєС†РёСЏ СЃ РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…, СЃРѕС…СЂР°РЅРµРЅРЅР°СЏ РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
+ */
+public function getDependenceObject($dotype)
+{
+    if( !key_exists($dotype, $this->DependenciesObjectsArray) )
+    {
+        throw new TRMDataObjectsContainerWrongIndexException( get_class($this) . " - " . __METHOD__ . " - " . $dotype );
+    }
+    return $this->DependenciesObjectsArray[$dotype];
+}
+
+/**
+ * 
+ * @param string $Index - РёРЅРґРµРєСЃ РѕР±СЉРµРєС‚Р° РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
+ * @return bool - РµСЃР»Рё РѕР±СЉРµРєС‚ РІ РєРѕРЅС‚РµР№РЅРµСЂРµ РїРѕРґ СЌС‚РёРј РёРЅРґРµРєСЃРѕРј Р·Р°С„РёРєСЃРёСЂРѕРІР°РЅ РєР°Рє Р·Р°РІРёСЃРёРјС‹Р№ РѕС‚ РіР»Р°РІРЅРѕРіРѕ,
+ * РЅР°РїСЂРёРјРµСЂ, СЃРїРёСЃРѕРє С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРє РґР»СЏ С‚РѕРІР°СЂР°, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ true, РµСЃР»Рё Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ РЅРµ СѓС‚СЃР°РЅРІР»РµРЅР°, С‚Рѕ - false
+ */
+public function isDependence($Index)
+{
+    return key_exists($Index, $this->DependenciesFieldsArray);
+}
+
+/**
+ * @return array - РјР°СЃСЃРёРІ РјР°СЃСЃРёРІРѕРІ СЃ Р·Р°РІРёСЃРёРјРѕСЃС‚СЏРјРё РІРёРґР°:
+ * array("ObjectName" => array( "RelationSubObjectName" => type, "RelationFieldName" =>fieldname ), ... )
+ */
+public function getDependenciesFieldsArray()
+{
+    return $this->DependenciesFieldsArray;
+}
+
+/**
+ * РѕС‡РёС‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РґРѕРї. РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…,
+ * С‚Р°Рє Р¶Рµ Сѓ СЌС‚РёС… РѕР±СЉРµРєС‚РѕРІ РѕР±РЅСѓР»СЏРµС‚ СЃСЃС‹Р»РєСѓ РЅР° СЌС‚РѕС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ РєРѕРЅС‚РµР№РЅРµСЂ
+ */
+public function clearDependencies()
+{
+    $this->DependenciesFieldsArray = array();
+    $this->DependenciesObjectsArray = array();
+}
+
+
+/**
+ * 
+ * @param TRMTypedCollectionInterface $Collection - РєРѕР»Р»РµРєС†РёСЏ, 
+ * РґР»СЏ РєР°Р¶РґРѕРіРѕ РѕР±СЉРµРєС‚Р° РєРѕС‚РѕСЂРѕР№ РЅСѓР¶РЅРѕ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ СЂРѕРґРёС‚РµР»РµРј РґР°РЅРЅС‹Р№ РѕР±СЉРµРєС‚ РєРѕРЅС‚РµР№РЅРµСЂР°
+ */
+public function setParentFor(TRMTypedCollectionInterface $Collection, TRMIdDataObjectInterface $Parent)
+{
+    foreach( $Collection as $Object )
+    {
+        $Object->setParentDataObject($Parent);
+    }
+}
+
+/**
+ * РїРѕРјРµС‰Р°РµС‚ РєРѕР»Р»РµРєС†РёСЋ РґРѕС‡РµСЂРЅРёС… РѕР±СЉРµРєС‚ РґР°РЅРЅС‹С… РІ РјР°СЃСЃРёРІ РїРѕРґ РЅРѕРјРµСЂРѕРј $Index, 
+ * СЃРѕС…СЂР°РЅСЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ СЃСЃС‹Р»РєР°, РѕР±СЉРµРєС‚С‹ РЅРµ РєР»РѕРЅРёСЂСѓСЋС‚СЃСЏ!!!
+ * 
+ * @param string $Index - РЅРѕРјРµСЂ-РёРЅРґРµРєСЃ, РїРѕРґ РєРѕС‚РѕСЂС‹Рј Р±СѓРґРµС‚ СЃРѕС…СЂР°РЅРµРЅ РѕР±СЉРµРєС‚ РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
+ * @param TRMParentedCollectionInterface $Collection - РґРѕР±Р°РІР»СЏРµРјС‹Р№ РѕР±СЉРµРєС‚-РєРѕР»Р»РµРєС†РёСЏ
+ */
+public function setChildCollection($Index, TRMParentedCollectionInterface $Collection) // Р±С‹Р» TRMParentedDataObject, РЅРѕ РїРѕР·Р¶Рµ СЃРґРµР»Р°Р» РґР»СЏ РІСЃРµ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…
+{
+    $this->ChildCollectionsArray[$Index] = $Collection;
+    $this->setParentFor($Collection, $this);
+}
+
+/**
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚ РёР· РєРѕРЅС‚РµР№РЅРµСЂР° РїРѕРґ РЅРѕРјРµСЂРѕРј $Index
+ * 
+ * @param integer $Index - РЅРѕРјРµСЂ РѕР±СЉРµРєС‚Р° РІ РєРѕРЅС‚РµР№РЅРµСЂРµ
+ * 
+ * @return TRMParentedCollectionInterface - РєРѕР»Р»РµРєС†РёСЏ РёР· РєРѕРЅС‚РµР№РЅРµСЂР°
+ */
+public function getChildCollection($Index)
+{
+    if( isset($this->ChildCollectionsArray[$Index]) ) { return $this->ChildCollectionsArray[$Index]; }
     return null;
 }
 
 /**
- * @return array - возвращает массив объектов данных, дополняющих основной объект
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…, РґРѕРїРѕР»РЅСЏСЋС‰РёС… РѕСЃРЅРѕРІРЅРѕР№ РѕР±СЉРµРєС‚
  */
-public function getObjectsArray()
+public function getChildCollectionsArray()
 {
-    return $this->ObjectsArray;
+    return $this->ChildCollectionsArray;
 }
 
 /**
- * очищает массив с доп. объектами данных,
- * так же у этих объектов обнуляет ссылку на этот родительский контейнер
+ * РѕС‡РёС‰Р°РµС‚ РјР°СЃСЃРёРІ СЃ РґРѕРї. РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…,
+ * С‚Р°Рє Р¶Рµ Сѓ СЌС‚РёС… РѕР±СЉРµРєС‚РѕРІ РѕР±РЅСѓР»СЏРµС‚ СЃСЃС‹Р»РєСѓ РЅР° СЌС‚РѕС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ РєРѕРЅС‚РµР№РЅРµСЂ
  */
-public function clearObjectsArray()
+public function clearChildCollectionsArray()
 {
-    // так как в массиве хранятся ссылки на реальные объекты, то они не удаляются при опустошении массива,
-    // поэтому вручную устанавливаем для каждого объекта данных родителя в null, 
-    // чтобы они не ссылались на контейнер из которого они удалены
-    foreach( $this->ObjectsArray as $object )
+    // С‚Р°Рє РєР°Рє РІ РјР°СЃСЃРёРІРµ С…СЂР°РЅСЏС‚СЃСЏ СЃСЃС‹Р»РєРё РЅР° СЂРµР°Р»СЊРЅС‹Рµ РѕР±СЉРµРєС‚С‹, С‚Рѕ РѕРЅРё РЅРµ СѓРґР°Р»СЏСЋС‚СЃСЏ РїСЂРё РѕРїСѓСЃС‚РѕС€РµРЅРёРё РјР°СЃСЃРёРІР°,
+    // РїРѕСЌС‚РѕРјСѓ РІСЂСѓС‡РЅСѓСЋ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј РґР»СЏ РєР°Р¶РґРѕРіРѕ РѕР±СЉРµРєС‚Р° РґР°РЅРЅС‹С… СЂРѕРґРёС‚РµР»СЏ РІ null, 
+    // С‡С‚РѕР±С‹ РѕРЅРё РЅРµ СЃСЃС‹Р»Р°Р»РёСЃСЊ РЅР° РєРѕРЅС‚РµР№РЅРµСЂ РёР· РєРѕС‚РѕСЂРѕРіРѕ РѕРЅРё СѓРґР°Р»РµРЅС‹
+    foreach( $this->ChildCollectionsArray as $Collection )
     {
-        if( method_exists($object, "setParentDataObject") )
-        {
-            $object->setParentDataObject(null);
-        }
+        $this->setParentFor( $Collection, null );
     }
-    $this->ObjectsArray = array();
+    $this->ChildCollectionsArray = array();
 }
 
 /**
- * @return array - вернет массив из двух элементов вида :
+ * @return array - РІРµСЂРЅРµС‚ РјР°СЃСЃРёРІ РёР· РґРІСѓС… СЌР»РµРјРµРЅС‚РѕРІ РІРёРґР° :
  * array(
- * "Main" => данные главного объекта,
- * "Children" => array(
- *      "NameOfChild1" => данные первого дочернего объекта,
- *      "NameOfChild2" => данные второго дочернего объекта,
- *      "NameOfChild3" => данные третьего дочернего объекта,
- * ...
+ * "Main" => РґР°РЅРЅС‹Рµ РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°,
+ * "Childrens" => array(
+ *      "NameOfChild1" => TypedCollection1,
+ *      "NameOfChild2" => TypedCollection1,
+ *      "NameOfChild3" => TypedCollection1,
+ *      ...
  *      )
+ * "Dependencies" => array(
+ *      "NameOfDependence1" => IdDataObject1,
+ *      ... 
+ *     )
  * )
  */
-public function getOwnData()
+public function jsonSerialize()
 {
-    $arr = array( 
-        "Main" => $this->MainDataObject->getOwnData(), 
-        "Children" => array() );
+    $arr = array();
+    // РґР»СЏ "Main" С‡Р°СЃС‚Рё СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ СЃСЃС‹Р»РєР° РЅР° РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚
+    // РЈ РЅРµРіРѕ СЂРµРєСѓСЂСЃРёРІРЅРѕ Р±СѓРґРµС‚ РІС‹Р·РІР°РЅР° jsonSerialize
+    $arr[static::MAIN_INDEX] = $this->MainDataObject;
     
-    foreach ($this->ObjectsArray as $Name => $Child)
+    if( count($this->ChildCollectionsArray) )
     {
-        if( $Child->count() )
+        $arr[static::CHILDRENS_INDEX] = array();
+        foreach ($this->ChildCollectionsArray as $Name => $ChildCollection)
         {
-            $arr["Children"][$Name] = $Child->getOwnData();
+            // РЈ $ChildCollection СЂРµРєСѓСЂСЃРёРІРЅРѕ Р±СѓРґРµС‚ РІС‹Р·РІР°РЅР° jsonSerialize
+            $arr[static::CHILDRENS_INDEX][$Name] = $ChildCollection;
         }
+    }
+    if( count($this->DependenciesObjectsArray) )
+    {
+        $arr[static::DEPENDENCIES_INDEX] = array();
+        foreach( $this->getDependenciesFieldsArray() as $Index => $DependenceField )
+        {
+            // С‚РёРї РѕР±СЉРµРєС‚Р° Р·Р°РІРёСЃРёРјРѕС‚Рё
+            $obtype = $DependenceField[2];
+            $arr[static::DEPENDENCIES_INDEX][$Index] = $this->DependenciesObjectsArray[$obtype];
+        }
+//        foreach ($this->DependenciesObjectsArray as $Name => $Dependence)
+//        {
+//            // РЈ $Dependence СЂРµРєСѓСЂСЃРёРІРЅРѕ Р±СѓРґРµС‚ РІС‹Р·РІР°РЅР° jsonSerialize
+//            $arr[static::DEPENDENCIES_INDEX][$Name] = $Dependence;
+//        }
     }
 
     return $arr;
 }
 
 /**
+ * РРЅРёС†РёР°Р»РёР·РёСЂСѓРµС‚ РІСЃРµ С‡Р°СЃС‚Рё РєРѕРЅС‚РµР№РЅРµСЂР° РёР· РјР°СЃСЃРёРІР° РґР°РЅРЅС‹С… СЃРѕРѕС‚РІРµС‚СЃРІСѓСЋС‰РµР№ СЃС‚СЂСѓРєС‚СѓСЂС‹,
+ * РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚ РёР· С‡Р°СЃС‚Рё РјР°СЃСЃРёРІР° Main,
+ * РєР°Р¶РґР°СЏ РґРѕС‡РµСЂРЅСЏСЏ РєРѕР»Р»РµРєС†РёСЏ Р±СѓРґРµС‚ РїСЂРѕРёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅР° СЃРІРѕРёРјРё РґР°РЅРЅС‹РјРё
+ * РёР· С‡Р°СЃС‚Рё Childrens РѕР±С‰РµРіРѕ РјР°СЃСЃРёРІР°, РїРµСЂРµРґ РёРЅРёС†РёР°Р»РёР·Р°С†РёРµР№ РєРѕР»Р»РµРєС†РёРё РѕС‡РёС‰Р°СЋС‚СЃСЏ,
+ * РµСЃР»Рё РєР°РєРѕР№-С‚Рѕ С‡Р°С‚СЃРё РЅРµ Р±СѓРґРµС‚, С‚Рѕ РєРѕР»Р»РµРєС†РёСЏ РѕСЃС‚Р°РЅРµС‚СЃСЏ РїСѓСЃС‚РѕР№
+ * РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµС‚СЃСЏ РєР°Р¶РґР°СЏ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ Рё С‡Р°СЃС‚Рё Dependencies РѕР±С‰РµРіРѕ РјР°СЃСЃРёРІР°,
+ * РµСЃР»Рё РєР°РєРёС…-С‚Рѕ РґР°РЅРЅС‹С… РЅРµ Р±СѓРґРµС‚, С‚Рѕ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ РѕСЃС‚Р°РЅРµС‚СЃСЏ РЅРµ С‚СЂРѕРЅСѓС‚РѕР№!
  * 
- * @param array $data  - массив из двух элементов вида :
+ * @param array $Array - РјР°СЃСЃРёРІ СЃ РґР°РЅРЅС‹РјРё РІРёРґР°
  * array(
- * "Main" => данные главного объекта,
- * "Children" => array(
- *      "NameOfChild1" => данные первого дочернего объекта,
- *      "NameOfChild2" => данные второго дочернего объекта,
- *      "NameOfChild3" => данные третьего дочернего объекта,
- * ...
+ * "Main" => РґР°РЅРЅС‹Рµ РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°,
+ * "Childrens" => array(
+ *      "NameOfChild1" => TypedCollection1,
+ *      "NameOfChild2" => TypedCollection1,
+ *      "NameOfChild3" => TypedCollection1,
+ *      ...
  *      )
- * ), при этом в массиве $this->ObjectsArray - уже должны быть проинициализированны объекты, 
- * соответсвующих типов, что бы принять данные, и объект $this->MainDataObject тоже должен быть создан
- * 
- * @throws TRMDataObjectContainerNoMainException - в текущей версии если не установлены данные в главной части контейнера - Main, тогда выбрасывается исключение
- * // если какой-то из частей не будет в массиве $data, то выбрасывается исключение
+ * "Dependencies" => array(
+ *      "NameOfDependence1" => IdDataObject1,
+ *      ... 
+ *     )
+ * ) 
+ * @throws TRMDataObjectContainerNoMainException
  */
-public function setOwnData(array $data)
+public function initializeFromArray(array $Array)
 {
-    // основная часть объекта должна быть установлена всегда
-    if( !isset($data["Main"]) )
+    if( !isset( $Array[static::MAIN_INDEX] ) )
     {
-        throw new TRMDataObjectContainerNoMainException( __METHOD__ );
+        throw new TRMDataObjectContainerNoMainException( " РћС‚СЃСѓС‚СЃС‚РІСѓСЋС‚ РґР°РЅРЅС‹Рµ РґР»СЏ РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р° " . get_class($this) );
     }
-    // все остальные могут быть пустыми
-    /*
-    if( !isset($data["Children"]) )
+    // РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚ РёР· С‡Р°СЃС‚Рё РјР°СЃСЃРёРІР° Main
+    $this->MainDataObject->initializeFromArray($Array[static::MAIN_INDEX]);
+    
+    // РєР°Р¶РґР°СЏ РґРѕС‡РµСЂРЅСЏСЏ РєРѕР»Р»РµРєС†РёСЏ Р±СѓРґРµС‚ РїСЂРѕРёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅР° СЃРІРѕРёРјРё РґР°РЅРЅС‹РјРё
+    // РёР· С‡Р°СЃС‚Рё Childrens РѕР±С‰РµРіРѕ РјР°СЃСЃРёРІР°, РїРµСЂРµРґ РёРЅРёС†РёР°Р»РёР·Р°С†РёРµР№ РєРѕР»Р»РµРєС†РёРё РѕС‡РёС‰Р°СЋС‚СЃСЏ,
+    // РµСЃР»Рё РєР°РєРѕР№-С‚Рѕ С‡Р°С‚СЃРё РЅРµ Р±СѓРґРµС‚, С‚Рѕ РєРѕР»Р»РµРєС†РёСЏ РѕСЃС‚Р°РЅРµС‚СЃСЏ РїСѓСЃС‚РѕР№
+    foreach( $this->ChildCollectionsArray as $Index => $ChildCollection )
     {
-        throw new Exception( __METHOD__ . " Неверный формат данных! Отсутсвует ключ Children!");
-    }
-     */
-    $this->MainDataObject->setOwnData($data["Main"]);
-
-    foreach( $this->ObjectsArray as $Name => $Child )
-    {
-        if( !isset($data["Children"][$Name]) )
+        $ChildCollection->clearCollection();
+        $ChildCollection->setParentDataObject($this);
+        if( !isset($Array[static::CHILDRENS_INDEX][$Index]) )
         {
-            // если часть данных не заполнена, то пропускаем
             continue;
-            // throw new Exception( __METHOD__ . " Неверный формат данных! Отсутсвует часть объекта - {$Name} в разделе Children!");
         }
-        $Child->setOwnData( $data["Children"][$Name] );
+        $ChildCollection->initializeFromArray( $Array[static::CHILDRENS_INDEX][$Index] );
+        
     }
+    
+    // РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµС‚СЃСЏ РєР°Р¶РґР°СЏ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ Рё С‡Р°СЃС‚Рё Dependencies РѕР±С‰РµРіРѕ РјР°СЃСЃРёРІР°,
+    // РµСЃР»Рё РєР°РєРёС…-С‚Рѕ РґР°РЅРЅС‹С… РЅРµ Р±СѓРґРµС‚, С‚Рѕ СЃРѕР·РґР°РµС‚СЃСЏ РЅРѕРІС‹Р№ РѕР±СЉРµРєС‚ С‚РёРїР° РѕС‡РµСЂРµРґРЅРѕР№ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё !
+    foreach( $this->getDependenciesFieldsArray() as $Index => $DependenceField )
+    {
+        // РµСЃР»Рё РґР°РЅРЅС‹С… РґР»СЏ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РЅРµС‚, С‚Рѕ РѕР±СЉРµРєС‚ РЅРµ СЃРѕР·РґР°РµС‚СЃСЏ
+        if( !isset($Array[static::DEPENDENCIES_INDEX][$Index]) )
+        {
+            continue;
+        }
+        // С‚РёРї РѕР±СЉРµРєС‚Р° Р·Р°РІРёСЃРёРјРѕС‚Рё
+        $obtype = $DependenceField[2];
+        if( !isset( $this->DependenciesObjectsArray[$obtype] ) )
+        {
+            $this->DependenciesObjectsArray[$obtype] = new $obtype;
+        }
+        $this->DependenciesObjectsArray[$obtype]->initializeFromArray($Array[static::DEPENDENCIES_INDEX][$Index]);
+    }
+    // РёРЅРёС†РёР°Р»РёР·РёСЂСѓРµС‚СЃСЏ РєР°Р¶РґР°СЏ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ Рё С‡Р°СЃС‚Рё Dependencies РѕР±С‰РµРіРѕ РјР°СЃСЃРёРІР°,
+    // РµСЃР»Рё РєР°РєРёС…-С‚Рѕ РґР°РЅРЅС‹С… РЅРµ Р±СѓРґРµС‚, С‚Рѕ Р·Р°РІРёСЃРёРјРѕСЃС‚СЊ РѕСЃС‚Р°РЅРµС‚СЃСЏ РЅРµ С‚СЂРѕРЅСѓС‚РѕР№!
+//    foreach( $this->DependenciesObjectsArray as $Index => $Dependence )
+//    {
+//        if( !isset($Array[static::DEPENDENCIES_INDEX][$Index]) )
+//        {
+//            continue;
+//        }
+//        $Dependence->initializeFromArray($Array[static::DEPENDENCIES_INDEX][$Index]);
+//    }
+
 }
 
 
 /**
- * возвращает данные только для основного-главного объекта!!!
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РґР°РЅРЅС‹Рµ С‚РѕР»СЊРєРѕ РґР»СЏ РѕСЃРЅРѕРІРЅРѕРіРѕ-РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°!!!
  */
 public function getDataArray()
 {
@@ -327,7 +409,7 @@ public function getDataArray()
 }
 
 /**
- * Устанавливает данные только в основном объекте
+ * РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РґР°РЅРЅС‹Рµ С‚РѕР»СЊРєРѕ РІ РѕСЃРЅРѕРІРЅРѕРј РѕР±СЉРµРєС‚Рµ
  * @param array $data
  */
 public function setDataArray(array $data)
@@ -335,32 +417,32 @@ public function setDataArray(array $data)
     $this->MainDataObject->setDataArray($data);
 }
 /**
- * возвращает данные только для основного-главного объекта!!!
- * @parm integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого получаются данные
- * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РґР°РЅРЅС‹Рµ С‚РѕР»СЊРєРѕ РґР»СЏ РѕСЃРЅРѕРІРЅРѕРіРѕ-РіР»Р°РІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°!!!
+ * 
+ * @param string $objectname - РёРјСЏ РѕР±СЉРµРєС‚Р° , РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РїРѕР»СѓС‡Р°СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param string $fieldname - РёРјСЏ РїРѕР»СЏ (СЃС‚РѕР»Р±С†Р°), РёР· РєРѕС‚РѕСЂРѕРіРѕ РїСЂРѕРёР·РІРѕРґРёРј С‡С‚РµРЅРёРµ Р·РЅР°С‡РµРЅРёСЏ
  *
- * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
+ * @retrun mixed|null - РµСЃР»Рё РЅРµС‚ Р·Р°РїРёСЃРё СЃ С‚Р°РєРёРј РЅРѕРјРµСЂРѕРј СЃС‚СЂРѕРєРё РёР»Рё РЅРµС‚ РїРѕР»СЏ СЃ С‚Р°РєРёРј РёРјРµРЅРµРј РІРµСЂРЅРµС‚СЃСЏ null, РµСЃР»Рё РµСЃС‚СЊ, С‚Рѕ РІРµСЂРЅРµС‚ Р·РЅР°С‡РµРЅРёРµ
  */
-public function getData($rownum, $objectname, $fieldname)
+public function getData($objectname, $fieldname)
 {
-    return $this->MainDataObject->getData($rownum, $objectname, $fieldname);
+    return $this->MainDataObject->getData($objectname, $fieldname);
 }
 /**
- * Устанавливает данные только в основном объекте
- * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого устанавливаются данные
- * @param string $fieldname - имя поля (столбца), в которое производим запись значения
- * @param mixed $value - само записываемое значение
+ * РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РґР°РЅРЅС‹Рµ С‚РѕР»СЊРєРѕ РІ РѕСЃРЅРѕРІРЅРѕРј РѕР±СЉРµРєС‚Рµ
+ * 
+ * @param string $objectname - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param string $fieldname - РёРјСЏ РїРѕР»СЏ (СЃС‚РѕР»Р±С†Р°), РІ РєРѕС‚РѕСЂРѕРµ РїСЂРѕРёР·РІРѕРґРёРј Р·Р°РїРёСЃСЊ Р·РЅР°С‡РµРЅРёСЏ
+ * @param mixed $value - СЃР°РјРѕ Р·Р°РїРёСЃС‹РІР°РµРјРѕРµ Р·РЅР°С‡РµРЅРёРµ
  */
-public function setData($rownum, $objectname, $fieldname, $value)
+public function setData($objectname, $fieldname, $value)
 {
-    $this->MainDataObject->setData($rownum, $objectname, $fieldname, $value);
+    $this->MainDataObject->setData($objectname, $fieldname, $value);
 }
 
 /**
- * присоединяет массив к данным основного объекта!!!
- * для дочерних нужно обращаться к каждому объекту коллекуии отдельно
+ * РїСЂРёСЃРѕРµРґРёРЅСЏРµС‚ РјР°СЃСЃРёРІ Рє РґР°РЅРЅС‹Рј РѕСЃРЅРѕРІРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°!!!
+ * РґР»СЏ РґРѕС‡РµСЂРЅРёС… РЅСѓР¶РЅРѕ РѕР±СЂР°С‰Р°С‚СЊСЃСЏ Рє РєР°Р¶РґРѕРјСѓ РѕР±СЉРµРєС‚Сѓ РєРѕР»Р»РµРєСѓРёРё РѕС‚РґРµР»СЊРЅРѕ
  * @param array $data
  */
 public function mergeDataArray(array $data)
@@ -369,17 +451,19 @@ public function mergeDataArray(array $data)
 }
 
 /**
- * проверяет наличие данных только в основном объекте!!!
- * @param integer  $rownum
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
- * @param array $fieldname
+ * РїСЂРѕРІРµСЂСЏРµС‚ РЅР°Р»РёС‡РёРµ РґР°РЅРЅС‹С… С‚РѕР»СЊРєРѕ РІ РѕСЃРЅРѕРІРЅРѕРј РѕР±СЉРµРєС‚Рµ!!!
+ * 
+ * @param string $objectname - РёРјСЏ sub-РѕР±СЉРµРєС‚Р° РІ РіР»Р°РІРЅРѕРј РѕР±СЉРµРєС‚Рµ РґР°РЅРЅС‹С…, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ РЅР°РѕР±РѕСЂ РґР°РЅРЅС‹С…
+ * @param array $fieldname - РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїРѕР»РµР№ sub-РѕР±СЉРµРєС‚Р° $objectname, РІ РєРѕС‚РѕСЂС‹С… РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ РЅР°Р»РёС‡РёРµ РґР°РЅРЅС‹С…
  */
-public function presentDataIn($rownum, $objectname, array &$fieldname)
+public function presentDataIn($objectname, array &$fieldname)
 {
-    $this->MainDataObject->presentDataIn($rownum, $objectname, $fieldname);
+    $this->MainDataObject->presentDataIn($objectname, $fieldname);
 }
+
+
 /****************************************************************************
- * реализация интерфейса TRMIdDataObjectInterface
+ * СЂРµР°Р»РёР·Р°С†РёСЏ РёРЅС‚РµСЂС„РµР№СЃР° TRMIdDataObjectInterface
  ****************************************************************************/
 public function getId()
 {
@@ -394,94 +478,171 @@ public function resetId()
     $this->MainDataObject->resetId();
 }
 
-public function getIdFieldName()
+static public function getIdFieldName()
 {
-    return $this->MainDataObject->getIdFieldName();
+    $type = static::getMainDataObjectType();
+    return $type::getIdFieldName();
 }
-public function setIdFieldName(array $IdFieldName)
+static public function setIdFieldName(array $IdFieldName)
 {
-    $this->MainDataObject->setIdFieldName($IdFieldName);
+    $type = static::getMainDataObjectType();
+    $type::setIdFieldName($IdFieldName);
 }
-
-/**
- * возврашает значение хранящееся в поле $fieldname объекта $objectname
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля
- * @return mixed|null - если есть значение в поле $fieldname, то вернется его значение, либо null,
- */
-public function getFieldValue($objectname, $fieldname)
+static public function getMainDataObjectType()
 {
-    $this->MainDataObject->getData(0, $objectname, $fieldname);
-}
-/**
- * устанавливает значение в поле $fieldname объекта $objectname
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля
- * @param mixed -  значение, которое должено быть установлено в поле $fieldname объекта $objectname
- */
-public function setFieldValue($objectname, $fieldname, $value)
-{
-    $this->MainDataObject->setData(0, $objectname, $fieldname, $value);
+    return static::$MainDataObjectType;
 }
 
 /**
- * реализация интерфейса Countable,
- * возвращает количество объектов в коллекции дочерних объектов данных
+ * СЂРµР°Р»РёР·Р°С†РёСЏ РёРЅС‚РµСЂС„РµР№СЃР° Countable,
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РєРѕР»РёС‡РµСЃС‚РІРѕ РѕР±СЉРµРєС‚РѕРІ РІ РєРѕР»Р»РµРєС†РёРё РґРѕС‡РµСЂРЅРёС… РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…
  */
 public function count()
 {
-    return count($this->ObjectsArray);
+    return count($this->ChildCollectionsArray);
 }
 
 
 /**
- * реализация интерфейса Iterator,
- * возвращает текущий объект из массива-коллекции с дочерними объектами
+ * СЂРµР°Р»РёР·Р°С†РёСЏ РёРЅС‚РµСЂС„РµР№СЃР° Iterator,
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ С‚РµРєСѓС‰РёР№ РѕР±СЉРµРєС‚ РёР· РјР°СЃСЃРёРІР°-РєРѕР»Р»РµРєС†РёРё СЃ РґРѕС‡РµСЂРЅРёРјРё РѕР±СЉРµРєС‚Р°РјРё
  */
 public function current()
 {
-    return current($this->ObjectsArray);
+    return current($this->ChildCollectionsArray);
 }
 
 /**
  * 
- * @return mixed - возвращает значение-имя текущего индекса (ключа) для коллекции с дочерними объектами данных,
- * можкт быть строковым или численным
+ * @return mixed - РІРѕР·РІСЂР°С‰Р°РµС‚ Р·РЅР°С‡РµРЅРёРµ-РёРјСЏ С‚РµРєСѓС‰РµРіРѕ РёРЅРґРµРєСЃР° (РєР»СЋС‡Р°) РґР»СЏ РєРѕР»Р»РµРєС†РёРё СЃ РґРѕС‡РµСЂРЅРёРјРё РѕР±СЉРµРєС‚Р°РјРё РґР°РЅРЅС‹С…,
+ * РјРѕР¶РєС‚ Р±С‹С‚СЊ СЃС‚СЂРѕРєРѕРІС‹Рј РёР»Рё С‡РёСЃР»РµРЅРЅС‹Рј
  */
 public function key()
 {
-    return key($this->ObjectsArray);
+    return key($this->ChildCollectionsArray);
 }
 
 /**
- * переставляет внутренний указатель-счетчик на следующий элемент массива с дочерними объектами
+ * РїРµСЂРµСЃС‚Р°РІР»СЏРµС‚ РІРЅСѓС‚СЂРµРЅРЅРёР№ СѓРєР°Р·Р°С‚РµР»СЊ-СЃС‡РµС‚С‡РёРє РЅР° СЃР»РµРґСѓСЋС‰РёР№ СЌР»РµРјРµРЅС‚ РјР°СЃСЃРёРІР° СЃ РґРѕС‡РµСЂРЅРёРјРё РѕР±СЉРµРєС‚Р°РјРё
  */
 public function next()
 {
-    next($this->ObjectsArray);
+    next($this->ChildCollectionsArray);
     ++$this->Position;
 }
 
 /**
- * Устанавливает внутренний счетчик массива в начало - реализация интерфейса Iterator
+ * РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РІРЅСѓС‚СЂРµРЅРЅРёР№ СЃС‡РµС‚С‡РёРє РјР°СЃСЃРёРІР° РІ РЅР°С‡Р°Р»Рѕ - СЂРµР°Р»РёР·Р°С†РёСЏ РёРЅС‚РµСЂС„РµР№СЃР° Iterator
  */
 public function rewind()
 {
-    reset($this->ObjectsArray);
+    reset($this->ChildCollectionsArray);
     $this->Position = 0;
 }
 
 /**
- * если счетчик превышает или равен размеру массива, значит в этом элеменет уже ничего нет,
- * $this->Position всегда должна быть < count($this->ObjectsArray)
+ * РµСЃР»Рё СЃС‡РµС‚С‡РёРє РїСЂРµРІС‹С€Р°РµС‚ РёР»Рё СЂР°РІРµРЅ СЂР°Р·РјРµСЂСѓ РјР°СЃСЃРёРІР°, Р·РЅР°С‡РёС‚ РІ СЌС‚РѕРј СЌР»РµРјРµРЅРµС‚ СѓР¶Рµ РЅРёС‡РµРіРѕ РЅРµС‚,
+ * $this->Position РІСЃРµРіРґР° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ < count($this->ChildCollectionsArray)
  * 
  * @return boolean
  */
 public function valid()
 {
-    return ($this->Position < count($this->ObjectsArray));
+    return ($this->Position < count($this->ChildCollectionsArray));
+}
+
+public function addRow(array $Data)
+{
+    $this->MainDataObject->addRow($Data);
+}
+
+public function clear()
+{
+    $this->MainDataObject->clear();
+    $this->clearChildCollectionsArray();
+    $this->clearDependencies();
+}
+
+public function fieldExists($objectname, $fieldname)
+{
+    $this->MainDataObject->fieldExists($objectname, $fieldname);
+}
+
+public function getRow($Index)
+{
+    $this->MainDataObject->getRow($Index);
+}
+
+public function setRow($Index, $value)
+{
+    $this->MainDataObject->setRow($Index, $value);
+}
+
+public function removeRow($Index)
+{
+    $this->ChildCollectionsArray->removeDataObject($Index);
+}
+
+
+public function keyExists($Index)
+{
+    $this->MainDataObject->keyExists($Index);
+}
+
+public function offsetExists($offset)
+{
+    return array_key_exists($offset, $this->ChildCollectionsArray);
+}
+
+public function offsetGet($offset)
+{
+    return $this->ChildCollectionsArray[$offset];
+}
+
+public function offsetSet($offset, $value)
+{
+    if(is_null($offset) )
+    {
+        $this->ChildCollectionsArray[] = $value;
+    }
+    else
+    {
+        $this->ChildCollectionsArray[$offset] = $value;
+    }
+}
+
+public function offsetUnset($offset)
+{
+    unset($this->ChildCollectionsArray[$offset]);
+}
+
+/**
+ * 
+ * @return array - РєР»СЋС‡Рё РґР»СЏ РјР°СЃСЃРёРІР° ChildCollectionsArray
+ */
+public function getArrayKeys()
+{
+    return array_keys($this->ChildCollectionsArray);
+}
+
+public function inArray($Data, $CheckTypeFlag = true)
+{
+    return in_array($Data, $this->ChildCollectionsArray, $CheckTypeFlag);
+}
+
+public function mergeDataArrayObject(\TRMEngine\DataArray\Interfaces\TRMDataArrayInterface $DataArrayObject)
+{
+    array_merge($this->ChildCollectionsArray, $DataArrayObject);
+}
+
+public function pop()
+{
+    return array_pop($this->ChildCollectionsArray);
+}
+
+public function push($Data)
+{
+    array_push($this->ChildCollectionsArray, $Data);
 }
 
 

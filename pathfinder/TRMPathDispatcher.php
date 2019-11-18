@@ -10,14 +10,14 @@ use TRMEngine\PathFinder\Exceptions\TRMControllerNotFoundedException;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**
- * Á‡ÔÛÒÍ‡ÂÚ ‚˚ÔÎÓÌÂÌËÂ Ì‡È‰ÂÌÌÓ„Ó ‚ TRMPathFinder ÍÓÌÚÓÎÎÂ‡ Ò ÌÛÊÌ˚Ï ÏÂÚÓ‰ÓÏ!
+ * –∑–∞–ø—É—Å–∫–∞–µ—Ç –≤—ã–ø–ª–æ–Ω–µ–Ω–∏–µ –Ω–∞–π–¥–µ–Ω–Ω–æ–≥–æ –≤ TRMPathFinder –∫–æ–Ω—Ç—Ä–æ–ª–ª–µ—Ä–∞ —Å –Ω—É–∂–Ω—ã–º –º–µ—Ç–æ–¥–æ–º!
  */
 class TRMPathDispatcher implements RequestHandlerInterface
 {
 
 /**
  * {@inheritDoc}
- * ‰Îˇ Ì‡È‰ÂÌÌÓ„Ó Ï‡¯ÛÚ‡ ÒÓÁ‰‡ÂÚ ˝ÍÁÂÏÔÎˇ ÍÓÌÚÓÎÎÂ‡ Ë ‚˚Á˚‚‡ÂÚ Â„Ó ÙÛÌÍˆË˛-action
+ * –¥–ª—è –Ω–∞–π–¥–µ–Ω–Ω–æ–≥–æ –º–∞—Ä—à—Ä—É—Ç–∞ —Å–æ–∑–¥–∞–µ—Ç —ç–∫–∑–µ–º–ø–ª—è—Ä –∫–æ–Ω—Ç—Ä–æ–ª–ª–µ—Ä–∞ –∏ –≤—ã–∑—ã–≤–∞–µ—Ç –µ–≥–æ —Ñ—É–Ω–∫—Ü–∏—é-action
  * 
  * @throws TRMControllerNotFoundedException
  * @throws TRMActionNotFoundedException
@@ -33,8 +33,8 @@ public function handle( Request $Request )
 
     try
     {
-        // ÂÒÎË ‰Îˇ ‚˚·‡ÌÌÓ„Ó Action ÚÂ·ÛÂÚÒˇ ‚˚ÔÓÎÌËÚ¸ ÙÛÌÍˆË˛ ÓÚÎË˜ÌÛ˛ ÓÚ ËÏÂÌË actionAction,
-        // ÚÓ ‚˚·‡Ò˚‚‡ÂÚÒˇ ËÒÍÎ˛˜ÂÌËÂ, „‰Â ÍÓÌÚÓÎÎÂ ÒÓÓ·˘‡ÂÚ Í‡Í‡ˇ ÙÛÌÍˆËˇ ‰ÓÎÊÌ‡ ·˚Ú¸ ‚˚Á‚‡Ì‡...
+        // –µ—Å–ª–∏ –¥–ª—è –≤—ã–±—Ä–∞–Ω–Ω–æ–≥–æ Action —Ç—Ä–µ–±—É–µ—Ç—Å—è –≤—ã–ø–æ–ª–Ω–∏—Ç—å —Ñ—É–Ω–∫—Ü–∏—é –æ—Ç–ª–∏—á–Ω—É—é –æ—Ç –∏–º–µ–Ω–∏ actionAction,
+        // —Ç–æ –≤—ã–±—Ä–∞—Å—ã–≤–∞–µ—Ç—Å—è –∏—Å–∫–ª—é—á–µ–Ω–∏–µ, –≥–¥–µ –∫–æ–Ω—Ç—Ä–æ–ª–ª–µ—Ä —Å–æ–æ–±—â–∞–µ—Ç –∫–∞–∫–∞—è —Ñ—É–Ω–∫—Ü–∏—è –¥–æ–ª–∂–Ω–∞ –±—ã—Ç—å –≤—ã–∑–≤–∞–Ω–∞...
         $TRMObject = new $Controller( $Request );
     }
     catch (TRMMustStartOtherActionException $e)
@@ -52,7 +52,14 @@ public function handle( Request $Request )
     }
 
     ob_start();
-    $TRMObject->$Action();
+    $Res = $TRMObject->$Action();
+    // –º–µ—Ç–æ–¥—ã –º–æ–≥—É—Ç –≤–æ–∑–≤—Ä–∞—â–∞—Ç—å –≥–æ—Ç–æ–≤—ã–π –æ–±—ä–µ–∫—Ç Response
+    if( is_a($Res, Response::class) )
+    {
+        ob_get_clean();
+        return $Res;
+    }
+    // –ª–∏–±–æ –≤—ã–≤–æ–¥–∏—Ç—å html-–∫–æ–¥ –Ω–∞–ø—Ä—è–º—É—é 
     return new Response( ob_get_clean() );
 }
 

@@ -2,250 +2,124 @@
 
 namespace TRMEngine\DataObject\Interfaces;
 
+use TRMEngine\DataArray\Interfaces\TRMDataArrayInterface;
+
 /**
- * общий интерфейс для объектов данных
+ * РѕР±С‰РёР№ РёРЅС‚РµСЂС„РµР№СЃ РґР»СЏ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…
  */
-interface TRMDataObjectInterface extends \Countable, \Iterator
+interface TRMDataObjectInterface extends TRMDataArrayInterface
 {
 /**
- * возвращает весь массив с данными, вернется дубликат,
- * так как массив передается по значению ( версия PHP 5.3 ) !!!
- *
- * @return array
- */
-public function getDataArray();
-
-/**
- * задает данные для всего массива DataArray, старые данные стираются.
- * пользоваться прямым присвоение следует осторожно,
- * так как передаваться должен двумерный массив, даже состоящий из одной строки!!!
- *
- * @param array $data - массив с данными, в объекте сохранится дубликат массива, 
- * так как массив передается по значению ( версия PHP 5.3 ) !!! 
- */
-public function setDataArray( array $data );
-
-/**
- * "склеивает" два массива с данными, проверка на уникальность не проводится,
- * при использовании этого метода нужно быть осторожным с передаваемым массивом, 
- * он должен быть двумерным и каждая запись-строка должна иметь численный индекс
- *
- * @param array $data - массив для склеивания
- */
-public function mergeDataArray( array $data );
-/**
- * получает данные из конкретной ячейки
- *
- * @parm integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого получаются данные
- * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
- *
- * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
- */
-public function getData( $rownum, $objectname, $fieldname );
-/**
- * записывает данные в конкретную ячейку
- *
- * @param integer $rownum - номер строки в массиве (таблице) начиная с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого устанавливаются данные
- * @param string $fieldname - имя поля (столбца), в которое производим запись значения
- * @param mixed $value - само записываемое значение
- */
-public function setData( $rownum, $objectname, $fieldname, $value );
-
-/**
- * @return array - возвращает данные, характерные только для данного экземпляра
- */
-public function getOwnData();
-/**
- * устанавливает данные, характерные только для данного экземпляра, 
- * старые значения все удаляются
+ * РїСЂРѕРІРµСЂСЏРµС‚ РЅР°Р»РёС‡РёРµ РїРѕР»СЏ СЃ РёРјРµРЅРµРј fieldname РІ sub-РѕР±СЉРµРєС‚Рµ $objectname
  * 
- * @param array $data - массив с данными, в объекте сохранится дубликат массива 
+ * @param string $objectname - РёРјСЏ sub-РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ РЅР°Р»РёС‡РёРµ РїРѕР»СЏ $fieldname
+ * @param string $fieldname - РёРјСЏ РёСЃРєРѕРјРѕРіРѕ РїРѕР»СЏ
+ * 
+ * @return boolean - РµСЃР»Рё РЅР°Р№РґРµРЅ, РІРѕР·РІСЂР°С‰Р°РµС‚ true, РµСЃР»Рё РєР»СЋС‡ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ - false
  */
-public function setOwnData( array $data );
-/**
- * проверяет наличие данных в полях с именами из набора $fieldnames в строке с номером $rownum
- *
- * @param integer $rownum - номер строки, в которой происходит проверка, из локального набора данных, отсчет с 0
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
- * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
- *
- * @return boolean - если найдены поля и установлены значения, то возвращается true, иначе false
- */
-public function presentDataIn( $rownum, $objectname, array &$fieldnames );
+public function fieldExists( $objectname, $fieldname );
 
 /**
- * меняет во всех записях значение поля $FieldName на новое значение $FieldValue, если разрешена запись
+ * РїРѕР»СѓС‡Р°РµС‚ РґР°РЅРЅС‹Рµ РёР· РєРѕРЅРєСЂРµС‚РЅРѕР№ СЏС‡РµР№РєРё
  *
- * @param string $ObjectName - имя объекта, в котором меняется значение 
- * @param string $FieldName - имя поля-колонки
- * @param mixed $FieldValue - новое значение
+ * @param string $objectname - РёРјСЏ sub-РѕР±СЉРµРєС‚Р° РІ СЃС‚СЂРѕРєРµ СЃ РЅРѕРјРµСЂРѕРј $rownum, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РїРѕР»СѓС‡Р°СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param string $fieldname - РёРјСЏ РїРѕР»СЏ (СЃС‚РѕР»Р±С†Р°), РёР· РєРѕС‚РѕСЂРѕРіРѕ РїСЂРѕРёР·РІРѕРґРёРј С‡С‚РµРЅРёРµ Р·РЅР°С‡РµРЅРёСЏ
+ *
+ * @retrun mixed|null - РµСЃР»Рё РЅРµС‚ Р·Р°РїРёСЃРё СЃ С‚Р°РєРёРј РЅРѕРјРµСЂРѕРј СЃС‚СЂРѕРєРё РёР»Рё РЅРµС‚ РїРѕР»СЏ СЃ С‚Р°РєРёРј РёРјРµРЅРµРј РІРµСЂРЅРµС‚СЃСЏ null, РµСЃР»Рё РµСЃС‚СЊ, С‚Рѕ РІРµСЂРЅРµС‚ Р·РЅР°С‡РµРЅРёРµ
  */
-public function changeAllValuesFor($ObjectName, $FieldName, $FieldValue);
+public function getData( $objectname, $fieldname );
+/**
+ * Р·Р°РїРёСЃС‹РІР°РµС‚ РґР°РЅРЅС‹Рµ РІ РєРѕРЅРєСЂРµС‚РЅСѓСЋ СЏС‡РµР№РєСѓ
+ *
+ * @param string $objectname - РёРјСЏ sub-РѕР±СЉРµРєС‚Р° РІ СЃС‚СЂРѕРєРµ СЃ РЅРѕРјРµСЂРѕРј $rownum, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°СЋС‚СЃСЏ РґР°РЅРЅС‹Рµ
+ * @param string $fieldname - РёРјСЏ РїРѕР»СЏ (СЃС‚РѕР»Р±С†Р°), РІ РєРѕС‚РѕСЂРѕРµ РїСЂРѕРёР·РІРѕРґРёРј Р·Р°РїРёСЃСЊ Р·РЅР°С‡РµРЅРёСЏ
+ * @param mixed $value - СЃР°РјРѕ Р·Р°РїРёСЃС‹РІР°РµРјРѕРµ Р·РЅР°С‡РµРЅРёРµ
+ */
+public function setData( $objectname, $fieldname, $value );
+
+/**
+ * РїСЂРѕРІРµСЂСЏРµС‚ РЅР°Р»РёС‡РёРµ РґР°РЅРЅС‹С… РІ РїРѕР»СЏС… СЃ РёРјРµРЅР°РјРё РёР· РЅР°Р±РѕСЂР° $fieldnames РІ СЃС‚СЂРѕРєРµ СЃ РЅРѕРјРµСЂРѕРј $rownum
+ *
+ * @param string $objectname - РёРјСЏ sub-РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РїСЂРѕРІРµСЂСЏРµС‚СЃСЏ РЅР°Р±РѕСЂ РґР°РЅРЅС‹С…
+ * @param &array $fieldnames - СЃСЃС‹Р»РєР° РЅР° РјР°СЃСЃРёРІ СЃ РёРјРµРЅР°РјРё РїСЂРѕРІРµСЂСЏРµРјС‹С… РїРѕР»РµР№
+ *
+ * @return boolean - РµСЃР»Рё РЅР°Р№РґРµРЅС‹ РїРѕР»СЏ Рё СѓСЃС‚Р°РЅРѕРІР»РµРЅС‹ Р·РЅР°С‡РµРЅРёСЏ, С‚Рѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ true, РёРЅР°С‡Рµ false
+ */
+public function presentDataIn( $objectname, array &$fieldnames );
+
 
 } // TRMDataObjectInterface
 
 
 /**
- * интерфейс, который должны реализовывать все объекты данных,
- * у которых есть какой-либо идентификатор, как правило это ID-объекта
+ * РёРЅС‚РµСЂС„РµР№СЃ, РєРѕС‚РѕСЂС‹Р№ РґРѕР»Р¶РЅС‹ СЂРµР°Р»РёР·РѕРІС‹РІР°С‚СЊ РІСЃРµ РѕР±СЉРµРєС‚С‹ РґР°РЅРЅС‹С…,
+ * Сѓ РєРѕС‚РѕСЂС‹С… РµСЃС‚СЊ РєР°РєРѕР№-Р»РёР±Рѕ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ, РєР°Рє РїСЂР°РІРёР»Рѕ СЌС‚Рѕ ID-РѕР±СЉРµРєС‚Р°
  *
  * @author TRM
 
  */
-interface TRMIdDataObjectInterface extends TRMDataObjectInterface
+interface TRMIdDataObjectInterface
 {
 /**
- * @return array - возвращает имя свойства для идентификатора объекта, обычно совпадает с именем ID-поля из БД,
- * возвращается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РёРјСЏ СЃРІРѕР№СЃС‚РІР° РґР»СЏ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂР° РѕР±СЉРµРєС‚Р°, РѕР±С‹С‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РёРјРµРЅРµРј ID-РїРѕР»СЏ РёР· Р‘Р”,
+ * РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РјР°СЃСЃРёРІ IdFieldName = array( РёРјСЏ РѕР±СЉРµРєС‚Р°, РёРјСЏ ID-РїРѕР»Рµ РІ РѕР±СЉРµРєС‚Рµ )
  */
-public function getIdFieldName();
+static public function getIdFieldName();
 
 /**
- * @param array $IdFieldName - устанавливает имя свойства для идентификатора объекта, 
- * обычно совпадает с именем ID-поля из БД,
- * передается массив IdFieldName = array( имя объекта, имя ID-поле в объекте )
+ * @param array $IdFieldName - СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РёРјСЏ СЃРІРѕР№СЃС‚РІР° РґР»СЏ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂР° РѕР±СЉРµРєС‚Р°, 
+ * РѕР±С‹С‡РЅРѕ СЃРѕРІРїР°РґР°РµС‚ СЃ РёРјРµРЅРµРј ID-РїРѕР»СЏ РёР· Р‘Р”,
+ * РїРµСЂРµРґР°РµС‚СЃСЏ РјР°СЃСЃРёРІ IdFieldName = array( РёРјСЏ РѕР±СЉРµРєС‚Р°, РёРјСЏ ID-РїРѕР»Рµ РІ РѕР±СЉРµРєС‚Рµ )
  */
-public function setIdFieldName( array $IdFieldName ) ;
+static public function setIdFieldName( array $IdFieldName ) ;
 
 /**
- * возвращает для объекта значение идентификатора - Id
- * для этого имя первичного ключа должно быт получено getIdFieldName()
+ * РІРѕР·РІСЂР°С‰Р°РµС‚ РґР»СЏ РѕР±СЉРµРєС‚Р° Р·РЅР°С‡РµРЅРёРµ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂР° - Id
+ * РґР»СЏ СЌС‚РѕРіРѕ РёРјСЏ РїРµСЂРІРёС‡РЅРѕРіРѕ РєР»СЋС‡Р° РґРѕР»Р¶РЅРѕ Р±С‹С‚ РїРѕР»СѓС‡РµРЅРѕ getIdFieldName()
  *
- * @return int|null - ID-объекта
+ * @return int|null - ID-РѕР±СЉРµРєС‚Р°
  */
 public function getId();
 
 /**
- * устанавливает для объекта значение поля первого первичного ключа!!!
- * для этого имя первичного ключа должно быт получено getIdFieldName()
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РґР»СЏ РѕР±СЉРµРєС‚Р° Р·РЅР°С‡РµРЅРёРµ РїРѕР»СЏ РїРµСЂРІРѕРіРѕ РїРµСЂРІРёС‡РЅРѕРіРѕ РєР»СЋС‡Р°!!!
+ * РґР»СЏ СЌС‚РѕРіРѕ РёРјСЏ РїРµСЂРІРёС‡РЅРѕРіРѕ РєР»СЋС‡Р° РґРѕР»Р¶РЅРѕ Р±С‹С‚ РїРѕР»СѓС‡РµРЅРѕ getIdFieldName()
  *
- * @param mixed - ID-объекта
+ * @param mixed - ID-РѕР±СЉРµРєС‚Р°
  */
 public function setId($id);
 
 /**
- * обнуляет ID-объекта
- * эквивалентен setId(null);
+ * РѕР±РЅСѓР»СЏРµС‚ ID-РѕР±СЉРµРєС‚Р°
+ * СЌРєРІРёРІР°Р»РµРЅС‚РµРЅ setId(null);
  */
 public function resetId();
-
-/**
- * возврашает значение хранящееся в поле $fieldname объекта $objectname
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля
- * @return mixed|null - если есть значение в поле $fieldname, то вернется его значение, либо null,
- */
-public function getFieldValue( $objectname, $fieldname );
-/**
- * устанавливает значение в поле $fieldname объекта $objectname
- * 
- * @param string $objectname - имя объекта, для которого получаются данные
- * @param string $fieldname - имя поля
- * @param mixed -  значение, которое должено быть установлено в поле $fieldname объекта $objectname
- */
-public function setFieldValue( $objectname, $fieldname, $value );
 
 } // TRMIdDataObjectInterface
 
 
 /**
- * интерфейс для объектов данных, у которых есть родитель (обычно в свойствах есть ссылка на объект родителя),
- * например, у объекта товара может быть ссылка на группу,
- * у коллекции изображений ссылка на товар, к которому он принадлежит и т.д...
+ * РёРЅС‚РµСЂС„РµР№СЃ РґР»СЏ РѕР±СЉРµРєС‚РѕРІ РґР°РЅРЅС‹С…, Сѓ РєРѕС‚РѕСЂС‹С… РµСЃС‚СЊ СЂРѕРґРёС‚РµР»СЊ (РѕР±С‹С‡РЅРѕ РІ СЃРІРѕР№СЃС‚РІР°С… РµСЃС‚СЊ СЃСЃС‹Р»РєР° РЅР° РѕР±СЉРµРєС‚ СЂРѕРґРёС‚РµР»СЏ),
+ * РЅР°РїСЂРёРјРµСЂ, Сѓ РѕР±СЉРµРєС‚Р° С‚РѕРІР°СЂР° РјРѕР¶РµС‚ Р±С‹С‚СЊ СЃСЃС‹Р»РєР° РЅР° РіСЂСѓРїРїСѓ,
+ * Сѓ РєРѕР»Р»РµРєС†РёРё РёР·РѕР±СЂР°Р¶РµРЅРёР№ СЃСЃС‹Р»РєР° РЅР° С‚РѕРІР°СЂ, Рє РєРѕС‚РѕСЂРѕРјСѓ РѕРЅ РїСЂРёРЅР°РґР»РµР¶РёС‚ Рё С‚.Рґ...
  */
-interface TRMParentedDataObjectInterface extends TRMDataObjectInterface
+interface TRMParentedDataObjectInterface
 {
 /**
- * @return array - имя свойства внутри объекта содержащего Id родителя
+ * @return array - РёРјСЏ СЃРІРѕР№СЃС‚РІР° РІРЅСѓС‚СЂРё РѕР±СЉРµРєС‚Р° СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ Id СЂРѕРґРёС‚РµР»СЏ
  */
-function getParentIdFieldName();
+static public function getParentIdFieldName();
 /**
- * @param array $ParentIdFieldName - имя свойства внутри объекта содержащего Id родителя
+ * @param array $ParentIdFieldName - РёРјСЏ СЃРІРѕР№СЃС‚РІР° РІРЅСѓС‚СЂРё РѕР±СЉРµРєС‚Р° СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ Id СЂРѕРґРёС‚РµР»СЏ
  */
-function setParentIdFieldName(array $ParentIdFieldName);
+static public function setParentIdFieldName(array $ParentIdFieldName);
 /**
- * @return TRMIdDataObjectInterface - возвращает объект родителя
+ * @return TRMIdDataObjectInterface - РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚ СЂРѕРґРёС‚РµР»СЏ
  */
-function getParentDataObject();
+public function getParentDataObject();
 /**
- * @param TRMIdDataObjectInterface $ParentDataObject - устанавливает объект родителя, 
+ * @param TRMIdDataObjectInterface $ParentDataObject - СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РѕР±СЉРµРєС‚ СЂРѕРґРёС‚РµР»СЏ, 
  */
-function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject);
+public function setParentDataObject(TRMIdDataObjectInterface $ParentDataObject);
 
 } // TRMParentedDataObjectInterface
-
-
-/**
- * интерфейс для составных объектов,
- * у которых есть главный объект данных, и коллекция вспомогательных (дочерних)
- */
-interface TRMDataObjectsContainerInterface extends TRMIdDataObjectInterface
-{
-/**
- * @return TRMIdDataObjectInterface - возвращает главный (сохраненный под 0-м номером в массиве) объект данных
- */
-public function getMainDataObject();
-/**
- * устанавливает главный объект данных,
- * 
- * @param TRMIdDataObjectInterface $do - главный объект данных
- */
-public function setMainDataObject(TRMIdDataObjectInterface $do);
-/**
- * помещает объект данных в массив под номером $Index, сохраняется только ссылка, объект не клонируется!!!
- * 
- * @param string $Index - номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMDataObjectInterface $do - добавляемый объект
- */
-//public function setDataObject($Index, TRMDataObjectInterface $do);
-/**
- * возвращает объект из контейнера под номером $Index
- * 
- * @param integer $Index - номер объекта в контейнере
- * 
- * @return TRMDataObjectInterface - объект из контейнера
- */
-public function getDataObject($Index);
-/**
- * @return array - возвращает массив объектов данных, дополняющих основной объект
- */
-public function getObjectsArray();
-
-} // TRMDataObjectsContainerInterface
-
-
-interface TRMRelationDataObjectsContainerInterface extends TRMDataObjectsContainerInterface
-{
-/**
- * помещает объект данных с именем $Index в массив-контейнер зависимостей, 
- * сохраняется только ссылка, объект не клонируется!!!
- * 
- * @param string $Index - имя/номер-индекс, под которым будет сохранен объект в контейнере
- * @param TRMIdDataObjectInterface $do - добавляемый объект
- * @param string $ObjectName - имя суб-объекта в главном объекте, по которому связывается зависимость
- * @param string $FieldName - имя поля основного суб-объекта в главном объекте, по которому связывается зависимость
- */
-public function setDependence($Index, TRMIdDataObjectInterface $do, $ObjectName, $FieldName );
-
-/**
- * возвращает объект с именем $Index из массива-контейнера зависимостей
- * 
- * @param string $Index - имя/номер-индекс объекта в контейнере
- * 
- * @return array - имя суб-объекта и поля в суб-объекте главного объекта, 
- * по которому установлена связь с ID зависимости под индексом $Index
- */
-public function getDependence($Index);
-
-/**
- * 
- * @param string $Index - индекс обхекта в контейнере
- * @return bool - если объект в контейнере под этим индексом зафиксирован как зависимый от главного,
- * например, список характеристик для товара, то вернется true, если зависимость не утсанвлена, то - false
- */
-public function isDependence($Index);
-
-} // TRMRelationDataObjectsContainerInterface

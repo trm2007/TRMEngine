@@ -7,117 +7,147 @@ use TRMEngine\DataMapper\TRMDataMapper;
 use TRMEngine\TRMDBObject;
 
 /**
- * TRMSafetyFields - DataMappaer ñ âîçìîæíîñòüþ ïîëó÷àòü ñâîéñòâ ïîëåé äëÿ òàáëèö èç ÁÄ,
- * îñíîâíàÿ ëîãèêà ðàáîòû âûíåñåíà â TRMDataMapper
+ * TRMSafetyFields - DataMappaer Ñ Ð²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ð¾ÑÑ‚ÑŒÑŽ Ð¿Ð¾Ð»ÑƒÑ‡Ð°Ñ‚ÑŒ ÑÐ²Ð¾Ð¹ÑÑ‚Ð² Ð¿Ð¾Ð»ÐµÐ¹ Ð´Ð»Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ† Ð¸Ð· Ð‘Ð”,
+ * Ð¾ÑÐ½Ð¾Ð²Ð½Ð°Ñ Ð»Ð¾Ð³Ð¸ÐºÐ° Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð²Ñ‹Ð½ÐµÑÐµÐ½Ð° Ð² TRMDataMapper
  *
  * @author TRM - 2018-08-26
  */
 class TRMSafetyFields extends TRMDataMapper
 {
 /**
- * èíäåêñ â ìàññèâå äëÿ ïñåâäîíèìà òàáëèöû
+ * Ð¸Ð½Ð´ÐµÐºÑ Ð² Ð¼Ð°ÑÑÐ¸Ð²Ðµ Ð´Ð»Ñ Ð¿ÑÐµÐ²Ð´Ð¾Ð½Ð¸Ð¼Ð° Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹
  */
 const TABLEALIAS_INDEX  = "TableAlias";
 
 
 /**
- * óñòàíàâëèâàåò ïñåâäîíèì äëÿ òàáëèöû $TableName, åñëè îí óñòàíîâëåí
+ * ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ Ð¿ÑÐµÐ²Ð´Ð¾Ð½Ð¸Ð¼ Ð´Ð»Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ $TableName, ÐµÑÐ»Ð¸ Ð¾Ð½ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½
  * 
- * @param string $TableName - èìÿ òàáëèöû
- * @param string $TableAlias - ïñåâäîíèì äëÿ òàáëèöû, èñïîëüçóåìûé â çàïðîñàõ
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹
+ * @param string $TableAlias - Ð¿ÑÐµÐ²Ð´Ð¾Ð½Ð¸Ð¼ Ð´Ð»Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÐ¼Ñ‹Ð¹ Ð² Ð·Ð°Ð¿Ñ€Ð¾ÑÐ°Ñ…
  */
 public function setAliasForTableName($TableName, $TableAlias)
 {
-    if( !isset($this->SafetyFieldsArray[$TableName]) ) { $this->SafetyFieldsArray[$TableName] = array(); }
-    $this->SafetyFieldsArray[$TableName][self::TABLEALIAS_INDEX] = $TableAlias;
+    $this->setRow($TableName, array(self::TABLEALIAS_INDEX => $TableAlias) );
 }
 
 /**
- * @param string $TableName - èìÿ òàáëèöû
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹
  * 
- * @return âîçâðàùàåò ïñåâäîíèì äëÿ òàáëèöû $TableName, åñëè îí óñòàíîâëåí,
- * åñëè íå çàäàí, òî âåðíåò null
+ * @return string Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¿ÑÐµÐ²Ð´Ð¾Ð½Ð¸Ð¼ Ð´Ð»Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ $TableName, ÐµÑÐ»Ð¸ Ð¾Ð½ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½,
+ * ÐµÑÐ»Ð¸ Ð½Ðµ Ð·Ð°Ð´Ð°Ð½, Ñ‚Ð¾ Ð²ÐµÑ€Ð½ÐµÑ‚ null
  */
 public function getAliasForTableName( $TableName )
 {
-    if( empty( $this->SafetyFieldsArray[$TableName][self::TABLEALIAS_INDEX] ) ) { return null; }
+    if( !isset( $this->DataArray[$TableName] ) ) { return null; }
 
-    return  $this->SafetyFieldsArray[$TableName][self::TABLEALIAS_INDEX];
+    return  $this->DataArray[$TableName]->Alias;
 }
 
 /**
- * ãåíåðèðóåò ìàññèâ äîïóñòèìûõ äëÿ çàïèñè è ÷òåíèÿ ïîëåé íà îñíîâàíèè çàïðîñà äàííûõ î òàáëèöå èç ÁÄ,
- * îáðàìëÿåò èìåíà ïîëåé â àïîñòðîôû è äîáàâëÿåò èìÿ òàáëèöû èëè èìÿà, åñëè óñòàíîâëåíî,
- * íîâûå çíà÷åíèÿ áóäóò äîáàâëåíû ê óæå ñóùåñòâóþùåìó ìàññèâó ñ ïîëÿìè,
- * ìîæíî äîáàâëÿòü íåñêîëüêî òàáëèö ñ ðàçëè÷íûìè çíà÷åíèÿìè äëÿ ñòàòóñîâ èõ ïîëåé,
- * ïåðåä íà÷àëîì ðàáîòû ñ íîâûì íàáîðîì äàííûõ íåîáõîäèìî âûçâàòü clear, 
- * ÷òîáû î÷èñòèòü òåêóùèé íàáîð ñîñòîÿíèé ïîëåé
- *
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðîé óñòàíàâëèâàåòñÿ íàáîð ïîëåé
- * @param int $State - ñîñòîÿíèå, ïî óìîë÷àíèþ = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - äàííûå èç ñõåìû ÁÄ, false - äàííûå èç show columns
- */
-public function generateSafetyFromDB($TableName, $State = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
-{
-    $this->setSafetyFromDB( $TableName, TRMDBObject::getTableColumnsInfo($TableName), $State, $Extends );
-}
-
-/**
- * äîïîëíÿåò óæå çàïîëíåííûé ìññèâ $this->SafetyFieldsArray äàííûìè èç ÁÄ,
- * åñëè ìàññèâ íå çàäàíû õîòÿ áû àññîöèàòèâíûå êëþ÷è, ñîîòâåòâóþùèå èìåíàì òàáëèö â ÁÄ, 
- * òî áóäåò âûáðîùåíî èñêëþ÷åíèå
+ * Ð´Ð¾Ð¿Ð¾Ð»Ð½ÑÐµÑ‚ ÑƒÐ¶Ðµ Ð·Ð°Ð¿Ð¾Ð»Ð½ÐµÐ½Ð½Ñ‹Ð¹ Ð¼ÑÑÐ¸Ð² $this->DataArray Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸ Ð¸Ð· Ð‘Ð”,
+ * ÐµÑÐ»Ð¸ Ð² Ð¼Ð°ÑÑÐ¸Ð²Ðµ Ð½Ðµ Ð·Ð°Ð´Ð°Ð½Ñ‹ Ñ…Ð¾Ñ‚Ñ Ð±Ñ‹ Ð°ÑÑÐ¾Ñ†Ð¸Ð°Ñ‚Ð¸Ð²Ð½Ñ‹Ðµ ÐºÐ»ÑŽÑ‡Ð¸, ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚Ð²ÑƒÑŽÑ‰Ð¸Ðµ Ð¸Ð¼ÐµÐ½Ð°Ð¼ Ñ‚Ð°Ð±Ð»Ð¸Ñ† Ð² Ð‘Ð”, 
+ * Ñ‚Ð¾ Ð±ÑƒÐ´ÐµÑ‚ Ð²Ñ‹Ð±Ñ€Ð¾Ñ‰ÐµÐ½Ð¾ Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ
  * 
- * @param boolean $Extends - true - äàííûå èç ñõåìû ÁÄ, false - äàííûå èç show columns
+ * @param boolean $Extends - true - Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· ÑÑ…ÐµÐ¼Ñ‹ Ð‘Ð”, false - Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· show columns
  * 
- * @throws TRMDataMapperEmptySafetyFieldsArrayException - åñëè äàííûå î ïîëÿõ òàáëèöû ïîëó÷èòü íå óäàëîñü, òî âûáðàñûâàåòñÿ èñêëþ÷åíèå
+ * @throws TRMDataMapperEmptySafetyFieldsArrayException - ÐµÑÐ»Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¾ Ð¿Ð¾Ð»ÑÑ… Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð½Ðµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ, Ñ‚Ð¾ Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ÑÑ Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ
  */
 public function completeSafetyFieldsFromDB($Extends = false)
 {
-    if( empty($this->SafetyFieldsArray) )
+    if( !$this->count() )
     {
-        throw new TRMDataMapperEmptySafetyFieldsArrayException( __METHOD__ . " Ìàññèâ SafetyFieldsArray - ïóñòîé, "
-                . "íåîáõîäèìî óêàçàòü õîòÿáû èìåíà òàáëèö êàê êëþ÷è ìàññèâà array( TableName => array(...), ... )" );
+        throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+                __METHOD__ 
+                . " ÐœÐ°ÑÑÐ¸Ð² DataArray - Ð¿ÑƒÑÑ‚Ð¾Ð¹, "
+                . "Ð½ÐµÐ¾Ð±Ñ…Ð¾Ð´Ð¸Ð¼Ð¾ ÑƒÐºÐ°Ð·Ð°Ñ‚ÑŒ Ñ…Ð¾Ñ‚ÑÐ±Ñ‹ Ð¸Ð¼ÐµÐ½Ð° Ñ‚Ð°Ð±Ð»Ð¸Ñ† ÐºÐ°Ðº ÐºÐ»ÑŽÑ‡Ð¸ Ð¼Ð°ÑÑÐ¸Ð²Ð° array( TableName => array(...), ... )" );
     }
-    foreach( array_keys($this->SafetyFieldsArray) as $TableName )
+    $ObjectsNames = $this->getArrayKeys();
+    foreach( $ObjectsNames as $TableName )
     {
-        $Status = isset( $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] ) ?  $this->SafetyFieldsArray[$TableName][TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD;
-        $this->completeSafetyFieldsFromDBFor($TableName, TRMDBObject::getTableColumnsInfo($TableName), $Status, $Extends);
+        $Status = $this->DataArray[$TableName]->State;
+        $this->completeSafetyFieldsFromDBFor(
+            $TableName, 
+            TRMDBObject::getTableColumnsInfo($TableName), 
+            $Status, 
+            $Extends
+        );
     }
 }
 
 /**
- * âñïîìîãàòåëüíàÿ ôóíêöèÿ, óñòàíàâëèâàåò ïàðàìåòðû ïîëåé â ìàññèâ $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
- * âñå ñòàðûå çíà÷åíèÿ äëÿ ýòîãî ïîëÿ ñòèðàþòñÿ
+ * Ð—Ð°Ð¿Ñ€Ð°ÑˆÐ¸Ð²Ð°ÐµÑ‚ Ð¿Ð¾Ð»Ð½Ñ‹Ðµ Ð¼ÐµÑ‚Ð°Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· Ð‘Ð” Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð»Ñ ÑƒÐ¶Ðµ Ð¿Ñ€Ð¸ÑÑƒÑ‚ÑÐ²ÑƒÑŽÑ‰Ð¸Ñ… Ð¿Ð¾Ð»ÐµÐ¹ Ð² DataMapper
  * 
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðîé óñòàíàâëèâàåòñÿ íàáîð ïîëåé
- * @param array $Cols - ïàðàìåòðû êîëîíîê â òàáëèöå ÁÄ, ïîëó÷àåòñÿ çàïðîñîì SHOW COLUMNS FROM...
- * @param int $Status - ñîñòîÿíèå, ïî óìîë÷àíèþ = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - äàííûå èç ñõåìû ÁÄ, false - äàííûå èç show columns
+ * @param boolean $Extends - true - Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· ÑÑ…ÐµÐ¼Ñ‹ Ð‘Ð”, false - Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· show columns
+ * 
+ * @throws TRMDataMapperEmptySafetyFieldsArrayException - ÐµÑÐ»Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¾ Ð¿Ð¾Ð»ÑÑ… Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð½Ðµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ, Ñ‚Ð¾ Ð²Ñ‹Ð±Ñ€Ð°ÑÑ‹Ð²Ð°ÐµÑ‚ÑÑ Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ
  */
-private function setSafetyFromDB( $TableName, array $Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
+public function completeOnlyExistsFieldsFromDB($Extends = false)
 {
-    $this->SafetyFieldsArray[$TableName] = array();
-    $this->completeSafetyFieldsFromDBFor($TableName, $Cols, $Status, $Extends);
+    if( !$this->count() )
+    {
+        throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+            __METHOD__ . " ÐœÐ°ÑÑÐ¸Ð² Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð²-Ñ‚Ð°Ð±Ð»Ð¸Ñ† Ð¿ÑƒÑÑ‚! ");
+    }
+    $ObjectsNames = $this->getArrayKeys();
+    foreach( $ObjectsNames as $TableName )
+    {
+        $FieldsNamesArr = $this->DataArray[$TableName]->getAllFieldsNamesForCondition();
+        if( empty($FieldsNamesArr) )
+        {
+            throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+                __METHOD__ . " ÐÐµÑ‚ Ð¿Ð¾Ð»ÐµÐ¹ Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° {$TableName} " );
+        }
+        $FieldsInfo = TRMDBObject::getTableColumnsInfo($TableName);
+        $OnlyFieldsInfo = array();
+        // Ð² Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸ Ð¾Ñ‚ Ð¼ÐµÑ‚Ð¾Ð´Ð° Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð¸Ñ Ð¼ÐµÑ‚Ð°-Ð´Ð°Ð½Ð½Ñ‹Ñ…, 
+        // Ð¸Ð· Ñ€Ð°ÑÑˆÐ¸Ñ€ÐµÐ½Ð½Ð¾Ð³Ð¾ Ð·Ð°Ð¿Ñ€Ð¾ÑÐ° (Ð¸Ð· ÑÑ…ÐµÐ¼Ñ‹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹), 
+        // Ð¸Ð»Ð¸ Ñ‡ÐµÑ€ÐµÐ· SHOW COLUMN, 
+        // ÑƒÐºÐ°Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ð¿Ð¾Ð´ ÐºÐ°ÐºÐ¸Ð¼ ÐºÐ»ÑŽÑ‡Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑÑ Ð¸Ð¼Ñ Ð¿Ð¾Ð»Ñ
+        if($Extends) { $COLUMN_NAME_INDEX = "COLUMN_NAME"; }
+        else { $COLUMN_NAME_INDEX = "Field"; }
+        
+        foreach( $FieldsInfo as $Field )
+        {
+            if(in_array($Field[$COLUMN_NAME_INDEX], $FieldsNamesArr) )
+            {
+                $OnlyFieldsInfo[] = $Field;
+            }
+        }
+
+        if( empty($OnlyFieldsInfo) )
+        {
+            throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+                __METHOD__ . " ÐÐµÑ‚ Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ñ‹Ñ… Ð¿Ð¾Ð»ÐµÐ¹ Ð´Ð»Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° {$TableName} " );
+        }
+        $this->completeSafetyFieldsFromDBFor(
+            $TableName, 
+            $OnlyFieldsInfo, 
+            $this->DataArray[$TableName]->State, 
+            $Extends
+        );
+    }
 }
 
 /**
- * âñïîìîãàòåëüíàÿ ôóíêöèÿ, äîáàâëÿåò ïàðàìåòðû ïîëåé â ìàññèâ $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX],
- * ñòàðûå çíà÷åíèÿ ïåðåçàïèñûâàþòñÿ, òîëüêî åñëè êëþ÷è ñîâïàäàþò,
- * íåñîâïàäàþùèå êëþ÷è ìàññèâà îñòàþòñÿ íåòðîíóòûìè
+ * Ð²ÑÐ¿Ð¾Ð¼Ð¾Ð³Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð°Ñ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ñ, 
+ * Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÑ‚ Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ñ‹ Ð¿Ð¾Ð»ÐµÐ¹ Ð² Ð¼Ð°ÑÑÐ¸Ð² $this->DataArray[$TableName][TRMDataMapper::FIELDS_INDEX],
+ * ÑÑ‚Ð°Ñ€Ñ‹Ðµ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ñ Ð¿ÐµÑ€ÐµÐ·Ð°Ð¿Ð¸ÑÑ‹Ð²Ð°ÑŽÑ‚ÑÑ, Ñ‚Ð¾Ð»ÑŒÐºÐ¾ ÐµÑÐ»Ð¸ ÐºÐ»ÑŽÑ‡Ð¸ ÑÐ¾Ð²Ð¿Ð°Ð´Ð°ÑŽÑ‚,
+ * Ð½ÐµÑÐ¾Ð²Ð¿Ð°Ð´Ð°ÑŽÑ‰Ð¸Ðµ ÐºÐ»ÑŽÑ‡Ð¸ Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð¾ÑÑ‚Ð°ÑŽÑ‚ÑÑ Ð½ÐµÑ‚Ñ€Ð¾Ð½ÑƒÑ‚Ñ‹Ð¼Ð¸
  * 
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðîé óñòàíàâëèâàåòñÿ íàáîð ïîëåé
- * @param array $Cols - ïàðàìåòðû êîëîíîê â òàáëèöå ÁÄ, ïîëó÷àåòñÿ çàïðîñîì SHOW COLUMNS FROM...
- * @param int $Status - ñîñòîÿíèå, ïî óìîë÷àíèþ = TRM_AR_READ_ONLY_FIELD
- * @param boolean $Extends - true - äàííûå èç ñõåìû ÁÄ, false - äàííûå èç show columns
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¹ ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ÑÑ Ð½Ð°Ð±Ð¾Ñ€ Ð¿Ð¾Ð»ÐµÐ¹
+ * @param array $Cols - Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ñ‹ ÐºÐ¾Ð»Ð¾Ð½Ð¾Ðº Ð² Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ðµ Ð‘Ð”, Ð¿Ð¾Ð»ÑƒÑ‡Ð°ÐµÑ‚ÑÑ Ð·Ð°Ð¿Ñ€Ð¾ÑÐ¾Ð¼ SHOW COLUMNS FROM...
+ * @param int $Status - ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ðµ, Ð¿Ð¾ ÑƒÐ¼Ð¾Ð»Ñ‡Ð°Ð½Ð¸ÑŽ = TRM_AR_READ_ONLY_FIELD
+ * @param boolean $Extends - true - Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· ÑÑ…ÐµÐ¼Ñ‹ Ð‘Ð”, false - Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· show columns
  */
 private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
 {
     foreach( $Cols as $Column )
     {
-        if( !$Extends ) { $this->completeSafetyField( $Column["Field"], $TableName, $Column, $Status); }
+        if( !$Extends ) { $this->completeField( $TableName, $Column["Field"], $Column, $Status); }
         else
         {
-            $this->completeSafetyField( $Column["COLUMN_NAME"], $TableName, 
+            $this->completeField( $TableName, $Column["COLUMN_NAME"], 
                 array(
                     TRMDataMapper::COMMENT_INDEX => $Column['COLUMN_COMMENT'],
                     TRMDataMapper::DEFAULT_INDEX => $Column['COLUMN_DEFAULT'],
@@ -133,15 +163,14 @@ private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status
 }
 
 /**
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðé ïðîâåðÿåòñÿ ïîëå íà auto_increment
- * @param string $FieldName - èìÿ ïîëÿ, ïðîâåðÿåìîãî íà auto_increment
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¹ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÑ‚ÑÑ Ð¿Ð¾Ð»Ðµ Ð½Ð° auto_increment
+ * @param string $FieldName - Ð¸Ð¼Ñ Ð¿Ð¾Ð»Ñ, Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼Ð¾Ð³Ð¾ Ð½Ð° auto_increment
  * 
- * @return boolean - â ñëó÷àå, åñëè ïîëå ÿâëÿåòñÿ àâòîèíêðåìåíòíûì âåðíåòñÿ true, èíà÷å - false
+ * @return boolean - Ð² ÑÐ»ÑƒÑ‡Ð°Ðµ, ÐµÑÐ»Ð¸ Ð¿Ð¾Ð»Ðµ ÑÐ²Ð»ÑÐµÑ‚ÑÑ Ð°Ð²Ñ‚Ð¾Ð¸Ð½ÐºÑ€ÐµÐ¼ÐµÐ½Ñ‚Ð½Ñ‹Ð¼ Ð²ÐµÑ€Ð½ÐµÑ‚ÑÑ true, Ð¸Ð½Ð°Ñ‡Ðµ - false
  */
 public function isFieldAutoIncrement($TableName, $FieldName)
 {
-    if( isset($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX])
-        && $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX][$FieldName][TRMDataMapper::EXTRA_INDEX] == "auto_increment" )
+    if( $this->DataArray[$TableName][$FieldName]->Extra == "auto_increment" )
     {
         return true;
     }
@@ -149,41 +178,42 @@ public function isFieldAutoIncrement($TableName, $FieldName)
 }
 
 /**
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðé ñîáèðàåòñÿ ìàññèâ èìåí ïîëåé
- * @param string $KeyStatus - "PRI" èëè "UNI" èëè "*" - ñîáðàòü ìàññèâ èìåí ïîëåé ïåðâè÷íîãî èëè óíèêàëüíîãî èíäåêñà èëè âåðíóòü âñå ïîëÿ òàáëèöû, ñîîòâåòñòâåííî
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¹ ÑÐ¾Ð±Ð¸Ñ€Ð°ÐµÑ‚ÑÑ Ð¼Ð°ÑÑÐ¸Ð² Ð¸Ð¼ÐµÐ½ Ð¿Ð¾Ð»ÐµÐ¹
+ * @param string $KeyStatus - "PRI" Ð¸Ð»Ð¸ "UNI" Ð¸Ð»Ð¸ "*" - ÑÐ¾Ð±Ñ€Ð°Ñ‚ÑŒ Ð¼Ð°ÑÑÐ¸Ð² Ð¸Ð¼ÐµÐ½ Ð¿Ð¾Ð»ÐµÐ¹ 
+ * Ð¿ÐµÑ€Ð²Ð¸Ñ‡Ð½Ð¾Ð³Ð¾ Ð¸Ð»Ð¸ ÑƒÐ½Ð¸ÐºÐ°Ð»ÑŒÐ½Ð¾Ð³Ð¾ Ð¸Ð½Ð´ÐµÐºÑÐ° Ð¸Ð»Ð¸ Ð²ÐµÑ€Ð½ÑƒÑ‚ÑŒ Ð²ÑÐµ Ð¿Ð¾Ð»Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÑ‚Ð²ÐµÐ½Ð½Ð¾
  * 
- * @return array - âîçâðàùàåò ìàññèâ ñ èìåíàìè ïåðâè÷íûõ èëè óíèêàëüíûõ êëþ÷åé-èíäåêñîâ òàáëèöû $TableName èëè âñå ïîëÿ
+ * @return array - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¼Ð°ÑÑÐ¸Ð² Ñ Ð¸Ð¼ÐµÐ½Ð°Ð¼Ð¸ 
+ * Ð¿ÐµÑ€Ð²Ð¸Ñ‡Ð½Ñ‹Ñ… Ð¸Ð»Ð¸ ÑƒÐ½Ð¸ÐºÐ°Ð»ÑŒÐ½Ñ‹Ñ… ÐºÐ»ÑŽÑ‡ÐµÐ¹-Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð² Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ $TableName Ð¸Ð»Ð¸ Ð²ÑÐµ Ð¿Ð¾Ð»Ñ
  */
 public function getIndexFieldsNames( $TableName, $KeyStatus = "PRI" )
 {
     if( $KeyStatus == "*" )
     {
-        return array_keys($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
+        return $this->DataArray->getArrayKeys();
     }
     return $this->getAllFieldsNamesForCondition( $TableName, TRMDataMapper::KEY_INDEX, $KeyStatus );
 }
 
 /**
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðé ñîáèðàåòñÿ ìàññèâ èìåí ïîëåé
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¹ ÑÐ¾Ð±Ð¸Ñ€Ð°ÐµÑ‚ÑÑ Ð¼Ð°ÑÑÐ¸Ð² Ð¸Ð¼ÐµÐ½ Ð¿Ð¾Ð»ÐµÐ¹
  * 
- * @return array - âîçâðàùàåò ìàññèâ ñ èìåíàìè ïîëåé òàáëèöû $TableName äîñòóïíûõ äëÿ çàïèñè, 
- * ò.å. State êîòîðûõ ðàâåí 
- * TRMDataMapper::UPDATABLE_FIELD èëè TRMDataMapper::FULL_ACCESS_FIELD
+ * @return array - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¼Ð°ÑÑÐ¸Ð² Ñ Ð¸Ð¼ÐµÐ½Ð°Ð¼Ð¸ Ð¿Ð¾Ð»ÐµÐ¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ $TableName Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ñ‹Ñ… Ð´Ð»Ñ Ð·Ð°Ð¿Ð¸ÑÐ¸, 
+ * Ñ‚.Ðµ. State ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… Ñ€Ð°Ð²ÐµÐ½ 
+ * TRMDataMapper::UPDATABLE_FIELD Ð¸Ð»Ð¸ TRMDataMapper::FULL_ACCESS_FIELD
  */
 public function getUpdatableFieldsNamesFor( $TableName )
 {
     $FieldsNames1 = $this->getAllFieldsNamesForCondition( $TableName, TRMDataMapper::STATE_INDEX, TRMDataMapper::UPDATABLE_FIELD );
     $FieldsNames2 = $this->getAllFieldsNamesForCondition( $TableName, TRMDataMapper::STATE_INDEX, TRMDataMapper::FULL_ACCESS_FIELD );
-    
     return array_unique( array_merge($FieldsNames1, $FieldsNames2), SORT_REGULAR );
 }
 
 /**
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðé ñîáèðàåòñÿ ìàññèâ èìåí ïîëåé
- * @param string $State - ñîáèðàòü ïîëÿ äîñòóïíûå òîëüêî äëÿ ÷òåíèÿ/çàïèñè èëè âñå, â ýòîì ñëó÷àå $State = null,
- * äðóãèå âîçìîæíûå âàðèàíòû - TRMDataMapper::READ_ONLY_FIELD, TRMDataMapper::UPDATABLE_FIELD, TRMDataMapper::FULL_ACCESS_FIELD
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¹ ÑÐ¾Ð±Ð¸Ñ€Ð°ÐµÑ‚ÑÑ Ð¼Ð°ÑÑÐ¸Ð² Ð¸Ð¼ÐµÐ½ Ð¿Ð¾Ð»ÐµÐ¹
+ * @param string $State - ÑÐ¾Ð±Ð¸Ñ€Ð°Ñ‚ÑŒ Ð¿Ð¾Ð»Ñ Ð´Ð¾ÑÑ‚ÑƒÐ¿Ð½Ñ‹Ðµ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð»Ñ Ñ‡Ñ‚ÐµÐ½Ð¸Ñ/Ð·Ð°Ð¿Ð¸ÑÐ¸ Ð¸Ð»Ð¸ Ð²ÑÐµ, Ð² ÑÑ‚Ð¾Ð¼ ÑÐ»ÑƒÑ‡Ð°Ðµ $State = null,
+ * Ð´Ñ€ÑƒÐ³Ð¸Ðµ Ð²Ð¾Ð·Ð¼Ð¾Ð¶Ð½Ñ‹Ðµ Ð²Ð°Ñ€Ð¸Ð°Ð½Ñ‚Ñ‹ - TRMDataMapper::READ_ONLY_FIELD, TRMDataMapper::UPDATABLE_FIELD, TRMDataMapper::FULL_ACCESS_FIELD
  * 
- * @return array - âîçâðàùàåò ìàññèâ ñ èìåíàìè ïîëåé òàáëèöû $TableName ñîîòâåòñâóþøèõ óñëîâèþ $State
+ * @return array - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¼Ð°ÑÑÐ¸Ð² Ñ Ð¸Ð¼ÐµÐ½Ð°Ð¼Ð¸ Ð¿Ð¾Ð»ÐµÐ¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ $TableName ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÐ²ÑƒÑŽÑˆÐ¸Ñ… ÑƒÑÐ»Ð¾Ð²Ð¸ÑŽ $State
  */
 public function getFieldsNamesForState( $TableName, $State = null )
 {
@@ -191,9 +221,9 @@ public function getFieldsNamesForState( $TableName, $State = null )
 }
 
 /**
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðé ñîáèðàåòñÿ ìàññèâ èìåí ïîëåé
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¹ ÑÐ¾Ð±Ð¸Ñ€Ð°ÐµÑ‚ÑÑ Ð¼Ð°ÑÑÐ¸Ð² Ð¸Ð¼ÐµÐ½ Ð¿Ð¾Ð»ÐµÐ¹
  * 
- * @return array - âîçâðàùàåò ìàññèâ ñ èìåíàìè AUTO_INCREMENT ïîëåé òàáëèöû $TableName
+ * @return array - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¼Ð°ÑÑÐ¸Ð² Ñ Ð¸Ð¼ÐµÐ½Ð°Ð¼Ð¸ AUTO_INCREMENT Ð¿Ð¾Ð»ÐµÐ¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ $TableName
  */
 public function getAutoIncrementFieldsNamesFor( $TableName )
 {
@@ -201,31 +231,32 @@ public function getAutoIncrementFieldsNamesFor( $TableName )
 }
 
 /**
- * @param string $TableName - èìÿ òàáëèöû, äëÿ êîòîðé ñîáèðàåòñÿ ìàññèâ èìåí ïîëåé
- * @param string $StateName - èìÿ ïðîâåðÿåìîãî ñòàòóñà ïîëÿ
- * @param string $Value - èñêîìîå çíà÷åíèå ñòàòóñà ïîëÿ
+ * @param string $TableName - Ð¸Ð¼Ñ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹, Ð´Ð»Ñ ÐºÐ¾Ñ‚Ð¾Ñ€Ð¹ ÑÐ¾Ð±Ð¸Ñ€Ð°ÐµÑ‚ÑÑ Ð¼Ð°ÑÑÐ¸Ð² Ð¸Ð¼ÐµÐ½ Ð¿Ð¾Ð»ÐµÐ¹
+ * @param string $StateName - Ð¸Ð¼Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼Ð¾Ð³Ð¾ ÑÑ‚Ð°Ñ‚ÑƒÑÐ° Ð¿Ð¾Ð»Ñ, 
+ * ÐµÑÐ»Ð¸ Ð½Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½, Ñ‚.Ðµ. === null, Ñ‚Ð¾ Ð²ÐµÑ€Ð½ÑƒÑ‚ÑÑ Ð²ÑÐµ Ð¿Ð¾Ð»Ñ Ð¸Ð· $TableName
+ * @param string $Value - Ð¸ÑÐºÐ¾Ð¼Ð¾Ðµ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ ÑÑ‚Ð°Ñ‚ÑƒÑÐ° Ð¿Ð¾Ð»Ñ
  * 
- * @return array - âîçâðàùàåò ìàññèâ ñ èìåíàìè ïîëåé òàáëèöû $TableName ñîîòâåòñâóþøèõ óñëîâèþ FieldsState[$StateName] == $Value
+ * @return array - Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÑ‚ Ð¼Ð°ÑÑÐ¸Ð² Ñ Ð¸Ð¼ÐµÐ½Ð°Ð¼Ð¸ Ð¿Ð¾Ð»ÐµÐ¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ $TableName ÑÐ¾Ð¾Ñ‚Ð²ÐµÑ‚ÑÐ²ÑƒÑŽÑˆÐ¸Ñ… ÑƒÑÐ»Ð¾Ð²Ð¸ÑŽ FieldsState[$StateName] == $Value
  */
 private function getAllFieldsNamesForCondition( $TableName, $StateName = null, $Value = null )
 {
-    if( $StateName == null )
+    if( $StateName === null )
     {
-        return array_keys($this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX]);
+        return $this->DataArray->getArrayKeys();
     }
     /*
-     * óáèðàåì ïðîâåðêó, íà âðåìÿ ïîêà ìåòîä ïðèâàòåí, è âûçûâàþò åãî òîëüêî âíóòðåííèå ôóíêöèè ñ âåðíûìè àðãóìåíòàìè...
+     * ÑƒÐ±Ð¸Ñ€Ð°ÐµÐ¼ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÑƒ, Ð½Ð° Ð²Ñ€ÐµÐ¼Ñ Ð¿Ð¾ÐºÐ° Ð¼ÐµÑ‚Ð¾Ð´ Ð¿Ñ€Ð¸Ð²Ð°Ñ‚ÐµÐ½, Ð¸ Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÑŽÑ‚ ÐµÐ³Ð¾ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð²Ð½ÑƒÑ‚Ñ€ÐµÐ½Ð½Ð¸Ðµ Ñ„ÑƒÐ½ÐºÑ†Ð¸Ð¸ Ñ Ð²ÐµÑ€Ð½Ñ‹Ð¼Ð¸ Ð°Ñ€Ð³ÑƒÐ¼ÐµÐ½Ñ‚Ð°Ð¼Ð¸...
     if( !key_exists($StateName, self::$IndexArray) )
     {
-        throw new Exception( __METHOD__ . " íåâåðíî óêàçàí èíäåêñ äëÿ ñòàòóñà ïîëÿ [{$StateName}]");
+        throw new Exception( __METHOD__ . " Ð½ÐµÐ²ÐµÑ€Ð½Ð¾ ÑƒÐºÐ°Ð·Ð°Ð½ Ð¸Ð½Ð´ÐµÐºÑ Ð´Ð»Ñ ÑÑ‚Ð°Ñ‚ÑƒÑÐ° Ð¿Ð¾Ð»Ñ [{$StateName}]");
     }
      * 
      */
     
     $FieldsNames = array();
-    foreach ( $this->SafetyFieldsArray[$TableName][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FileldState )
+    foreach ( $this->DataArray[$TableName] as $FieldName => $Fileld )
     {
-        if( isset($FileldState[$StateName]) && $FileldState[$StateName] == $Value )
+        if( $Fileld->$StateName == $Value )
         {
             $FieldsNames[] = $FieldName;
         }

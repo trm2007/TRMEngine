@@ -4,221 +4,205 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
+use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
 
 /**
- * êëàññ ðåïîçèòîðèÿ, ïðåäíàçíà÷åííîãî äëÿ ðàáîòû ñ îáúåêòîì-äàííûõ ðåàëèçóþùèì TRMIdDataObjectInterface
- * ò.å. ñ îáúåêòàìè ó êîòîðûõ åñòü óíèêàëüíûé èäåíòèôèêàòîð - ID,
- * äëÿ òàêèõ îáúåêòîâ ýòîò ðåïîçèòîðèé ñîçäàåò ëîêàëüíûé ìàññèâ-êîíòåéíåð, â êîòîðîì õðàíÿòñÿ îáúåêòû ñ Id,
- * è îíè âî âñåì ïðèëîæåíèè áóäóò ïðåäñòàâëåííû â îäíîì ýêçåìïëÿðå!!!
- * getById - âåðíåò ññûëêó âñåãäà íà îäèí è òîò æå îáúåêò, ïîýòîìó âñå çàâèñèìîñòè áóäóò ðàáòàòü òîëüêî ñ îäíèì ýêçåìïëÿðîì..
+ * ÐºÐ»Ð°ÑÑ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ñ, Ð¿Ñ€ÐµÐ´Ð½Ð°Ð·Ð½Ð°Ñ‡ÐµÐ½Ð½Ð¾Ð³Ð¾ Ð´Ð»Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð¼-Ð´Ð°Ð½Ð½Ñ‹Ñ… Ñ€ÐµÐ°Ð»Ð¸Ð·ÑƒÑŽÑ‰Ð¸Ð¼ TRMIdDataObjectInterface
+ * Ñ‚.Ðµ. Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°Ð¼Ð¸ Ñƒ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… ÐµÑÑ‚ÑŒ ÑƒÐ½Ð¸ÐºÐ°Ð»ÑŒÐ½Ñ‹Ð¹ Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ - ID,
+ * Ð´Ð»Ñ Ñ‚Ð°ÐºÐ¸Ñ… Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² ÑÑ‚Ð¾Ñ‚ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹ ÑÐ¾Ð·Ð´Ð°ÐµÑ‚ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ñ‹Ð¹ Ð¼Ð°ÑÑÐ¸Ð²-ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€, Ð² ÐºÐ¾Ñ‚Ð¾Ñ€Ð¾Ð¼ Ñ…Ñ€Ð°Ð½ÑÑ‚ÑÑ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹ Ñ Id,
+ * Ð¸ Ð¾Ð½Ð¸ Ð²Ð¾ Ð²ÑÐµÐ¼ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ð¸ Ð±ÑƒÐ´ÑƒÑ‚ Ð¿Ñ€ÐµÐ´ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ð½Ñ‹ Ð² Ð¾Ð´Ð½Ð¾Ð¼ ÑÐºÐ·ÐµÐ¼Ð¿Ð»ÑÑ€Ðµ!!!
+ * getById - Ð²ÐµÑ€Ð½ÐµÑ‚ ÑÑÑ‹Ð»ÐºÑƒ Ð²ÑÐµÐ³Ð´Ð° Ð½Ð° Ð¾Ð´Ð¸Ð½ Ð¸ Ñ‚Ð¾Ñ‚ Ð¶Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚, Ð¿Ð¾ÑÑ‚Ð¾Ð¼Ñƒ Ð²ÑÐµ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚Ð¸ Ð±ÑƒÐ´ÑƒÑ‚ Ñ€Ð°Ð±Ñ‚Ð°Ñ‚ÑŒ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ñ Ð¾Ð´Ð½Ð¸Ð¼ ÑÐºÐ·ÐµÐ¼Ð¿Ð»ÑÑ€Ð¾Ð¼..
  * 
  * @author TRM - 2018-07-28
  */
-abstract class TRMIdDataObjectRepository extends TRMRepository
+abstract class TRMIdDataObjectRepository extends TRMRepository implements TRMIdDataObjectRepositoryInterface
 {
 /**
- * @var TRMIdDataObjectInterface - ññûëêà íà òåêóùèé îáúåêò
- */
-protected $CurrentObject = null;
-/**
- * @var array - èìÿ ïîëÿ, ñîäåðæàùåãî ID çàïèñè
- */
-protected $IdFieldName;
-/**
- * @var string - èìÿ îáúåêòà, â êîòîðîì åñòü ïîëå, ñîäåðæàùåå ID çàïèñè
- */
-protected $IdObjectName;
-
-/**
- * @var array(TRMIdDataObjectInterface) - ìàññèâ îáúåêòîâ, ïîëó÷àåìûõ è ñîçäàâàåìûõ ÷åðåç äàííûé ðåïîçèòîðèé, 
- * ññûëêè íà âñå îáúåêòû õðàíÿòñÿ â ýòîì ìàññèâå, 
- * è ïðè çàïðîñå óæå ñ÷èòàííîãî èç ÁÄ (èëè äðóãîãî õðàíèëèùà) îáúåêòà îí âåðíåòñÿ èç ìàññèâà
+ * @var array(TRMIdDataObjectInterface) - Ð¼Ð°ÑÑÐ¸Ð² Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², Ð¿Ð¾Ð»ÑƒÑ‡Ð°ÐµÐ¼Ñ‹Ñ… Ð¸ ÑÐ¾Ð·Ð´Ð°Ð²Ð°ÐµÐ¼Ñ‹Ñ… Ñ‡ÐµÑ€ÐµÐ· Ð´Ð°Ð½Ð½Ñ‹Ð¹ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¹, 
+ * ÑÑÑ‹Ð»ÐºÐ¸ Ð½Ð° Ð²ÑÐµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹ Ñ…Ñ€Ð°Ð½ÑÑ‚ÑÑ Ð² ÑÑ‚Ð¾Ð¼ Ð¼Ð°ÑÑÐ¸Ð²Ðµ, 
+ * Ð¸ Ð¿Ñ€Ð¸ Ð·Ð°Ð¿Ñ€Ð¾ÑÐµ ÑƒÐ¶Ðµ ÑÑ‡Ð¸Ñ‚Ð°Ð½Ð½Ð¾Ð³Ð¾ Ð¸Ð· Ð‘Ð” (Ð¸Ð»Ð¸ Ð´Ñ€ÑƒÐ³Ð¾Ð³Ð¾ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°) Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð¾Ð½ Ð²ÐµÑ€Ð½ÐµÑ‚ÑÑ Ð¸Ð· Ð¼Ð°ÑÑÐ¸Ð²Ð°
  */
 protected static $IdDataObjectContainer = array();
 
 
-public function __construct($objectclassname)
-{
-    parent::__construct($objectclassname);
-    if( !isset(self::$IdDataObjectContainer[$objectclassname]) )
-    {
-        self::$IdDataObjectContainer[$objectclassname] = array();
-    }
-}
-
 /**
- * @return array - èìÿ ïîëÿ, ñîäåðæàùåãî ID çàïèñè
+ * {@inheritDoc}
  */
 public function getIdFieldName()
 {
-    return array( $this->IdObjectName, $this->IdFieldName);
+    $type = $this->ObjectTypeName;
+    return $type::getIdFieldName();
 }
 
 /**
- * @param array $IdFieldName - èìÿ ïîëÿ, ñîäåðæàùåãî ID çàïèñè
+ * Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð¾Ð±Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÐµÑ‚ ÑÑ‚Ð¾Ñ‚ Repository, Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ñ‹Ð¹ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€, 
+ * ÐµÑÐ»Ð¸ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ñƒ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½ Id
+ * 
+ * @param TRMIdDataObjectInterface $DataObject - Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼Ñ‹ Ð¾Ð±ÑŠÐµÐºÑ‚
  */
-public function setIdFieldName( array $IdFieldName )
+private function addIdDataObjectToContainer(TRMIdDataObjectInterface $DataObject)
 {
-    $this->IdObjectName = reset($IdFieldName);
-    $this->IdFieldName = next($IdFieldName);
-    reset($IdFieldName);
-}
-
-/**
- * äîáàâëÿåò òåêóùèé îáúåêò, êîòîðûé îáðàáàòûâàåò ýòîò Repository, â ëîêàëüíûé êîíòåéíåð, 
- * åñëè òîëüêî ó îáúåêòà óñòàíîâëåí Id
- */
-private function addCurrentObjectToContainer()
-{
-    $id = $this->CurrentObject->getId();
+    $id = $DataObject->getId();
     if( null !== $id )
     {
-        self::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $this->CurrentObject;
+        static::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $DataObject;
     }
 }
 
 /**
- * ïåðåîïðåäåëÿåò ðîäèòåëüñêèé ìåòîä, äîáàâëÿåò ññûëêó íà îáúåêò â ëîêàëüíûé ìàññèâ, 
- * åñëè òîëüêî ó ýòîãî îáúåêòà åñòü Id
+ * Ð¿ÐµÑ€ÐµÐ¾Ð¿Ñ€ÐµÐ´ÐµÐ»ÑÐµÑ‚ getOne Ð´Ð»Ñ Ð¿Ð¾Ð¸ÑÐºÐ° Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ñ Ð¨Ð’ ÑÐ½Ð°Ñ‡Ð°Ð»Ð° Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ ÐºÐ¾Ð½Ñ‚ÐµÐ¹Ð½ÐµÑ€Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð² Ð´Ð°Ð½Ð½Ñ‹Ñ…,
+ * ÐµÑÐ»Ð¸ Ñ‚Ð°Ð¼ ÐµÑ‰Ðµ Ð½ÐµÑ‚ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð¿Ð¾ Ð·Ð°Ð¿Ñ€Ð°ÑˆÐ¸Ð²Ð°ÐµÐ¼Ñ‹Ð¼ ÑƒÑÐ»Ð¾Ð²Ð¸ÑÐ¼, Ñ‚Ð¾ Ð²ÐµÑ€Ð½ÐµÑ‚ÑÑ Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚ Ð·Ð°Ð¿Ñ€Ð¾ÑÐ° Ð¸Ð· Ð¾ÑÐ½Ð¾Ð²Ð½Ð¾Ð³Ð¾ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð° 
+ * Ð¼ÐµÑ‚Ð¾Ð´Ð¾Ð¼ getOne(...) Ñ€Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒÑÐºÐ¾Ð³Ð¾ ÐºÐ»Ð°ÑÑÐ°
  * 
- * @param TRMDataObjectInterface $object - äîëæåí áûòü òèïà - TRMIdDataObjectInterface
- */
-public function setObject(TRMDataObjectInterface $object)
-{
-    parent::setObject($object);
-    $this->addCurrentObjectToContainer();
-}
-
-/**
- * ïðîâåðÿåò îáúåêò $do íà íàëè÷èå íóæíîãî çíà÷åíèÿ $value â ïîëå $fieldname
- * 
- * @param TRMIdDataObjectInterface $do - îáúåêò ñ äàííûìè äëÿ ïðîâåðêè óñëîâèÿ
- * @param string $objectname - èìÿ îáúåêòà äëÿ ïðîâåðêè ïîëÿ
- * @param string $fieldname - èìÿ ïîëå äëÿ ïðîâåðêè çíà÷åíèÿ
- * @param mixed $value - çíà÷åíèå äëÿ ïðîâåðêè 
- * @param string $operator - îïåðàòîð, ïî êîòîðîìó áóäåò ñðàâíèâàòüñÿ çíà÷åíèå $value ñî çíà÷åíèåì íàõîäÿùèìñÿ â ïîëå $fieldname îáúåêòà $do
- * 
- * @return boolean - åñëè ó îáúåêòà ïîëå $fieldname óäîâëåòâîðÿåò çíà÷åíèþ $value ïî îïåðàòîðó $operator, 
- * òî âåðíåòñÿ true, èíà÷å false
- */
-private function checkDataObject(TRMIdDataObjectInterface $do, $objectname, $fieldname, $value, $operator)
-{
-    $res = $do->getFieldValue($objectname, $fieldname);
-    if( null === $res ) { return false; }
-    
-    switch ( strtoupper(trim($operator))  )
-    {
-        case "IS":
-        case "=": if( $res === $value ) { return true; }
-        case ">": if( $res > $value ) { return true; }
-        case ">=": if( $res >= $value ) { return true; }
-        case "<": if( $res < $value ) { return true; }
-        case "<=": if( $res <= $value ) { return true; }
-        case "NOT": 
-        case "!=": 
-        case "<>": if( $res !== $value ) { return true; }
-        case "LIKE": return ( strpos($res, $value) !== false );
-        case "NOT LIKE": return ( strpos($res, $value) === false );
-    }
-    
-    return fasle;
-}
-
-/**
- * ïåðåîïðåäåëÿåò getBy äëÿ ïîèñêà çíà÷åíèÿ ñíà÷àëà â ëîêàëüíîì êîíòåéíåðå îáúåêòîâ äàííûõ,
- * åñëè òàì åùå íåò îáúåêòà ïî çàïðàøèâàåìûì óñëîâèÿì, òî âåðíåòñÿ ðåçóëüòàò çàïðîñà èç îñíîâíîãî õðàíèëèùà 
- * ìåòîäîì getBy(...) ðîäèòåëüñêîãî êëàññà
- * 
- * @param string $objectname - èìÿ îáúåêòà äëÿ ïîèñêà ïî çíà÷åíèþ
- * @param string $fieldname - ïîëå äëÿ ïîèñêà ïî çíà÷åíèþ
- * @param mixed $value - çíà÷åíèå äëÿ ïðîâåðêè 
- * @param string $operator - îïåðàòîð, ïî êîòîðîìó áóäåò ñðàâíèâàòüñÿ çíà÷åíèå $value ñî çíà÷åíèåì íàõîäÿùèìñÿ â ïîëå $fieldname îáúåêòà $do
- * @param boolean $getfromdatasourceflag - åñëè ýòîò ôëàã óñòàíîâëåí â true - ïîóìîë÷àíèþ, òî ïîèñê ïî ëîêàëüíîìó êîíòåéíåðó ïðîèçâîäèòñÿ íå áóäåò,
- * ñðàçó ïðîèçîéäåò çàïðîñ ê îñíîâíîìó õðàíèëèùó (â äàííîé ðåàëèçàöèè ê ÁÄ)
+ * @param string $objectname - Ð¸Ð¼Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð´Ð»Ñ Ð¿Ð¾Ð¸ÑÐºÐ° Ð¿Ð¾ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸ÑŽ
+ * @param string $fieldname - Ð¿Ð¾Ð»Ðµ Ð´Ð»Ñ Ð¿Ð¾Ð¸ÑÐºÐ° Ð¿Ð¾ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸ÑŽ
+ * @param mixed $value - Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ Ð´Ð»Ñ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÐºÐ¸ 
+ * @param TRMDataObjectInterface $DataObject - ÐµÑÐ»Ð¸ Ð·Ð°Ð´Ð°Ð½ Ð¾Ð±ÑŠÐµÐºÑ‚, Ñ‚Ð¾ Ð½Ð¾Ð²Ñ‹Ð¹ ÑÐ¾Ð·Ð´Ð°Ð²Ð°Ñ‚ÑŒÑÑ Ð½Ðµ Ð±ÑƒÐ´ÐµÑ‚,
+ * Ð±ÑƒÐ´ÑƒÑ‚ Ð·Ð°Ð¿Ð¾Ð»Ð½ÑÑ‚ÑŒÑÑ ÑÐ²Ð¾Ð¹ÑÑ‚Ð²Ð° ÑÑ‚Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
  * 
  * @return TRMIdDataObjectInterface
  */
-public function getBy($objectname, $fieldname, $value, $operator = "=", $getfromdatasourceflag = true)
+public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface $DataObject = null)
 {
-    // åñëè çàïðîñ îáúåêòà ïî Id-ïîëþ
-    if( $objectname === $this->IdFieldName[0] && $fieldname === $this->IdFieldName[1] )
+    $IdArr = $this->getIdFieldName();
+    // ÐµÑÐ»Ð¸ Ð·Ð°Ð¿Ñ€Ð¾Ñ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð¿Ð¾ Id-Ð¿Ð¾Ð»ÑŽ
+    if( $objectname === $IdArr[0] && $fieldname === $IdArr[1] )
     {
-        // ïðîâåðÿåì, åñëè îáúåêò ñ òàêè Id óæå åñòü â ëîêàëüíîì ìàññèâå, òî 
-        if( isset( self::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
+        // Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼, ÐµÑÐ»Ð¸ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ Ñ‚Ð°ÐºÐ¸ Id ÑƒÐ¶Ðµ ÐµÑÑ‚ÑŒ Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ð¼Ð°ÑÑÐ¸Ð²Ðµ, Ñ‚Ð¾ 
+        if( isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$value] ) ) 
         {
-            // óñòàíàâëèâàåì óêàçàòåëüíà íà íàéäåííûé îáúåêò êàê íà îáðàáàòûâàåìûé â äàííîå âðåìÿ
-            $this->setObject(self::$IdDataObjectContainer[$this->ObjectTypeName][$value]);
-            // è âåðíåò åãî
-            return self::$IdDataObjectContainer[$this->ObjectTypeName][$value];
+            // Ð²ÐµÑ€Ð½ÐµÐ¼ ÐµÐ³Ð¾
+            return $DataObject = static::$IdDataObjectContainer[$this->ObjectTypeName][$value];
         }
     }
-    // åñëè íå óñòàíîâëåí ôëàã áðàòü èç èñòî÷íèêà äàííûõ - $getfromdatasourceflag,
-    // òî ïûòàåìñÿ íàéòè ïî çàäàííûì ïàðàìåòðàì â ëîêàëüíîì ìàññèâå
-    elseif( !$getfromdatasourceflag )
-    {
-        // ïåðåáèðàåì âñå óæå õðàíÿùèåñÿ â êîíòåéíåðå ññûëêè íà îáúåêòû äàííûõ
-        foreach( self::$IdDataObjectContainer[$this->ObjectTypeName] as $do )
-        {
-            // åñëè áûë íàéäåí îáúåêò ñ çàäàííûìè ïàðàìåòðàìè ïîëÿ â êîíòåéíåðå, òî âîçâðàùàåì åãî 
-            if( true === $this->checkDataObject($do, $objectname, $fieldname, $value, $operator) )
-            {
-                $this->setObject($do);
-                return $do;
-            }
-        }
-    }
-    // èíà÷å áóäåò ïðîèçâåäåí ïîèñê â ïîñòîÿííîì (Persist) õðàíèëèùå, â äàííîé ðåàëèçàöèè â ÁÄ
-    // åñëè CurrentObject åùå íå óñòàíîâëåí (null),
-    // îí áóäåò ñîçäàí è óñòàíîâåí â getBy
-    parent::getBy( $objectname, $fieldname, $value, $operator);
+    // Ð±ÑƒÐ´ÐµÑ‚ Ð¿Ñ€Ð¾Ð¸Ð·Ð²ÐµÐ´ÐµÐ½ Ð¿Ð¾Ð¸ÑÐº Ð² Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ DataSource, Ð² Ð´Ð°Ð½Ð½Ð¾Ð¹ Ñ€ÐµÐ°Ð»Ð¸Ð·Ð°Ñ†Ð¸Ð¸ Ð² Ð‘Ð”
+    $NewDataObject = parent::getOneBy( $objectname, $fieldname, $value, $DataObject);
     
-    // åñëè èç ÁÄ ïîëó÷èòü îáúåêò íå óäàëîñü, òî getId âåðíåò null
-    if( $this->CurrentObject->getId() === null ) { return null; }
-    // ñîõðàíÿåì ññûëêó íà òåêóùèé îáúåêò â ëîêàëüíîì ìàññèâå
-    $this->addCurrentObjectToContainer();
-
-    return $this->CurrentObject;
-}
-
-/**
- * ïîëó÷àåò äàííûå îáúåêòà èç õðàíèëèùà, íàïðèìåð èç ÁÄ
- * 
- * @param integer $id - èäåíòèôèêàòîð îáúåêòà
- * 
- * @return TRMDataObjectInterface - îáúåêò, çàïîëíåííûé äàííûìè èç õðàíèëèùà
- */
-public function getById($id)
-{
-    if( is_numeric($id) || preg_match("#^[0-9]+$#", $id) )
+    // ÐµÑÐ»Ð¸ Ð¸Ð· Ð‘Ð” Ð¿Ð¾Ð»ÑƒÑ‡Ð¸Ñ‚ÑŒ Ð¾Ð±ÑŠÐµÐºÑ‚ Ð½Ðµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ, Ñ‚Ð¾ getId Ð²ÐµÑ€Ð½ÐµÑ‚ null
+    if( $NewDataObject === null ) { return null; }
+    
+    // Ð•ÑÐ»Ð¸ Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð½Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ ÑƒÐ¶Ðµ ÐµÑÑ‚ÑŒ Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ, 
+    // Ñ‚Ð¾ Ð½ÑƒÐ¶Ð½Ð¾ Ð²ÐµÑ€Ð½ÑƒÑ‚ÑŒ Ð¾Ñ‚Ñ‚ÑƒÐ´Ð°, 
+    // Ð¿Ñ€Ð¸Ð¾Ñ€Ð¸Ñ‚ÐµÑ‚ Ð½Ð° ÑÑ‚Ð¾Ñ€Ð¾Ð½Ðµ ÐºÐ»Ð¸Ð½ÐµÑ‚Ð°, Ñ‚Ð°Ðº ÐºÐ°Ðº Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ð¾Ð±ÑŠÐµÑ‚ÐºÐµ Ð¼Ð¾Ð³ÑƒÑ‚ Ð±Ñ‹Ñ‚ÑŒ Ð½Ð° Ð·Ð°Ð¿Ð¸ÑÐ°Ð½Ð½Ñ‹Ðµ Ð¸Ð·Ð¼ÐµÐ½ÐµÐ½Ð¸Ñ,
+    // Ð¸Ñ… Ð½ÐµÐ»ÑŒÐ·Ñ Ñ‚ÐµÑ€ÐµÑ‚ÑŒ
+    $id = $NewDataObject->getId();
+    if( null !== $id && isset(static::$IdDataObjectContainer[$this->ObjectTypeName][$id]) )
     {
-        $IdArr = $this->getIdFieldName();
-        return $this->getBy( $IdArr[0], $IdArr[1], (int)$id );
+        return static::$IdDataObjectContainer[$this->ObjectTypeName][$id];
     }
-    return null;
+    
+    // ÑÐ¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼ ÑÑÑ‹Ð»ÐºÑƒ Ð½Ð° Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ð¼Ð°ÑÑÐ¸Ð²Ðµ
+    $this->addIdDataObjectToContainer($NewDataObject);
+
+    return $NewDataObject;
 }
 
 /**
- * îáíîâëÿåò äàííûå ñâÿçàííîãî îáúåêòà â õðàíèëèùå,
- * åñëè äàííûõ íåò â õðàíèëèùå, òî äîáàâëÿåò,
- * ïðè ýòîì óñòàíàâëèâàåò âíîâü çàïèñàííûé Id. åñëè îí ÿâëÿåòñÿ AUTO_INCREMENT
+ * @param array $DataArray - Ð¼Ð°ÑÑÐ¸Ð² Ñ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸, Ð¸Ð· ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… Ð±ÑƒÐ´ÐµÑ‚ ÑÐ¾Ð·Ð´Ð°Ð½ Ð¾Ð±ÑŠÐµÐºÑ‚
+ * @param TRMDataObjectInterface $DataObject - ÐµÑÐ»Ð¸ Ð·Ð°Ð´Ð°Ð½ Ð¾Ð±ÑŠÐµÐºÑ‚, Ñ‚Ð¾ Ð½Ð¾Ð²Ñ‹Ð¹ ÑÐ¾Ð·Ð´Ð°Ð²Ð°Ñ‚ÑŒÑÑ Ð½Ðµ Ð±ÑƒÐ´ÐµÑ‚,
+ * Ð±ÑƒÐ´ÑƒÑ‚ Ð·Ð°Ð¿Ð¾Ð»Ð½ÑÑ‚ÑŒÑÑ ÑÐ²Ð¾Ð¹ÑÑ‚Ð²Ð° ÑÑ‚Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
  * 
- * @return boolean
+ * @return TRMDataObjectInterface - ÐµÑÐ»Ð¸ Ð¾Ð±ÑŠÐµÐºÑ‚ ÑƒÐ¶Ðµ Ð¿Ñ€Ð¸ÑÑƒÑ‚ÑÐ²ÑƒÐµÑ‚ Ñ Ñ‚Ð°ÐºÐ¸Ð¼ ID Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ, 
+ * Ñ‚Ð¾ Ð²ÐµÑ€Ð½ÐµÑ‚ÑÑ Ð¾Ð½,
+ * Ð¸Ð½Ð°Ñ‡Ðµ ÑÐ¾Ð·Ð´Ð°Ð½Ð½Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ Ð´Ð°Ð½Ð½Ñ‹Ñ…, ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ð¹ Ð¾Ð±Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÐµÑ‚ ÑÑ‚Ð¾Ñ‚ ÑÐºÐ·ÐµÐ¼Ð¿Ð»ÑÑ€ Ñ€ÐµÐ¿Ð¾Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ñ
  */
-public function update()
+protected function getDataObjectFromDataArray(array $DataArray, TRMDataObjectInterface $DataObject = null)
 {
-    if( false === parent::update() ) { return false; }
-
-    // ïûòàåìñÿ ïîëó÷èòü LastId, îí áóäåò óñòàíîâëåí, 
-    // åñëè ïðîèçâåäåíî äîáàâëåíèå è óâåëè÷èëîñü çíà÷åíèå AUTO_INCREMENT ïîëÿ
-    //if( ($id = $this->DataSource->getLastId()) )
-//    {
-        // Â àëãîðèòìå 01.09.2018 ãîäà âñå ID äëÿ àâòîèíêðåìåíòíûõ ïîëåé óñòàíàâëèâàþòñÿ àâòîìàòîì â SQLDataSource
-        //$this->CurrentObject->setId( $id );
-        // ñîõðàíÿåì ññûëêó íà òåêóùèé îáúåêò â ëîêàëüíîì ìàññèâå
-        $this->addCurrentObjectToContainer();
-//    }
-    return true;
+    $IdArr = $this->getIdFieldName();
+    // Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼, ÐµÑÑ‚ÑŒ Ð»Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð² Ð¿Ð¾Ð»Ðµ Ñ ID Ð´Ð»Ñ Ð´Ð°Ð½Ð½Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
+    // ÐµÑÐ»Ð¸ ÑÑ‚Ð¾ Ð½Ð¾Ð²Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚, Ñ‚Ð¾ Ñƒ Ð½ÐµÐ³Ð¾ Ð½ÐµÑ‚ ID 
+    if( isset($DataArray[$IdArr[0]][$IdArr[1]]) )
+    {
+        // ÐµÑÐ»Ð¸ ÐµÑÑ‚ÑŒ, Ð¿Ð¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ ID
+        $id = $DataArray[$IdArr[0]][$IdArr[1]];
+        // ÐµÑÐ»Ð¸ Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ñ€ÐµÐ¿Ð¾Ð»Ð·Ð¸Ñ‚Ð¾Ñ€Ð¸Ð¸ ÑƒÐ¶Ðµ ÐµÑÑ‚ÑŒ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ Ñ‚Ð°ÐºÐ¸Ð¼ Id, Ñ‚Ð¾ Ð²ÐµÑ€ÐµÐ½ÐµÐ¼ ÐµÐ³Ð¾...
+        if( isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        {
+            return $DataObject = static::$IdDataObjectContainer[$this->ObjectTypeName][$id];
+        }
+    }
+    // ÐµÑÐ»Ð¸ Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½ Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ, Ñ‚Ð¾ Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ñ€Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒÑÐºÐ¸Ð¹ Ð¼ÐµÑ‚Ð¾Ð´,
+    // Ð³Ð´Ðµ Ð±ÑƒÐ´ÐµÑ‚ ÑÐ¾Ð·Ð´Ð°Ð½ Ð½Ð¾Ð²Ñ‹Ð¹ Ð¾Ð±ÑŠÐµÐºÑ‚ Ñ ÑÑ‚Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸
+    $NewDataObject = parent::getDataObjectFromDataArray($DataArray, $DataObject);
+    
+    $this->addIdDataObjectToContainer($NewDataObject);
+    
+    return $NewDataObject;
 }
 
+/**
+ * Ð¿Ð¾Ð»ÑƒÑ‡Ð°ÐµÑ‚ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð¸Ð· Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð° Ð¿Ð¾ ID,
+ * Ð½Ð¸ÐºÐ°ÐºÐ¸Ðµ ÑƒÑÐ»Ð¾Ð²Ð¸Ñ ÐºÑ€Ð¾Ð¼Ðµ Ð²Ñ‹Ð±Ð¾Ñ€ÐºÐ¸ Ð¿Ð¾ ID Ð½Ðµ ÑÑ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°ÑŽÑ‚ Ð¸ ÑƒÐ´Ð°Ð»ÑÑŽÑ‚ÑÑ!
+ * 
+ * @param scalar $id - Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð¾Ñ€ (Id) Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
+ * @param TRMDataObjectInterface $DataObject - ÐµÑÐ»Ð¸ Ð·Ð°Ð´Ð°Ð½ Ð¾Ð±ÑŠÐµÐºÑ‚, Ñ‚Ð¾ Ð½Ð¾Ð²Ñ‹Ð¹ ÑÐ¾Ð·Ð´Ð°Ð²Ð°Ñ‚ÑŒÑÑ Ð½Ðµ Ð±ÑƒÐ´ÐµÑ‚,
+ * Ð±ÑƒÐ´ÑƒÑ‚ Ð·Ð°Ð¿Ð¾Ð»Ð½ÑÑ‚ÑŒÑÑ ÑÐ²Ð¾Ð¹ÑÑ‚Ð²Ð° ÑÑ‚Ð¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð°
+ * 
+ * @return TRMDataObjectInterface - Ð¾Ð±ÑŠÐµÐºÑ‚, Ð·Ð°Ð¿Ð¾Ð»Ð½ÐµÐ½Ð½Ñ‹Ð¹ Ð´Ð°Ð½Ð½Ñ‹Ð¼Ð¸ Ð¸Ð· Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°
+ */
+public function getById($id, TRMDataObjectInterface $DataObject = null)
+{
+    $IdArr = $this->getIdFieldName();
+    return $this->getOneBy( $IdArr[0], $IdArr[1], $id, $DataObject );
+}
+
+/**
+ * Ñ„Ð°ÐºÑ‚Ð¸Ñ‡ÐµÑÐºÐ¸ Ð¾Ð±Ð½Ð¾Ð²Ð»ÑÐµÑ‚ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· Ð¿Ð¾Ð´Ð³Ð¾Ñ‚Ð¾Ð²Ð»ÐµÐ½Ð½Ð¾Ð¹ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°
+ * Ð² Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ,
+ * ÐµÑÐ»Ð¸ Ð´Ð°Ð½Ð½Ñ‹Ñ… ÐºÐ°ÐºÐ¾Ð³Ð¾ Ð¾Ð±ÑŠÐµÐºÑ‚Ð° Ð¸Ð· ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸ Ð½ÐµÑ‚ Ð² Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ, Ñ‚Ð¾ Ð´Ð¾Ð±Ð°Ð²Ð»ÑÐµÑ‚ Ð½Ð¾Ð²Ñ‹Ðµ,
+ * Ð¿Ñ€Ð¸ ÑÑ‚Ð¾Ð¼ ÑÐ¾Ñ…Ñ€Ð°Ð½ÑÐµÑ‚ Ð½Ð¾Ð²Ñ‹Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹ Ñ ID Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ
+ * 
+ * @param bool $ClearCollectionFlag - ÐµÑÐ»Ð¸ Ð½ÑƒÐ¶Ð½Ð¾ Ð¿Ð¾ÑÐ»Ðµ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ñ ÑÐ¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð½Ñ‹Ñ… Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², 
+ * Ñ‚Ð¾ ÑÑ‚Ð¾Ñ‚ Ñ„Ð»Ð°Ð³ ÑÐ»ÐµÐ´ÑƒÐµÑ‚ ÑƒÑ‚ÑÐ°Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð² false, ÑÑ‚Ð¾ Ð¼Ð¾Ð¶ÐµÑ‚ Ð¿Ð¾Ð½Ð°Ð´Ð¾Ð±Ð¸Ñ‚ÑŒÑÑ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ Ð¼ÐµÑ‚Ð¾Ð´Ð°Ð¼,
+ * Ð½Ð¾ Ð¿ÐµÑ€ÐµÐ´ Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½Ð¸ÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½ÐµÐ³Ð¾ doUpdate Ð½ÑƒÐ¶Ð½Ð¾ Ð¾Ñ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ,
+ * Ñ‡Ñ‚Ð¾ Ð±Ñ‹ Ð½Ðµ Ð¿Ð¾Ð²Ñ‚Ð¾Ñ€ÑÑ‚ÑŒ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ Ð² Ð±ÑƒÐ´ÑƒÑ‰ÐµÐ¼ 2 Ñ€Ð°Ð·Ð°!
+ * 
+ * @return void
+ */
+public function doUpdate( $ClearCollectionFlag = true )
+{
+    if( !$this->CollectionToUpdate->count() ) { return; }
+
+    parent::doUpdate( false );
+    // ÐµÑÐ»Ð¸ Ð±Ñ‹Ð»Ð¸ Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ñ‹ Ð½Ð¾Ð²Ñ‹Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹, Ñ‚Ð¾ Ñƒ Ð½Ð¸Ñ… Ð¿Ð¾ÑÐ²Ð¸Ð»ÑÑ Ð½Ð¾Ð²Ñ‹Ð¹ ID,
+    // Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ Ð½Ð°Ð»Ð¸Ñ‡Ð¸Ðµ Ð²ÑÐµÑ… Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð½Ñ‹Ñ… Ð·Ð°Ð¿Ð¸ÑÐµÐ¹ Ð½Ð° Ð½Ð°Ð»Ð¸Ñ‡Ð¸Ðµ Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ ID-Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ 
+    foreach( $this->CollectionToUpdate as $CurrentDataObject )
+    {
+        $id = $CurrentDataObject->getId();
+        if( !isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        {
+            static::$IdDataObjectContainer[$this->ObjectTypeName][$id] = $CurrentDataObject;
+        }
+        
+    }
+    if( $ClearCollectionFlag ) { $this->CollectionToUpdate->clearCollection(); }
+}
+
+/**
+ * Ð¿Ñ€Ð¾Ð¸Ð·Ð²Ð¾Ð´Ð¸Ñ‚Ðµ Ñ„Ð°ÐºÑ‚Ð¸Ñ‡ÐµÑÐ¾Ðµ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ðµ Ð¾Ð±ÑŠÐµÑ‚Ð¾Ð² Ð´Ð°Ð½Ð½Ñ‹Ñ… ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸Ð¸ Ð¸Ð· Ð¿Ð¾ÑÑ‚Ð¾ÑÐ½Ð½Ð¾Ð³Ð¾ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð° DataSource
+ * Ð¿Ñ€Ð¸ ÑÑ‚Ð¾Ð¼ ÑƒÐ±Ð¸Ñ€Ð°ÐµÑ‚ ÑƒÐ´Ð°Ð»ÑÐµÐ¼Ñ‹Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹ Ð¿Ð¾ ID Ð¸Ð· Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð³Ð¾ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°
+ * 
+ * @param bool $ClearCollectionFlag - ÐµÑÐ»Ð¸ Ð½ÑƒÐ¶Ð½Ð¾ Ð¿Ð¾ÑÐ»Ðµ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ ÑÐ¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ ÑƒÐ´Ð°Ð»ÐµÐ½Ð½Ñ‹Ñ… Ð¾Ð±ÑŠÐµÐºÑ‚Ð¾Ð², 
+ * Ñ‚Ð¾ ÑÑ‚Ð¾Ñ‚ Ñ„Ð»Ð°Ð³ ÑÐ»ÐµÐ´ÑƒÐµÑ‚ ÑƒÑ‚ÑÐ°Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð² false, ÑÑ‚Ð¾ Ð¼Ð¾Ð¶ÐµÑ‚ Ð¿Ð¾Ð½Ð°Ð´Ð¾Ð±Ð¸Ñ‚ÑŒÑÑ Ð´Ð¾Ñ‡ÐµÑ€Ð½Ð¸Ð¼ Ð¼ÐµÑ‚Ð¾Ð´Ð°Ð¼,
+ * Ð½Ð¾ Ð¿ÐµÑ€ÐµÐ´ Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½Ð¸ÐµÐ¼ Ð´Ð¾Ñ‡ÐµÑ€Ð½ÐµÐ³Ð¾ doDelete Ð½ÑƒÐ¶Ð½Ð¾ Ð¾Ñ‡Ð¸ÑÑ‚Ð¸Ñ‚ÑŒ ÐºÐ¾Ð»Ð»ÐµÐºÑ†Ð¸ÑŽ,
+ * Ñ‡Ñ‚Ð¾ Ð±Ñ‹ Ð½Ðµ Ð¿Ð¾Ð²Ñ‚Ð¾Ñ€ÑÑ‚ÑŒ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ðµ Ð² Ð±ÑƒÐ´ÑƒÑ‰ÐµÐ¼ 2 Ñ€Ð°Ð·Ð°!
+ */
+public function doDelete( $ClearCollectionFlag = true )
+{
+    if( !$this->CollectionToDelete->count() ) { return; }
+
+    // ÐµÑÐ»Ð¸ Ð±Ñ‹Ð»Ð¸ Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ñ‹ Ð½Ð¾Ð²Ñ‹Ðµ Ð¾Ð±ÑŠÐµÐºÑ‚Ñ‹, Ñ‚Ð¾ Ñƒ Ð½Ð¸Ñ… Ð¿Ð¾ÑÐ²Ð¸Ð»ÑÑ Ð½Ð¾Ð²Ñ‹Ð¹ ID,
+    // Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ Ð½Ð°Ð»Ð¸Ñ‡Ð¸Ðµ Ð²ÑÐµÑ… Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð½Ñ‹Ñ… Ð·Ð°Ð¿Ð¸ÑÐµÐ¹ Ð½Ð° Ð½Ð°Ð»Ð¸Ñ‡Ð¸Ðµ Ð² Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ð¼ ID-Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ðµ 
+    foreach( $this->CollectionToDelete as $CurrentDataObject )
+    {
+        $id = $CurrentDataObject->getId();
+        if( $id && isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
+        {
+            unset(static::$IdDataObjectContainer[$this->ObjectTypeName][$id]);
+        }
+        
+    }
+    parent::doDelete();
+}
 
 } // TRMIdDataObjectRepository

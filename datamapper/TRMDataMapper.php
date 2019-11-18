@@ -2,42 +2,41 @@
 
 namespace TRMEngine\DataMapper;
 
+use TRMEngine\DataArray\TRMDataArray;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperNotStringFieldNameException;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
+use TRMEngine\DataMapper\Interfaces\TRMDataMapperInterface;
+
 
 /**
- * Класс для объектов DataMapper,
- * сделан из старого TRMSafetyFields, 
- * теперь TRMSafetyFields наследуется от TRMDataMapper
+ * РљР»Р°СЃСЃ РґР»СЏ РѕР±СЉРµРєС‚РѕРІ DataMapper,
+ * СЃРґРµР»Р°РЅ РёР· СЃС‚Р°СЂРѕРіРѕ TRMSafetyFields, 
+ * С‚РµРїРµСЂСЊ TRMSafetyFields РЅР°СЃР»РµРґСѓРµС‚СЃСЏ РѕС‚ TRMDataMapper
  *
- * @author TRM - 2018-08-26
+ * @author TRM - 2019-04-27
  */
-class TRMDataMapper implements \ArrayAccess, \Countable, \Iterator
+class TRMDataMapper extends TRMDataArray implements TRMDataMapperInterface
 {
 /**
- * @var array(TRMObject) - массив с объектами TRMObject
+ * РєРѕРЅСЃС‚Р°РЅС‚С‹ РґР»СЏ РёРЅРґРµРєСЃРѕРІ 
  */
-protected $Objects = array();
+const STATE_INDEX       = "State"; // СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ С‡С‚РµРЅРёСЏ/Р·Р°РїРёСЃРё РґР»СЏ РїРѕР»СЏ
+const TYPE_INDEX        = "Type"; // С‚РёРї РґР°РЅРЅС‹С…, С…СЂР°РЅСЏС€РёС…СЃСЏ РІ РїРѕР»Рµ
+const NULL_INDEX        = "Null"; // РјРѕР¶РµС‚ Р»Рё РїРѕР»Рµ РѕСЃС‚Р°РІР°С‚СЊСЃСЏ РїСѓСЃС‚С‹Рј
+const KEY_INDEX         = "Key"; // СѓРєР°Р·С‹РІР°РµС‚ С…СЂР°РЅРёС‚СЃСЏ Р»Рё РІ СЌС‚РѕРј РїРѕР»Рµ РєР»СЋС‡-ID, РїСЂРёРЅРёРјР°РµС‚ Р·РЅР°С‡РµРЅРёРµ PRI - РїРµСЂС„РёС‡РЅС‹Р№ РєР»СЋС‡, РґР»СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё СЃ MySQL
+const DEFAULT_INDEX     = "Default"; // Р·РЅР°С‡РµРЅРёРµ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРјРѕРµ РїРѕ РјРѕР»С‡Р°РЅРёСЋ
+const EXTRA_INDEX       = "Extra"; // РµРґРёРЅСЃС‚РІРµРЅРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ, РєРѕС‚РѕСЂРѕРµ СЏ РІСЃС‚СЂРµС‡Р°Р» РІ СЌС‚РѕРј СЂР°Р·РґРµР»Рµ - auto_increment, РјРѕР¶РµС‚ Р±С‹С‚СЊ РїРѕР»РµР·РЅРѕ РІ РЅР°СЃР»РµРґСѓРµРјРѕРј РєР»Р°СЃСЃРµ SQL, РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ Р·РЅР°С‡РµРЅРёСЏ СЃС‡РµС‚С‡РёРєР° РїРѕСЃР»РµРґРЅРµРіРѕ РґРѕР±Р°РІР»РµРЅРЅРѕРіРѕ РѕР±СЉРµРєС‚Р°
+const ALIAS_INDEX       = "Alias"; // РёРЅРґРµРєСЃ РґР»СЏ РїСЃРµРІРґРѕРЅРёРјР°
+const FIELDALIAS_INDEX  = "FieldAlias"; // РїСЃРµРІРґРѕРЅРёРј, РёСЃРїРѕР»СЊР·СѓРµРјС‹Р№ РІ Р·Р°РїСЂРѕСЃР°С… РґР»СЏ РґР°РЅРЅРѕРіРѕ РїРѕР»СЏ
+const QUOTE_INDEX       = "Quote"; // РїРѕРєР°Р·РІР°РµС‚ РЅСѓР¶РЅРѕ Р»Рё Р±СЂР°С‚СЊ РёРјСЏ РґР°РЅРЅРѕРіРѕ РїРѕР»СЏ РІ Р°РїРѕСЃС‚РѕСЂС„С‹ `
+const COMMENT_INDEX     = "Comment"; // РєРѕРјРјРµРЅС‚Р°СЂРёР№ Рє РїРѕР»СЋ, С„Р°РєС‚РёС‡РµСЃРєРё РЅР°Р·РІР°РЅРёРµ РЅР° СЂСѓСЃСЃРєРѕРј СЏР·С‹РєРµ
+const RELATION_INDEX    = "Relation"; // РјР°СЃСЃРёРІ СЃ Р·Р°РІРёСЃРёРјРѕСЃС‚СЏРјРё РїРѕ СЌС‚РѕРјСѓ РїРѕР»СЋ, РїСЂРёРІСЏР·РєР° Рє РїРѕР»СЋ РёР· РґСЂСѓРіРѕРіРѕ РѕР±СЉРµРєС‚Р°
+const OBJECT_NAME_INDEX = "ObjectName"; // РёРјСЏ РѕР±СЉРµРєС‚Р°, РЅР° РєРѕС‚РѕСЂРѕРµ СЃСЃС‹Р»Р°РµС‚СЃСЏ РїРѕР»Рµ РІ СЂР°Р·РґРµР»Рµ RELATION
+const FIELD_NAME_INDEX  = "FieldName"; // РёРјСЏ РїРѕР»СЏ, РЅР° РєРѕС‚РѕСЂРѕРµ СЃСЃС‹Р»Р°РµС‚СЃСЏ РґСЂСѓРіРѕРµ РїРѕР»Рµ РІ СЂР°Р·РґРµР»Рµ RELATION
+const FIELDS_INDEX      = "Fields"; // РёРЅРґРµРєСЃ РґР»СЏ РјР°СЃСЃРёРІР° СЃ РїРѕР»СЏРјРё Рё РёС… СЃРѕСЃС‚РѕСЏРЅРёСЏРјРё РІ РѕР±СЉРµРєС‚Рµ
 
 /**
- * константы для индексов 
- */
-const STATE_INDEX       = "State"; // устанавливает возможность чтения/записи для поля
-const TYPE_INDEX        = "Type"; // тип данных, храняшихся в поле
-const NULL_INDEX        = "Null"; // может ли поле оставаться пустым
-const KEY_INDEX         = "Key"; // указывает хранится ли в этом поле ключ-ID, принимает значение PRI - перфичный ключ, для совместимости с MySQL
-const DEFAULT_INDEX     = "Default"; // значение устанавливаемое по молчанию
-const EXTRA_INDEX       = "Extra"; // единственное значение, которое я встречал в этом разделе - auto_increment, может быть полезно в наследуемом классе SQL, для получения значения счетчика последнего добавленного объекта
-const FIELDALIAS_INDEX  = "FieldAlias"; // псевдоним, используемый в запросах для данного поля
-const QUOTE_INDEX       = "Quote"; // показвает нужно ли брать имя данного поля в апосторфы `
-const COMMENT_INDEX     = "Comment"; // комментарий к полю, фактически название на русском языке
-const RELATION_INDEX    = "Relation"; // массив с зависимостями по этому полю, привязка к полю из другого объекта
-const OBJECT_NAME_INDEX = "ObjectName"; // имя объекта, на которое ссылается поле в разделе RELATION
-const FIELD_NAME_INDEX  = "FieldName"; // имя поля, на которое ссылается другое поле в разделе RELATION
-const FIELDS_INDEX      = "Fields"; // индекс для массива с полями и их состояниями в объекте
-
-/**
- * @var array - массив индексов для FieldState и значений для этих параметров по умолчанию
+ * @var array - РјР°СЃСЃРёРІ РёРЅРґРµРєСЃРѕРІ РґР»СЏ FieldState Рё Р·РЅР°С‡РµРЅРёР№ РґР»СЏ СЌС‚РёС… РїР°СЂР°РјРµС‚СЂРѕРІ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
  */
 protected static $IndexArray = array(
     TRMDataMapper::STATE_INDEX => TRMDataMapper::READ_ONLY_FIELD,
@@ -52,242 +51,291 @@ protected static $IndexArray = array(
     TRMDataMapper::RELATION_INDEX => null,
 );
 
-/** константа показывающая, что нужно брать имена полей в кавычки */
+/** РєРѕРЅСЃС‚Р°РЅС‚Р° РїРѕРєР°Р·С‹РІР°СЋС‰Р°СЏ, С‡С‚Рѕ РЅСѓР¶РЅРѕ Р±СЂР°С‚СЊ РёРјРµРЅР° РїРѕР»РµР№ РІ РєР°РІС‹С‡РєРё */
 const NEED_QUOTE = 32000;
-/** константа показывающая, что брать имена полей в кавычки НЕ нужно */
+/** РєРѕРЅСЃС‚Р°РЅС‚Р° РїРѕРєР°Р·С‹РІР°СЋС‰Р°СЏ, С‡С‚Рѕ Р±СЂР°С‚СЊ РёРјРµРЅР° РїРѕР»РµР№ РІ РєР°РІС‹С‡РєРё РќР• РЅСѓР¶РЅРѕ */
 const NOQUOTE = 32001;
 
 /**
- * константы определяющие уровень доступа к полям
+ * РєРѕРЅСЃС‚Р°РЅС‚С‹ РѕРїСЂРµРґРµР»СЏСЋС‰РёРµ СѓСЂРѕРІРµРЅСЊ РґРѕСЃС‚СѓРїР° Рє РїРѕР»СЏРј
  */
 const READ_ONLY_FIELD = 512;
 const UPDATABLE_FIELD = 256;
 const FULL_ACCESS_FIELD = 768;
 
 /**
- * список названий полей, значения которых можно менять и записывать в БД
- * @var array
+ * РґРѕР±Р°РІР»СЏРµС‚ РґР°РЅРЅС‹Рµ РёР· РґСЂСѓРіРѕРіРѕ РѕР±СЉРµРєС‚Р° $DataMapper,
+ * РµСЃР»Рё РІ РјР°СЃСЃРёРІРµ С‚РµРєСѓС‰РµРіРѕ РѕР±СЉРµРєС‚Р° СѓР¶Рµ РµСЃС‚СЊ РґР°РЅРЅС‹Рµ (СЃРѕРІРїР°РґР°СЋС‚ РёРЅРґРµРєСЃС‹)
+ * РѕР± РѕРґРЅРѕРј РёР· РґРѕР±Р°РІР»СЏРµРјС‹С… sub-РѕР±СЉРµРєС‚РѕРІ,
+ * С‚Рѕ РѕРЅРё Р±СѓРґСѓС‚ Р·Р°РјРµРЅРµРЅС‹ РЅР° РЅРѕРІС‹Рµ РёР· $DataMapper
+ * 
+ * @param self $DataMapper - РґРѕР±Р°РІР»СЏРµРјС‹Р№ $DataMapper
  */
-protected $SafetyFieldsArray = array();
-/**
- * @var integer - текущая позиция указателя, для реализации интерфейса итератора
- */
-private $Position = 0;
+public function addDataMapper(TRMDataMapperInterface $DataMapper)
+{
+    $this->mergeDataArray($DataMapper->DataArray);
+}
 
 /**
  * @return array - $SafetyFieldsArray
  */
-public function getSafetyFieldsArray()
+public function getFieldsArray()
 {
-    return $this->SafetyFieldsArray;
+    return $this->DataArray;
 }
 /**
- * @param array $SafetyFieldsArray
+ * @param array $FieldsArray
  */
-public function setSafetyFieldsArray( array $SafetyFieldsArray )
+public function setFieldsArray( array $FieldsArray )
 {
-    $this->SafetyFieldsArray = array();
-    foreach( $SafetyFieldsArray as $ObjectName => $ObjectState )
+    $this->DataArray = array();
+    foreach( $FieldsArray as $ObjectName => $FieldsArray )
     {
-        $this->setSafetyFieldsFor($ObjectState[TRMDataMapper::FIELDS_INDEX], 
-                $ObjectName, 
-                isset($ObjectState[TRMDataMapper::STATE_INDEX]) ? $ObjectState[TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD );
+        $this->setFieldsArrayFor(
+            $ObjectName, 
+            $FieldsArray[TRMDataMapper::FIELDS_INDEX], 
+            isset($FieldsArray[TRMDataMapper::STATE_INDEX]) ? $FieldsArray[TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD 
+        );
     }
 }
 
 /**
- * устанавливает характеристики поля для объекта $ObjectName,
- * если поле было ранее установлено, то данные перезапишутся!!!
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё РїРѕР»СЏ РґР»СЏ РѕР±СЉРµРєС‚Р° $ObjectName,
+ * РµСЃР»Рё РїРѕР»Рµ Р±С‹Р»Рѕ СЂР°РЅРµРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ, С‚Рѕ РґР°РЅРЅС‹Рµ РїРµСЂРµР·Р°РїРёС€СѓС‚СЃСЏ!!!
  *
- * @param string $FieldName - имя добавляемого поля
- * @param string $ObjectName - имя объекта, для которого добавляется поле
- * @param array $FieldState - массив со свойствами поля array("State", "Type", "Default", "Key", "Extra", "FieldAlias", "Quote", "Comment")
- * @param int $DefaultState - статус поля, 
- * который будет установлен для поля по умолчанию, 
- * если у него явно не задан параметр "State",
- * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РґРѕР±Р°РІР»СЏРµС‚СЃСЏ РїРѕР»Рµ
+ * @param string $FieldName - РёРјСЏ РґРѕР±Р°РІР»СЏРµРјРѕРіРѕ РїРѕР»СЏ
+ * @param array $FieldState - РјР°СЃСЃРёРІ СЃРѕ СЃРІРѕР№СЃС‚РІР°РјРё РїРѕР»СЏ array("State", "Type", "Default", "Key", "Extra", "FieldAlias", "Quote", "Comment")
+ * @param int $DefaultState - СЃС‚Р°С‚СѓСЃ РїРѕР»СЏ, 
+ * РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РґР»СЏ РїРѕР»СЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, 
+ * РµСЃР»Рё Сѓ РЅРµРіРѕ СЏРІРЅРѕ РЅРµ Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ "State",
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ Р·РЅР°С‡РµРЅРёРµ TRMDataMapper::READ_ONLY_FIELD
  */
-public function setSafetyField( $FieldName, $ObjectName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+public function setField( $ObjectName, $FieldName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
-    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
-    $this->completeSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
+    $this->validateAndCreateObjectField($ObjectName, $FieldName, $DefaultState);
+    $Field = $this->DataArray[$ObjectName]->getField( $FieldName ) ;
+    $Field->State = $DefaultState;
+    // Р±СѓРґРµС‚ СЃРѕР·РґР°РЅ РЅРѕРІС‹Р№ РѕР±СЉРµРєС‚, РµСЃР»Рё РєР°РєРёС…-С‚ Р·РЅР°С‡РµРЅРёР№ РЅРµ Р±СѓРґРµС‚ РІ $FieldState,
+    // С‚Рѕ СѓСЃС‚Р°РЅРѕРІСЏС‚СЃСЏ Р·РЅР°С‡РµРЅРёСЏ Р°С‚СЂРёР±СѓС‚РѕРІ РїРѕР»СЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+    $Field->initializeFromArray($FieldState);
 }
 
 /**
- * дополняет характеристики поля для объекта $ObjectName,
- * если поле было ранее установлено, то данные перезапишутся, если совпадут ключи,
- * остальные данные останутся нетронутыми!!!
+ * РґРѕРїРѕР»РЅСЏРµС‚ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєРё РїРѕР»СЏ РґР»СЏ РѕР±СЉРµРєС‚Р° $ObjectName,
+ * РµСЃР»Рё РїРѕР»Рµ Р±С‹Р»Рѕ СЂР°РЅРµРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ, С‚Рѕ РґР°РЅРЅС‹Рµ РїРµСЂРµР·Р°РїРёС€СѓС‚СЃСЏ, РµСЃР»Рё СЃРѕРІРїР°РґСѓС‚ РєР»СЋС‡Рё,
+ * РѕСЃС‚Р°Р»СЊРЅС‹Рµ РґР°РЅРЅС‹Рµ РѕСЃС‚Р°РЅСѓС‚СЃСЏ РЅРµС‚СЂРѕРЅСѓС‚С‹РјРё!!!
  *
- * @param string $FieldName - имя добавляемого поля
- * @param string $ObjectName - имя объекта, для которого добавляется поле
- * @param array $FieldState - массив со свойствами поля array("State", "Type", "Default", "Key", "Extra", "FieldAlias", "Quote", "Comment")
- * @param int $DefaultState - статус поля, 
- * который будет установлен для поля по умолчанию, 
- * если у него явно не задан параметр "State",
- * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РґРѕР±Р°РІР»СЏРµС‚СЃСЏ РїРѕР»Рµ
+ * @param string $FieldName - РёРјСЏ РґРѕР±Р°РІР»СЏРµРјРѕРіРѕ РїРѕР»СЏ
+ * @param array $FieldState - РјР°СЃСЃРёРІ СЃРѕ СЃРІРѕР№СЃС‚РІР°РјРё РїРѕР»СЏ array("State", "Type", "Default", "Key", "Extra", "FieldAlias", "Quote", "Comment")
+ * @param int $DefaultState - СЃС‚Р°С‚СѓСЃ РїРѕР»СЏ, 
+ * РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РґР»СЏ РїРѕР»СЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, 
+ * РµСЃР»Рё Сѓ РЅРµРіРѕ СЏРІРЅРѕ РЅРµ Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ "State",
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ Р·РЅР°С‡РµРЅРёРµ TRMDataMapper::READ_ONLY_FIELD
  */
-protected function completeSafetyField( $FieldName, $ObjectName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+protected function completeField( $ObjectName, $FieldName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
+    $this->validateAndCreateObjectField($ObjectName, $FieldName, $DefaultState);
+    $Field = $this->DataArray[$ObjectName]->getField( $FieldName );
+    $Field->State = $DefaultState;
+    // РІС‚РѕСЂРѕР№ Р°СЂРіСѓРјРµРЅС‚ - false - РѕР·РЅР°С‡Р°РµС‚, С‡С‚Рѕ РЅСѓР¶РЅРѕ СЃРѕС…СЂР°РЅРёС‚СЊ СЃС‚Р°СЂС‹Рµ Р·РЅР°С‡РµРЅРёСЏ, 
+    // РµСЃР»Рё РёС… РЅРµ Р±СѓРґРµС‚ РІ РјР°СЃСЃРёРІРµ $FieldState
+    $Field->initializeFromArray($FieldState, false);
+}
+
+/**
+ * РµСЃР»Рё РЅРµС‚ РѕР±СЉРµРєС‚Р° РёР»Рё РїРѕР»СЏ, С‚Рѕ СЃРѕР·РґР°РµС‚ РЅРѕРІС‹Рµ РѕР±СЉРµРєС‚С‹!!!
+ *
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РґРѕР±Р°РІР»СЏРµС‚СЃСЏ РїРѕР»Рµ
+ * @param string $FieldName - РёРјСЏ РґРѕР±Р°РІР»СЏРµРјРѕРіРѕ РїРѕР»СЏ
+ * @param int $DefaultState - СЃС‚Р°С‚СѓСЃ РїРѕР»СЏ, 
+ * РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РґР»СЏ РїРѕР»СЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, 
+ * РµСЃР»Рё Сѓ РЅРµРіРѕ СЏРІРЅРѕ РЅРµ Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ "State",
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ Р·РЅР°С‡РµРЅРёРµ TRMDataMapper::READ_ONLY_FIELD
+ * 
+ * @return TRMFieldMapper - РѕР±СЉРµРєС‚ СЃ РґР°РЅРЅС‹РјРё РїРѕР»СЏ TRMFieldMapper
+ * @throws TRMDataMapperNotStringFieldNameException
+ */
+protected function validateAndCreateObjectField( $ObjectName, $FieldName, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+{
+    if( !is_string($ObjectName) )
+    {
+        throw new TRMDataMapperNotStringFieldNameException( " [{$ObjectName}] " );
+    }
     if( !is_string($FieldName) )
     {
         throw new TRMDataMapperNotStringFieldNameException( " [{$FieldName}] " );
     }
-    // если для поля еще не установлен массив параметров, создаем как пустой
-    if(!isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]))
+    if( !isset($this->DataArray[$ObjectName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array();
+        $this->DataArray[$ObjectName] = new TRMObjectMapper();
+        $this->DataArray[$ObjectName]->Name = $ObjectName;
     }
-    // объединяем переданные параметры и уже существующие для поля, 
-    // заменяя старые значения на новый
-    $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] = array_merge($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName], $FieldState);
-    // если какой-то из параметров не задан, 
-    // то присваиваем ему значение по умолчанию из массива self::$IndexArray
-    foreach( self::$IndexArray as $Index => $Value)
+    // РµСЃР»Рё РґР»СЏ РїРѕР»СЏ РµС‰Рµ РЅРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РѕР±СЉРµРєС‚ РїР°СЂР°РјРµС‚СЂРѕРІ, СЃРѕР·РґР°РµРј РЅРѕРІС‹Р№ РѕР±СЉРµРєС‚
+    if( !$this->DataArray[$ObjectName]->hasField($FieldName) )
     {
-        if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index]) )
-        {
-            continue;
-        }
-        if( $Index == TRMDataMapper::STATE_INDEX )
-        {
-            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $DefaultState;
-        }
-        elseif( $Index == TRMDataMapper::COMMENT_INDEX )
-        {
-            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $FieldName;
-        }
-        else
-        {
-            $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName][$Index] = $Value;
-        }
+        $Field = new TRMFieldMapper();
+        $Field->Name = $FieldName;
+        $Field->State = $DefaultState;
+        $this->DataArray[$ObjectName]->setField( $Field ) ;
     }
 }
 
 /**
- * Проверяет есть ли данные для объекта $ObjectName в текущем DataMapper-e
+ * РџСЂРѕРІРµСЂСЏРµС‚ РµСЃС‚СЊ Р»Рё РґР°РЅРЅС‹Рµ РґР»СЏ РѕР±СЉРµРєС‚Р° $ObjectName РІ С‚РµРєСѓС‰РµРј DataMapper-e
  * 
- * @param string $ObjectName - имя проверяемого объекта объекта
+ * @param string $ObjectName - РёРјСЏ РїСЂРѕРІРµСЂСЏРµРјРѕРіРѕ РѕР±СЉРµРєС‚Р° РѕР±СЉРµРєС‚Р°
  * @return boolean
  */
 public function hasObject($ObjectName)
 {
-    return array_key_exists($ObjectName, $this->SafetyFieldsArray);
+    return $this->keyExists($ObjectName);
 }
 
 /**
- * добавляет поля доступные для записи/чтения к объекту $ObjectName,
- * устанавливает внутренний счетчик итератора SafetyFields в начало!!!
+ * РґРѕР±Р°РІР»СЏРµС‚ РѕРїРёСЃР°РЅРёРµ РїРѕР»СЏ РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё/С‡С‚РµРЅРёСЏ Рє РѕР±СЉРµРєС‚Сѓ $ObjectName
  *
- * @param array $Fields - массив массивов array( FieldName => array(State...), ... ), список полей и их параметры, в том числе возможность записи-чтения
- * @param string $ObjectName - имя объекта, для которого добавляются поля
- * @param int $DefaultState - статус поля, 
- * который будет установлен для всех элементов массива по умолчанию, 
- * если у них явно не задан параметр "State",
- * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ РїРѕР»СЏ
+ * @param array(TRMFields) $Fields - РјР°СЃСЃРёРІ РѕР±СЉРµРєС‚РѕРІ TRMFields
+ * @param int $DefaultState - СЃС‚Р°С‚СѓСЃ РїРѕР»СЏ, 
+ * РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РґР»СЏ РІСЃРµС… СЌР»РµРјРµРЅС‚РѕРІ РјР°СЃСЃРёРІР° РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, 
+ * РµСЃР»Рё Сѓ РЅРёС… СЏРІРЅРѕ РЅРµ Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ "State",
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ Р·РЅР°С‡РµРЅРёРµ TRMDataMapper::READ_ONLY_FIELD
  */
-public function setSafetyFieldsFor( array $Fields, $ObjectName, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+public function setFieldsFor( $ObjectName, array $Fields, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
-    if( !isset($this->SafetyFieldsArray[$ObjectName]) )
+    if( !isset($this->DataArray[$ObjectName]) )
     {
-        $this->SafetyFieldsArray[$ObjectName] = array( "State" => $DefaultState, TRMDataMapper::FIELDS_INDEX => array() );
+        $this->DataArray[$ObjectName] = new TRMObjectMapper();
+        $this->DataArray[$ObjectName]->Name = $ObjectName;
     }
 
-    foreach( $Fields as $FieldName => $FieldState )
+    $this->DataArray[$ObjectName]->setFields($Fields);
+}
+/**
+ * РґРѕР±Р°РІР»СЏРµС‚ РѕРїРёСЃР°РЅРёРµ РїРѕР»СЏ РґРѕСЃС‚СѓРїРЅС‹Рµ РґР»СЏ Р·Р°РїРёСЃРё/С‡С‚РµРЅРёСЏ Рє РѕР±СЉРµРєС‚Сѓ $ObjectName
+ *
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РґРѕР±Р°РІР»СЏСЋС‚СЃСЏ РїРѕР»СЏ
+ * @param array $Fields - РјР°СЃСЃРёРІ РјР°СЃСЃРёРІРѕРІ array( FieldName => array(State...), ... ), СЃРїРёСЃРѕРє РїРѕР»РµР№ Рё РёС… РїР°СЂР°РјРµС‚СЂС‹, РІ С‚РѕРј С‡РёСЃР»Рµ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ Р·Р°РїРёСЃРё-С‡С‚РµРЅРёСЏ
+ * @param int $DefaultState - СЃС‚Р°С‚СѓСЃ РїРѕР»СЏ, 
+ * РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РґР»СЏ РІСЃРµС… СЌР»РµРјРµРЅС‚РѕРІ РјР°СЃСЃРёРІР° РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, 
+ * РµСЃР»Рё Сѓ РЅРёС… СЏРІРЅРѕ РЅРµ Р·Р°РґР°РЅ РїР°СЂР°РјРµС‚СЂ "State",
+ * РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ Р·РЅР°С‡РµРЅРёРµ TRMDataMapper::READ_ONLY_FIELD
+ */
+public function setFieldsArrayFor( $ObjectName, array $Fields, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+{
+    if( !isset($this->DataArray[$ObjectName]) )
     {
-//        $this->setSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
-        $this->completeSafetyField($FieldName, $ObjectName, $FieldState, $DefaultState);
+        $this->DataArray[$ObjectName] = new TRMObjectMapper();
+        $this->DataArray[$ObjectName]->Name = $ObjectName;
+        $this->DataArray[$ObjectName]->State = $DefaultState;
     }
-    $this->rewind();
+
+    $this->DataArray[$ObjectName]->setFieldsArray($Fields);
 }
 
 /**
- * убираем поле из массива доступных для любой обработки
+ * СѓР±РёСЂР°РµРј РїРѕР»Рµ РёР· РјР°СЃСЃРёРІР° РґРѕСЃС‚СѓРїРЅС‹С… РґР»СЏ Р»СЋР±РѕР№ РѕР±СЂР°Р±РѕС‚РєРё
  *
- * @param string $FieldName - имя поля, которое нужно исключить
- * @param string $ObjectName - имя объекта, из которого удаляется поле, по умолчанию из главной
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РёР· РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»СЏРµС‚СЃСЏ РїРѕР»Рµ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РёР· РіР»Р°РІРЅРѕР№
+ * @param string $FieldName - РёРјСЏ РїРѕР»СЏ, РєРѕС‚РѕСЂРѕРµ РЅСѓР¶РЅРѕ РёСЃРєР»СЋС‡РёС‚СЊ
  */
-public function removeSafetyField( $FieldName, $ObjectName )
+public function removeField( $ObjectName, $FieldName )
 {
-    if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
+    $this->DataArray[$ObjectName]->removeField($FieldName);
+}
+
+/**
+ * СѓР±РёСЂР°РµРј СЂР°Р·РґРµР» СЃРІСЏР·Р°РЅРЅС‹Р№ СЃ РёРјРµРЅРµРј РѕР±СЉРµРєС‚Р° РёР· РјР°СЃСЃРёРІР° РїРѕР»РµР№ РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё
+ *
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓРґР°Р»СЏСЋС‚СЃСЏ РїРѕР»СЏ
+ */
+public function removeFieldsForObject( $ObjectName  )
+{
+    if( isset($this->DataArray[$ObjectName]) )
     {
-        unset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]);
+        unset($this->DataArray[$ObjectName]);
     }
 }
 
 /**
- * убираем раздел связанный с именем объекта из массива полей для обработки
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЃС‚Р°С‚СѓСЃ РїРѕР»СЏ - РґРѕСЃС‚СѓРїРµРЅ РґР»СЏ С‡С‚РµРЅРёР№/Р·Р°РїРёСЃРё TRMDataMapper::READ_ONLY_FIELD / TRMDataMapper::UPDATABLE_FIELD,
+ * РёР»Рё РІСЃРµ РІРјРµСЃС‚Рµ = TRMDataMapper::FULL_ACCESS_FIELD,
+ * РјРµРЅСЏС‚ Р·РЅР°С‡РµРЅРёРµ СѓР¶Рµ РїСЂРёСЃСѓС‚СЃРІСѓСЋС‰РµРіРѕ РІ РјР°СЃСЃРёРІРµ РїРѕР»СЏ,
+ * РµСЃР»Рё С‚Р°РєРѕРіРѕ РїРѕР»СЏ Сѓ РѕР±СЉРµРєС‚Р° $ObjectName РЅРµС‚, С‚Рѕ РґРѕР±Р°РІР»СЏРµС‚ РЅРѕРІРѕРµ
+ * Рё СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ Сѓ РЅРµРіРѕ С‚РѕР»СЊРєРѕ СЃС‚Р°С‚СѓСЃ С‡С‚РµРЅРёСЏ-Р·Р°РїРёСЃРё,
+ * РІСЃРµ РѕСЃС‚Р°Р»СЊРЅС‹Рµ СЃРІРѕР№СЃС‚РІР° РїРѕР»СЏ СѓСЃС‚Р°РЅР°РІР»РёРІР°СЋС‚СЃСЏ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
  *
- * @param string $ObjectName - имя объекта, для которого удаляются поля
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ РїРѕР»Рµ
+ * @param string $FieldName - РёРјСЏ РїРѕР»СЏ
+ * @param int $State - СЃРѕСЃС‚РѕСЏРЅРёРµ, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ = READ_ONLY_FIELD
  */
-public function removeSafetyFieldsForObject( $ObjectName  )
+public function setFieldState( $ObjectName, $FieldName, $State = TRMDataMapper::READ_ONLY_FIELD )
 {
-    if( isset($this->SafetyFieldsArray[$ObjectName]) )
+    if( !isset($this->DataArray[$ObjectName]) )
     {
-        unset($this->SafetyFieldsArray[$ObjectName]);
+        $this->DataArray[$ObjectName] = new TRMObjectMapper();
+        $this->DataArray[$ObjectName]->Name = $ObjectName;
+        $this->DataArray[$ObjectName]->State = $State;
     }
-}
-
-/**
- * устанавливает статус поля - доступен для чтений/записи TRMDataMapper::READ_ONLY_FIELD / TRMDataMapper::UPDATABLE_FIELD,
- * или все вместе = TRMDataMapper::FULL_ACCESS_FIELD,
- * менят значение уже присутсвующего в массиве поля,
- * если такого поля у объекта $ObjectName нет, то добавляет новое
- * и устанавливает у него только статус чтения-записи,
- * все остальные свойства поля устанавливаются по умолчанию
- *
- * @param string $FieldName - имя поля
- * @param string $ObjectName - имя объекта, для которого устанавливается поле
- * @param int $State - состояние, по умолчанию = READ_ONLY_FIELD
- */
-public function setSafetyFieldState( $FieldName, $ObjectName, $State = TRMDataMapper::READ_ONLY_FIELD )
-{
-    if( isset($this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]) )
+    if( !$this->DataArray[$ObjectName]->hasField($FieldName) )
     {
-        $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]["State"] = $State;
+        $Field = new TRMFieldMapper();
+        $Field->Name = $FieldName;
+        $Field->State = $State;
+        $this->DataArray[$ObjectName]->setField( $Field ) ;
     }
     else
     {
-        $this->setSafetyField($FieldName, $ObjectName, array( "State" => $State ) );
+        $Field =  $this->DataArray[$ObjectName]->getField( $FieldName ) ;
     }
+
+    $Field->State = $State;
 }
 
 /**
- * @param string $FieldName - имя поля, для которого нужно получить статус
- * @param string $ObjectName - имя объекта, которому принадлежит поле $FieldName
- * @return int|null - возвращает статус поля $FieldName в объекте $ObjectName - доступен для чтений/записи,
- * TRMDataMapper::READ_ONLY_FIELD или 
- * TRMDataMapper::FULL_ACCESS_FIELD или 
+ * @param string $ObjectName - РёРјСЏ РѕР±СЉРµРєС‚Р°, РєРѕС‚РѕСЂРѕРјСѓ РїСЂРёРЅР°РґР»РµР¶РёС‚ РїРѕР»Рµ $FieldName
+ * @param string $FieldName - РёРјСЏ РїРѕР»СЏ, РґР»СЏ РєРѕС‚РѕСЂРѕРіРѕ РЅСѓР¶РЅРѕ РїРѕР»СѓС‡РёС‚СЊ СЃС‚Р°С‚СѓСЃ 
+ * 
+ * @return int|null - РІРѕР·РІСЂР°С‰Р°РµС‚ СЃС‚Р°С‚СѓСЃ РїРѕР»СЏ $FieldName РІ РѕР±СЉРµРєС‚Рµ $ObjectName - РґРѕСЃС‚СѓРїРµРЅ РґР»СЏ С‡С‚РµРЅРёР№/Р·Р°РїРёСЃРё,
+ * TRMDataMapper::READ_ONLY_FIELD РёР»Рё 
+ * TRMDataMapper::FULL_ACCESS_FIELD РёР»Рё 
  * TRMDataMapper::UPDATABLE_FIELD
  */
-public function getSafetyFieldState( $FieldName, $ObjectName )
+public function getFieldState( $ObjectName, $FieldName )
 {
-    if( !isset( $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName] ) )
+    if( !isset( $this->DataArray[$ObjectName] ) )
     {
         return null;
     }
-    return $this->SafetyFieldsArray[$ObjectName][TRMDataMapper::FIELDS_INDEX][$FieldName]["State"];
+    if( !$this->DataArray[$ObjectName]->hasField($FieldName) )
+    {
+        return null;
+    }
+    return $this->DataArray[$ObjectName]->getField($FieldName)->State;
 }
 
 /**
- * @param string $LookingObjectName - имя проверяемого объекта
- * @param string $LookingFieldName - имя проверяемого поля на предмет ссылающихся на него других полей
+ * @param string $LookingObjectName - РёРјСЏ РїСЂРѕРІРµСЂСЏРµРјРѕРіРѕ РѕР±СЉРµРєС‚Р°
+ * @param string $LookingFieldName - РёРјСЏ РїСЂРѕРІРµСЂСЏРµРјРѕРіРѕ РїРѕР»СЏ РЅР° РїСЂРµРґРјРµС‚ СЃСЃС‹Р»Р°СЋС‰РёС…СЃСЏ РЅР° РЅРµРіРѕ РґСЂСѓРіРёС… РїРѕР»РµР№
  * 
- * @return array - возвращает массив содержащий ссылающиеся поля на проверяемое поле $LookingObjectName => $LookingFieldName,
- * массив вида array( $ObjectName1 => array(0=>$FieldName1, 1=>$FieldName2, ...), $ObjectName2 => ... )
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃРѕРґРµСЂР¶Р°С‰РёР№ СЃСЃС‹Р»Р°СЋС‰РёРµСЃСЏ РїРѕР»СЏ РЅР° РїСЂРѕРІРµСЂСЏРµРјРѕРµ РїРѕР»Рµ $LookingObjectName => $LookingFieldName,
+ * РјР°СЃСЃРёРІ РІРёРґР° array( $ObjectName1 => array(0=>$FieldName1, 1=>$FieldName2, ...), $ObjectName2 => ... )
  */
 public function getBackRelationFor($LookingObjectName, $LookingFieldName)
 {
     $FieldsArray = array();
-    foreach( $this->SafetyFieldsArray as $ObjectName => $ObjectState )
+    foreach( $this->DataArray as $ObjectName => $Object )
     {
-        foreach( $ObjectState[TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
+        foreach( $Object as $FieldName => $Field )
         {
-            // если у очередного поля есть секция Relatin (RELATION_INDEX)
-            // проверяем ссылается ли она на проверяемое поле
-            if( isset($FieldState[TRMDataMapper::RELATION_INDEX])
-                && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] == $LookingObjectName
-                && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::FIELD_NAME_INDEX] == $LookingFieldName
-                )
+           // РµСЃР»Рё Сѓ РѕС‡РµСЂРµРґРЅРѕРіРѕ РїРѕР»СЏ РµСЃС‚СЊ СЃРµРєС†РёСЏ Relatin (RELATION_INDEX)
+            // РїСЂРѕРІРµСЂСЏРµРј СЃСЃС‹Р»Р°РµС‚СЃСЏ Р»Рё РѕРЅР° РЅР° РїСЂРѕРІРµСЂСЏРµРјРѕРµ РїРѕР»Рµ
+            if( !empty($Field->Relation) 
+                && $Field->Relation[TRMDataMapper::OBJECT_NAME_INDEX] == $LookingObjectName
+                && $Field->Relation[TRMDataMapper::FIELD_NAME_INDEX] == $LookingFieldName
+            )
             {
                 $FieldsArray[$ObjectName][] = $FieldName;
             }
@@ -297,210 +345,159 @@ public function getBackRelationFor($LookingObjectName, $LookingFieldName)
 }
 
 /**
- * сортирует порядок объектов в массиве $this->SafetyFieldsArray,
- * таким образом, что сначала идут объекты, на которые есть ссылки, но которые ни на кого не ссылаются,
- * и дальше в такой последоватенльности, 
- * что бы ссылающиеся объекты располагались дальше, чем те, на которые они ссылаются
+ * СЃРѕСЂС‚РёСЂСѓРµС‚ РїРѕСЂСЏРґРѕРє РѕР±СЉРµРєС‚РѕРІ РІ РјР°СЃСЃРёРІРµ $this->DataArray,
+ * С‚Р°РєРёРј РѕР±СЂР°Р·РѕРј, С‡С‚Рѕ СЃРЅР°С‡Р°Р»Р° РёРґСѓС‚ РѕР±СЉРµРєС‚С‹, РЅР° РєРѕС‚РѕСЂС‹Рµ РµСЃС‚СЊ СЃСЃС‹Р»РєРё, РЅРѕ РєРѕС‚РѕСЂС‹Рµ РЅРё РЅР° РєРѕРіРѕ РЅРµ СЃСЃС‹Р»Р°СЋС‚СЃСЏ,
+ * Рё РґР°Р»СЊС€Рµ РІ С‚Р°РєРѕР№ РїРѕСЃР»РµРґРѕРІР°С‚РµРЅР»СЊРЅРѕСЃС‚Рё, 
+ * С‡С‚Рѕ Р±С‹ СЃСЃС‹Р»Р°СЋС‰РёРµСЃСЏ РѕР±СЉРµРєС‚С‹ СЂР°СЃРїРѕР»Р°РіР°Р»РёСЃСЊ РґР°Р»СЊС€Рµ, С‡РµРј С‚Рµ, РЅР° РєРѕС‚РѕСЂС‹Рµ РѕРЅРё СЃСЃС‹Р»Р°СЋС‚СЃСЏ,
+ * РѕР±СЂР°С‚РЅР°СЏ СЃРѕСЂС‚РёСЂРѕРІРєР° С„СѓРЅРєС†РёСЏ sortObjectsForReverseRelationOrder
  */
 public function sortObjectsForRelationOrder()
 {
-    return uksort( $this->SafetyFieldsArray, array($this, "compareTwoTablesRelation") );
+    return uksort( $this->DataArray, array($this, "compareTwoTablesRelation") );
 }
 
 /**
- * функция для сортировка ключей массива $this->SafetyFieldsArray,
- * т.е. для сортировка по именам таблиц, основываясь на наличии Relation и ссылок одной таблицы на другу,
- * если одна таблица ссылается на другую, значит она больше другой, 
- * и другая должна идти в порядке обработки первее...
- * в данном случае:
- * если из $Table1Name есть ссылка на $Table2Name, то вернется +1, т.е. $Table1Name > $Table2Name
- * если на $Table1Name есть ссылка из $Table2Name, то вернется -1, т.е. $Table1Name < $Table2Name
- * еслии таблицы не связаны друг с другом, то вернется 0,  т.е. $Table1Name == $Table2Name
+ * СЃРѕСЂС‚РёСЂСѓРµС‚ РїРѕСЂСЏРґРѕРє РѕР±СЉРµРєС‚РѕРІ РІ РјР°СЃСЃРёРІРµ $this->DataArray,
+ * С‚Р°РєРёРј РѕР±СЂР°Р·РѕРј, С‡С‚Рѕ Р±С‹ СЃСЃС‹Р»Р°СЋС‰РёРµСЃСЏ РѕР±СЉРµРєС‚С‹ СЂР°СЃРїРѕР»Р°РіР°Р»РёСЃСЊ СЂР°РЅСЊС€Рµ, С‡РµРј С‚Рµ, РЅР° РєРѕС‚РѕСЂС‹Рµ РѕРЅРё СЃСЃС‹Р»Р°СЋС‚СЃСЏ,
+ * РѕР±СЂР°С‚РЅР°СЏ СЃРѕСЂС‚РёСЂРѕРІРєР° С„СѓРЅРєС†РёРё sortObjectsForRelationOrder
+ */
+public function sortObjectsForReverseRelationOrder()
+{
+    return uksort( $this->DataArray, array($this, "compareTwoTablesReverseRelation") );
+}
+
+/**
+ * С„СѓРЅРєС†РёСЏ РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєР° РєР»СЋС‡РµР№ РјР°СЃСЃРёРІР° $this->DataArray,
+ * С‚.Рµ. РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєР° РїРѕ РёРјРµРЅР°Рј С‚Р°Р±Р»РёС†, РѕСЃРЅРѕРІС‹РІР°СЏСЃСЊ РЅР° РЅР°Р»РёС‡РёРё Relation Рё СЃСЃС‹Р»РѕРє РѕРґРЅРѕР№ С‚Р°Р±Р»РёС†С‹ РЅР° РґСЂСѓРіСѓ,
+ * РµСЃР»Рё РѕРґРЅР° С‚Р°Р±Р»РёС†Р° СЃСЃС‹Р»Р°РµС‚СЃСЏ РЅР° РґСЂСѓРіСѓСЋ, Р·РЅР°С‡РёС‚ РѕРЅР° Р±РѕР»СЊС€Рµ РґСЂСѓРіРѕР№, 
+ * Рё РґСЂСѓРіР°СЏ РґРѕР»Р¶РЅР° РёРґС‚Рё РІ РїРѕСЂСЏРґРєРµ РѕР±СЂР°Р±РѕС‚РєРё РїРµСЂРІРµРµ...
+ * РІ РґР°РЅРЅРѕРј СЃР»СѓС‡Р°Рµ:
+ * РµСЃР»Рё РёР· $Table1Name РµСЃС‚СЊ СЃСЃС‹Р»РєР° РЅР° $Table2Name, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ +1, С‚.Рµ. $Table1Name > $Table2Name
+ * РµСЃР»Рё РЅР° $Table1Name РµСЃС‚СЊ СЃСЃС‹Р»РєР° РёР· $Table2Name, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ -1, С‚.Рµ. $Table1Name < $Table2Name
+ * РµСЃР»РёРё С‚Р°Р±Р»РёС†С‹ РЅРµ СЃРІСЏР·Р°РЅС‹ РґСЂСѓРі СЃ РґСЂСѓРіРѕРј, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ 0,  С‚.Рµ. $Table1Name == $Table2Name
  * 
- * @param string $Table1Name - первый сравниваемый ключ - имя таблицы 1
- * @param string $Table2Name - второй сравниваемый ключ - имя таблицы 1
- * @return int - 0 - порядок одинаковый, 
- * +1 $Table1Name больше $Table2Name, и $Table2Name должна идти раньше (сортировка по возрастснию),
- * -1 $Table2Name больше $Table1Name, и $Table1Name должна идти раньше
+ * @param string $Table1Name - РїРµСЂРІС‹Р№ СЃСЂР°РІРЅРёРІР°РµРјС‹Р№ РєР»СЋС‡ - РёРјСЏ С‚Р°Р±Р»РёС†С‹ 1
+ * @param string $Table2Name - РІС‚РѕСЂРѕР№ СЃСЂР°РІРЅРёРІР°РµРјС‹Р№ РєР»СЋС‡ - РёРјСЏ С‚Р°Р±Р»РёС†С‹ 1
+ * @return int - 0 - РїРѕСЂСЏРґРѕРє РѕРґРёРЅР°РєРѕРІС‹Р№, 
+ * +1 $Table1Name Р±РѕР»СЊС€Рµ $Table2Name, Рё $Table2Name РґРѕР»Р¶РЅР° РёРґС‚Рё СЂР°РЅСЊС€Рµ (СЃРѕСЂС‚РёСЂРѕРІРєР° РїРѕ РІРѕР·СЂР°СЃС‚Р°РЅРёСЋ),
+ * -1 $Table2Name Р±РѕР»СЊС€Рµ $Table1Name, Рё $Table1Name РґРѕР»Р¶РЅР° РёРґС‚Рё СЂР°РЅСЊС€Рµ
  */
 private function compareTwoTablesRelation( $Table1Name, $Table2Name )
 {
-    // проверяем ссылается ли таблица 1 на таблицу 2
-    foreach( $this->SafetyFieldsArray[$Table1Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
+    // РєРѕР»РёС‡РµСЃС‚РІРѕ СЃСЃС‹Р»РѕРє РІ 1-Рј РѕР±СЉРµРєС‚Рµ
+    $Relation1 = 0;
+    // РєРѕР»РёС‡РµСЃС‚РІРѕ СЃСЃС‹Р»РѕРє РІРѕ 2-Рј РѕР±СЉРµРєС‚Рµ
+    $Relation2 = 0;
+    // РїСЂРѕРІРµСЂСЏРµРј СЃСЃС‹Р»Р°РµС‚СЃСЏ Р»Рё С‚Р°Р±Р»РёС†Р° 1 РЅР° С‚Р°Р±Р»РёС†Сѓ 2
+    foreach( $this->DataArray[$Table1Name] as $FieldName => $Field )
     {
-        if( isset($FieldState[TRMDataMapper::RELATION_INDEX]) 
-                && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] == $Table2Name
-                )
+        if( !empty($Field->Relation) )
         {
-            // число >0, 1-я таблица сссылается на 2-ю, $Table1Name > $Table2Name, 
-            // таблица 2 должна обновляться раньше, что бы обновились поля для связи
-            // это нужно, например, когда добавляется новая запись с автоинкрементным полем, на которое есть ссылка,
-            // перед добавлением записи поле пустое и у ссылающейся таблицы, естественно, тоже!
-            // а после добавления мы уже имеем inserted_id и новое значение поля auto_increment,
-            // значение которого должны занести в Relation-поле ссылающейся таблицы
-            return +1; 
+            $Relation1++;
+            if( $Field->Relation[TRMDataMapper::OBJECT_NAME_INDEX] == $Table2Name )
+            {
+                // С‡РёСЃР»Рѕ >0, 1-СЏ С‚Р°Р±Р»РёС†Р° СЃСЃСЃС‹Р»Р°РµС‚СЃСЏ РЅР° 2-СЋ, $Table1Name > $Table2Name, 
+                // С‚Р°Р±Р»РёС†Р° 2 РґРѕР»Р¶РЅР° РѕР±РЅРѕРІР»СЏС‚СЊСЃСЏ СЂР°РЅСЊС€Рµ, С‡С‚Рѕ Р±С‹ РѕР±РЅРѕРІРёР»РёСЃСЊ РїРѕР»СЏ РґР»СЏ СЃРІСЏР·Рё
+                // СЌС‚Рѕ РЅСѓР¶РЅРѕ, РЅР°РїСЂРёРјРµСЂ, РєРѕРіРґР° РґРѕР±Р°РІР»СЏРµС‚СЃСЏ РЅРѕРІР°СЏ Р·Р°РїРёСЃСЊ СЃ Р°РІС‚РѕРёРЅРєСЂРµРјРµРЅС‚РЅС‹Рј РїРѕР»РµРј, РЅР° РєРѕС‚РѕСЂРѕРµ РµСЃС‚СЊ СЃСЃС‹Р»РєР°,
+                // РїРµСЂРµРґ РґРѕР±Р°РІР»РµРЅРёРµРј Р·Р°РїРёСЃРё РїРѕР»Рµ РїСѓСЃС‚РѕРµ Рё Сѓ СЃСЃС‹Р»Р°СЋС‰РµР№СЃСЏ С‚Р°Р±Р»РёС†С‹, РµСЃС‚РµСЃС‚РІРµРЅРЅРѕ, С‚РѕР¶Рµ!
+                // Р° РїРѕСЃР»Рµ РґРѕР±Р°РІР»РµРЅРёСЏ РјС‹ СѓР¶Рµ РёРјРµРµРј inserted_id Рё РЅРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ РїРѕР»СЏ auto_increment,
+                // Р·РЅР°С‡РµРЅРёРµ РєРѕС‚РѕСЂРѕРіРѕ РґРѕР»Р¶РЅС‹ Р·Р°РЅРµСЃС‚Рё РІ Relation-РїРѕР»Рµ СЃСЃС‹Р»Р°СЋС‰РµР№СЃСЏ С‚Р°Р±Р»РёС†С‹
+                return +1; 
+            }
         }
     }
-    // если ссылок из Т1 на Т2 не нйдено проверяем наоборот, ссылки из Т2 на Т1
-    // проверяем ссылается ли таблица 1 на таблицу 2
-    foreach( $this->SafetyFieldsArray[$Table2Name][TRMDataMapper::FIELDS_INDEX] as $FieldName => $FieldState )
+    // РµСЃР»Рё СЃСЃС‹Р»РѕРє РёР· Рў1 РЅР° Рў2 РЅРµ РЅР№РґРµРЅРѕ РїСЂРѕРІРµСЂСЏРµРј РЅР°РѕР±РѕСЂРѕС‚, СЃСЃС‹Р»РєРё РёР· Рў2 РЅР° Рў1
+    // РїСЂРѕРІРµСЂСЏРµРј СЃСЃС‹Р»Р°РµС‚СЃСЏ Р»Рё С‚Р°Р±Р»РёС†Р° 1 РЅР° С‚Р°Р±Р»РёС†Сѓ 2
+    foreach( $this->DataArray[$Table2Name] as $FieldName => $Field )
     {
-        if( isset($FieldState[TRMDataMapper::RELATION_INDEX]) 
-                && $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] == $Table1Name
-                )
+        if( !empty($Field->Relation) )
         {
-            // число <0, 2-я таблица сссылается на 1-ю, $Table1Name < $Table2Name, 
-            // таблица 1 должна обновляться раньше, что бы обновились поля для связи
-            return -1; 
+            $Relation2++;
+            if( $Field->Relation[TRMDataMapper::OBJECT_NAME_INDEX] == $Table1Name )
+            {
+                // С‡РёСЃР»Рѕ <0, 2-СЏ С‚Р°Р±Р»РёС†Р° СЃСЃСЃС‹Р»Р°РµС‚СЃСЏ РЅР° 1-СЋ, $Table1Name < $Table2Name, 
+                // С‚Р°Р±Р»РёС†Р° 1 РґРѕР»Р¶РЅР° РѕР±РЅРѕРІР»СЏС‚СЊСЃСЏ СЂР°РЅСЊС€Рµ, С‡С‚Рѕ Р±С‹ РѕР±РЅРѕРІРёР»РёСЃСЊ РїРѕР»СЏ РґР»СЏ СЃРІСЏР·Рё
+                return -1; 
+            }
         }
+    }
+    
+    // РµСЃР»Рё РѕР±СЉРµРєС‚С‹ РЅРµ СЃСЃС‹Р»Р°СЋС‚СЃСЏ РґСЂСѓРі РЅР° РґСЂСѓРіР°, 
+    // С‚Рѕ СЃСЂР°РІРЅРёРІР°РµС‚СЃСЏ РєРѕР»-РІРѕ СЃСЃС‹Р»РѕРє РІ РѕРґРЅРѕРј Рё РґСЂСѓРіРѕРј РѕР±СЉРµРєС‚Рµ
+    if( $Relation1 > $Relation2 )
+    { 
+        return +1; 
+    }
+    if( $Relation1 < $Relation2 )
+    { 
+        return -1; 
     }
 
-    // если ничего не найдено, значит таблицы идентичны
-    // с точки зрения порядка обнавления
+    // РµСЃР»Рё РЅРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ, Р·РЅР°С‡РёС‚ С‚Р°Р±Р»РёС†С‹ РёРґРµРЅС‚РёС‡РЅС‹
+    // СЃ С‚РѕС‡РєРё Р·СЂРµРЅРёСЏ РїРѕСЂСЏРґРєР° РѕР±РЅР°РІР»РµРЅРёСЏ
     return 0;
+}
+/**
+ * С„СѓРЅРєС†РёСЏ РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєР° РєР»СЋС‡РµР№ РјР°СЃСЃРёРІР° $this->DataArray,
+ * С‚.Рµ. РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєР° РїРѕ РёРјРµРЅР°Рј С‚Р°Р±Р»РёС†, РѕСЃРЅРѕРІС‹РІР°СЏСЃСЊ РЅР° РЅР°Р»РёС‡РёРё Relation Рё СЃСЃС‹Р»РѕРє РѕРґРЅРѕР№ С‚Р°Р±Р»РёС†С‹ РЅР° РґСЂСѓРіСѓ,
+ * РµСЃР»Рё РѕРґРЅР° С‚Р°Р±Р»РёС†Р° СЃСЃС‹Р»Р°РµС‚СЃСЏ РЅР° РґСЂСѓРіСѓСЋ, Р·РЅР°С‡РёС‚ РѕРЅР° Р±РѕР»СЊС€Рµ РґСЂСѓРіРѕР№, 
+ * Рё РґСЂСѓРіР°СЏ РґРѕР»Р¶РЅР° РёРґС‚Рё РІ РїРѕСЂСЏРґРєРµ РѕР±СЂР°Р±РѕС‚РєРё РїРµСЂРІРµРµ...
+ * РІ РґР°РЅРЅРѕРј СЃР»СѓС‡Р°Рµ:
+ * РµСЃР»Рё РёР· $Table1Name РµСЃС‚СЊ СЃСЃС‹Р»РєР° РЅР° $Table2Name, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ -1, С‚.Рµ. $Table1Name < $Table2Name
+ * РµСЃР»Рё РЅР° $Table1Name РµСЃС‚СЊ СЃСЃС‹Р»РєР° РёР· $Table2Name, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ +1, С‚.Рµ. $Table1Name > $Table2Name
+ * РµСЃР»РёРё С‚Р°Р±Р»РёС†С‹ РЅРµ СЃРІСЏР·Р°РЅС‹ РґСЂСѓРі СЃ РґСЂСѓРіРѕРј, С‚Рѕ РІРµСЂРЅРµС‚СЃСЏ 0,  С‚.Рµ. $Table1Name == $Table2Name
+ * 
+ * @param string $Table1Name - РїРµСЂРІС‹Р№ СЃСЂР°РІРЅРёРІР°РµРјС‹Р№ РєР»СЋС‡ - РёРјСЏ С‚Р°Р±Р»РёС†С‹ 1
+ * @param string $Table2Name - РІС‚РѕСЂРѕР№ СЃСЂР°РІРЅРёРІР°РµРјС‹Р№ РєР»СЋС‡ - РёРјСЏ С‚Р°Р±Р»РёС†С‹ 1
+ * 
+ * @return int - 0 - РїРѕСЂСЏРґРѕРє РѕРґРёРЅР°РєРѕРІС‹Р№, 
+ * -1 $Table1Name РјРµРЅСЊС€Рµ $Table2Name, Рё $Table2Name РґРѕР»Р¶РЅР° РёРґС‚Рё РїРѕСЃР»Рµ (СЃРѕСЂС‚РёСЂРѕРІРєР° РїРѕ РІРѕР·СЂР°СЃС‚Р°РЅРёСЋ),
+ * +1 $Table2Name РјРµРЅСЊС€Рµ $Table1Name, Рё $Table1Name РґРѕР»Р¶РЅР° РёРґС‚Рё РїРѕСЃР»Рµ
+ */
+private function compareTwoTablesReverseRelation( $Table1Name, $Table2Name )
+{
+    return (-1 * $this->compareTwoTablesRelation($Table1Name, $Table2Name) );
 }
 
 /**
- * Как правило в объекте данных один внутренний объект (таблица для случая с БД) играет роль главного,
- * например, товар - главный, а производитель, единица измерения - это вспомогательные объекты,
- * главный объект использует, т.е. ссылается на вспомогательные, 
- * но вспомогательные не могут использовать - ссылаться на главный объект,
- * таких объектов (главных без ссылок на них) может быть несколько,
- * эта функция возвращает массив со всеми именами объектов без обратных ссылок на них
+ * РљР°Рє РїСЂР°РІРёР»Рѕ РІ РѕР±СЉРµРєС‚Рµ РґР°РЅРЅС‹С… РѕРґРёРЅ РІРЅСѓС‚СЂРµРЅРЅРёР№ РѕР±СЉРµРєС‚ (С‚Р°Р±Р»РёС†Р° РґР»СЏ СЃР»СѓС‡Р°СЏ СЃ Р‘Р”) РёРіСЂР°РµС‚ СЂРѕР»СЊ РіР»Р°РІРЅРѕРіРѕ,
+ * РЅР°РїСЂРёРјРµСЂ, С‚РѕРІР°СЂ - РіР»Р°РІРЅС‹Р№, Р° РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊ, РµРґРёРЅРёС†Р° РёР·РјРµСЂРµРЅРёСЏ - СЌС‚Рѕ РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ РѕР±СЉРµРєС‚С‹,
+ * РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚ РёСЃРїРѕР»СЊР·СѓРµС‚, С‚.Рµ. СЃСЃС‹Р»Р°РµС‚СЃСЏ РЅР° РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ, 
+ * РЅРѕ РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ РЅРµ РјРѕРіСѓС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ - СЃСЃС‹Р»Р°С‚СЊСЃСЏ РЅР° РіР»Р°РІРЅС‹Р№ РѕР±СЉРµРєС‚,
+ * С‚Р°РєРёС… РѕР±СЉРµРєС‚РѕРІ (РіР»Р°РІРЅС‹С… Р±РµР· СЃСЃС‹Р»РѕРє РЅР° РЅРёС…) РјРѕР¶РµС‚ Р±С‹С‚СЊ РЅРµСЃРєРѕР»СЊРєРѕ,
+ * СЌС‚Р° С„СѓРЅРєС†РёСЏ РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ СЃРѕ РІСЃРµРјРё РёРјРµРЅР°РјРё РѕР±СЉРµРєС‚РѕРІ Р±РµР· РѕР±СЂР°С‚РЅС‹С… СЃСЃС‹Р»РѕРє РЅР° РЅРёС…
  * 
- * @return array - возвращает массив, содержащий имена объектов, на которые нет ссылок внутри DataMapper
- * @throws TRMDataMapperRelationException - если таких объектов не обнаружится, 
- * то выбрасывается исключение, в данной версии циклические ссылки не допустимы!
+ * @return array - РІРѕР·РІСЂР°С‰Р°РµС‚ РјР°СЃСЃРёРІ, СЃРѕРґРµСЂР¶Р°С‰РёР№ РёРјРµРЅР° РѕР±СЉРµРєС‚РѕРІ, РЅР° РєРѕС‚РѕСЂС‹Рµ РЅРµС‚ СЃСЃС‹Р»РѕРє РІРЅСѓС‚СЂРё DataMapper
+ * @throws TRMDataMapperRelationException - РµСЃР»Рё С‚Р°РєРёС… РѕР±СЉРµРєС‚РѕРІ РЅРµ РѕР±РЅР°СЂСѓР¶РёС‚СЃСЏ, 
+ * С‚Рѕ РІС‹Р±СЂР°СЃС‹РІР°РµС‚СЃСЏ РёСЃРєР»СЋС‡РµРЅРёРµ, РІ РґР°РЅРЅРѕР№ РІРµСЂСЃРёРё С†РёРєР»РёС‡РµСЃРєРёРµ СЃСЃС‹Р»РєРё РЅРµ РґРѕРїСѓСЃС‚РёРјС‹!
  */
 public function getObjectsNamesWithoutBackRelations()
 {
-    // получаем все имена объектов внутри SafetyFields
-    // меняем ключи со значением местами, 
-    // таким образом получаем пустой массив с ключами как у SafetyFieldsArray
-    $ObjectsNamesArray = array_flip( array_keys( $this->SafetyFieldsArray ) );
+    // РїРѕР»СѓС‡Р°РµРј РІСЃРµ РёРјРµРЅР° РѕР±СЉРµРєС‚РѕРІ РІРЅСѓС‚СЂРё SafetyFields
+    // РјРµРЅСЏРµРј РєР»СЋС‡Рё СЃРѕ Р·РЅР°С‡РµРЅРёРµРј РјРµСЃС‚Р°РјРё, 
+    // С‚Р°РєРёРј РѕР±СЂР°Р·РѕРј РїРѕР»СѓС‡Р°РµРј РїСѓСЃС‚РѕР№ РјР°СЃСЃРёРІ СЃ РєР»СЋС‡Р°РјРё РєР°Рє Сѓ SafetyFieldsArray
+    $ObjectsNamesArray = array_flip( $this->getArrayKeys() );
     
-    foreach( $this->SafetyFieldsArray as $ObjectState )
+    foreach( $this->DataArray as $Object )
     {
-        foreach( $ObjectState[TRMDataMapper::FIELDS_INDEX] as $FieldState )
+        foreach( $Object as $Field )
         {
-            // если у очередного поля есть секция Relation (ссылка на другое поле другого объекта)
-            // то удаляем элемента массива $ObjectsNamesArray с именем объекта, на который идет ссылка
-            if( isset($FieldState[TRMDataMapper::RELATION_INDEX]) 
-                && isset($ObjectsNamesArray[ $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]))
+            // РµСЃР»Рё Сѓ РѕС‡РµСЂРµРґРЅРѕРіРѕ РїРѕР»СЏ РµСЃС‚СЊ СЃРµРєС†РёСЏ Relation (СЃСЃС‹Р»РєР° РЅР° РґСЂСѓРіРѕРµ РїРѕР»Рµ РґСЂСѓРіРѕРіРѕ РѕР±СЉРµРєС‚Р°)
+            // С‚Рѕ СѓРґР°Р»СЏРµРј СЌР»РµРјРµРЅС‚Р° РјР°СЃСЃРёРІР° $ObjectsNamesArray СЃ РёРјРµРЅРµРј РѕР±СЉРµРєС‚Р°, 
+            // РЅР° РєРѕС‚РѕСЂС‹Р№ РёРґРµС‚ СЃСЃС‹Р»РєР°
+            if( !empty($Field->Relation) )
             {
-                unset($ObjectsNamesArray[ $FieldState[TRMDataMapper::RELATION_INDEX][TRMDataMapper::OBJECT_NAME_INDEX] ]);
+                unset($ObjectsNamesArray[ $Field->Relation[TRMDataMapper::OBJECT_NAME_INDEX] ]);
                 if(empty($ObjectsNamesArray))
                 {
                     throw new TRMDataMapperRelationException( __METHOD__ );
                 }
             }
         }
-        // 
     }
 
-    // возвращаем массив из оставшихся ключей. т.е. из оставшихся имен объектов!!!
+    // РІРѕР·РІСЂР°С‰Р°РµРј РјР°СЃСЃРёРІ РёР· РѕСЃС‚Р°РІС€РёС…СЃСЏ РєР»СЋС‡РµР№. С‚.Рµ. РёР· РѕСЃС‚Р°РІС€РёС…СЃСЏ РёРјРµРЅ РѕР±СЉРµРєС‚РѕРІ!!!
     return array_keys($ObjectsNamesArray);
-}
-
-/**
- * оцищает весь массив с информацией об объектах и их полях
- */
-public function clear()
-{
-    $this->Position = 0;
-    $this->SafetyFieldsArray = array();
-}
-
-
-/**
- * Присваивает значение заданному смещению - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @param array $value
- */
-public function offsetSet($offset, $value)
-{
-    if (is_null($offset)) {
-        $this->SafetyFieldsArray[] = $value;
-    } else {
-        $this->SafetyFieldsArray[$offset] = $value;
-    }
-}
-
-/**
- * Определяет, существует ли заданное смещение (ключ) - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @return array
- */
-public function offsetExists($offset)
-{
-    return isset($this->SafetyFieldsArray[$offset]);
-}
-
-/**
- * Удаляет смещение, т.е. объект из массива по заданному смещению - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- */
-public function offsetUnset($offset)
-{
-    unset($this->SafetyFieldsArray[$offset]);
-}
-
-/**
- * Возвращает заданное смещение (ключ) - реализация интерфейса ArrayAccess
- * 
- * @param int $offset
- * @return array
- */
-public function offsetGet($offset)
-{
-    return isset($this->SafetyFieldsArray[$offset]) ? $this->SafetyFieldsArray[$offset] : null;
-}
-
-/**
- *  возвращает количество объектов в массиве
- */
-public function count()
-{
-    return count($this->SafetyFieldsArray);
-}
-
-
-/**
- * Устанавливает внутренний счетчик массива в начало - реализация интерфейса Iterator
- */
-public function rewind()
-{
-    reset($this->SafetyFieldsArray);
-    $this->Position = 0;
-}
-
-public function current()
-{
-    return current($this->SafetyFieldsArray);
-}
-
-public function key()
-{
-    return key($this->SafetyFieldsArray);
-}
-
-public function next()
-{
-    next($this->SafetyFieldsArray);
-    ++$this->Position;
-}
-/**
- * если счетчик превышает или равен размеру массива, значит в этом элеменет уже ничего нет,
- * $this->Position всегда должна быть < count($this->SafetyFieldsArray)
- * 
- * @return boolean
- */
-public function valid()
-{
-    return ($this->Position < count($this->SafetyFieldsArray));
 }
 
 

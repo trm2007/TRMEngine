@@ -5,43 +5,43 @@ namespace TRMEngine\PathFinder\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
- * Класс исключения, которое должно выбрасываться, 
- * если не найден маршрут
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ, 
+ * РµСЃР»Рё РЅРµ РЅР°Р№РґРµРЅ РјР°СЂС€СЂСѓС‚
  */
 class TRMPathNotFoundedException extends TRMException
 {
     public function __construct( $message = "", $code = 404, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Обращение по неверному адресу! " . PHP_EOL;
+        $message .= PHP_EOL . " РћР±СЂР°С‰РµРЅРёРµ РїРѕ РЅРµРІРµСЂРЅРѕРјСѓ Р°РґСЂРµСЃСѓ! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMPathNotFoundedException
 
 /**
- * Класс исключения, которое должно выбрасываться диспетчером путей, 
- * если не найден контроллер для текущего URI
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РґРёСЃРїРµС‚С‡РµСЂРѕРј РїСѓС‚РµР№, 
+ * РµСЃР»Рё РЅРµ РЅР°Р№РґРµРЅ РєРѕРЅС‚СЂРѕР»Р»РµСЂ РґР»СЏ С‚РµРєСѓС‰РµРіРѕ URI
  */
 class TRMControllerNotFoundedException extends TRMException
 {
     public function __construct( $message = "", $code = 404, \Throwable $previous = NULL)
     {
-        $message .= PHP_EOL . " Не найден модуль (класс контроллера)! " . PHP_EOL;
+        $message .= PHP_EOL . " РќРµ РЅР°Р№РґРµРЅ РјРѕРґСѓР»СЊ (РєР»Р°СЃСЃ РєРѕРЅС‚СЂРѕР»Р»РµСЂР°)! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
     }
 } // TRMControllerNotFoundedException
 
 
 /**
- * Класс исключения, которое должно выбрасываться диспетчером путей,
- * если не найден Action в контроллере для текущего URI
+ * РљР»Р°СЃСЃ РёСЃРєР»СЋС‡РµРЅРёСЏ, РєРѕС‚РѕСЂРѕРµ РґРѕР»Р¶РЅРѕ РІС‹Р±СЂР°СЃС‹РІР°С‚СЊСЃСЏ РґРёСЃРїРµС‚С‡РµСЂРѕРј РїСѓС‚РµР№,
+ * РµСЃР»Рё РЅРµ РЅР°Р№РґРµРЅ Action РІ РєРѕРЅС‚СЂРѕР»Р»РµСЂРµ РґР»СЏ С‚РµРєСѓС‰РµРіРѕ URI
  */
 class TRMActionNotFoundedException extends TRMException
 {
     public function __construct( $ControllerName, $ActionName, $Param, $Code = 404 )
     {
-        parent::__construct( "В модуле [" . $ControllerName . "] не найден метод [" 
+        parent::__construct( "Р’ РјРѕРґСѓР»Рµ [" . $ControllerName . "] РЅРµ РЅР°Р№РґРµРЅ РјРµС‚РѕРґ [" 
                             . $ActionName
-                            . "]<br>   для обработки [" 
+                            . "]<br>   РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё [" 
                             . $Param .  "]<br>",
                 $Code );
     }

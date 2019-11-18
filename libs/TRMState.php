@@ -3,66 +3,66 @@
 namespace TRMEngine\Helpers;
 
 /**
- * абстрактный класс для всех объектов, у котороых может быть код и строка состяния, например во время ошибок
+ * Р°Р±СЃС‚СЂР°РєС‚РЅС‹Р№ РєР»Р°СЃСЃ РґР»СЏ РІСЃРµС… РѕР±СЉРµРєС‚РѕРІ, Сѓ РєРѕС‚РѕСЂРѕС‹С… РјРѕР¶РµС‚ Р±С‹С‚СЊ РєРѕРґ Рё СЃС‚СЂРѕРєР° СЃРѕСЃС‚СЏРЅРёСЏ, РЅР°РїСЂРёРјРµСЂ РІРѕ РІСЂРµРјСЏ РѕС€РёР±РѕРє
  *
  * @author TRM 2019-02-24
  */
 abstract class TRMState
 {
 /**
- * @var int - код состяния
+ * @var int - РєРѕРґ СЃРѕСЃС‚СЏРЅРёСЏ
  */
 private $StateCode = 0;
 
 /**
- * @var string - строка (описание) состояния
+ * @var string - СЃС‚СЂРѕРєР° (РѕРїРёСЃР°РЅРёРµ) СЃРѕСЃС‚РѕСЏРЅРёСЏ
  */
 private $StateString = "";
 
 /**
- * @return int - возвращает текущий код состяния
+ * @return int - РІРѕР·РІСЂР°С‰Р°РµС‚ С‚РµРєСѓС‰РёР№ РєРѕРґ СЃРѕСЃС‚СЏРЅРёСЏ
  */
 public function getStateCode() {
     return $this->StateCode;
 }
 
 /**
- * @return string - возвращает текущую строку (описание) состяния
+ * @return string - РІРѕР·РІСЂР°С‰Р°РµС‚ С‚РµРєСѓС‰СѓСЋ СЃС‚СЂРѕРєСѓ (РѕРїРёСЃР°РЅРёРµ) СЃРѕСЃС‚СЏРЅРёСЏ
  */
 public function getStateString() {
     return $this->StateString;
 }
 
 /**
- * @param int $StateCode - устанавливает код состяния
+ * @param int $StateCode - СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РєРѕРґ СЃРѕСЃС‚СЏРЅРёСЏ
  */
 public function setStateCode($StateCode) {
     $this->StateCode = $StateCode;
 }
 
 /**
- * @param string $StateString - устанавливает текущую строку (описание) состяния
+ * @param string $StateString - СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С‚РµРєСѓС‰СѓСЋ СЃС‚СЂРѕРєСѓ (РѕРїРёСЃР°РЅРёРµ) СЃРѕСЃС‚СЏРЅРёСЏ
  */
 public function setStateString($StateString) {
     $this->StateString = $StateString;
 }
 
 /**
- * @param int $StateCode - добавляет код состяния к текущему путем логического сложения ИЛИ (|)
+ * @param int $StateCode - РґРѕР±Р°РІР»СЏРµС‚ РєРѕРґ СЃРѕСЃС‚СЏРЅРёСЏ Рє С‚РµРєСѓС‰РµРјСѓ РїСѓС‚РµРј Р»РѕРіРёС‡РµСЃРєРѕРіРѕ СЃР»РѕР¶РµРЅРёСЏ РР›Р (|)
  */
 public function addStateCode($StateCode) {
     $this->StateCode |= $StateCode;
 }
 
 /**
- * @param string $StateString - добавляет строку (описание) состяния к уже имющейся
+ * @param string $StateString - РґРѕР±Р°РІР»СЏРµС‚ СЃС‚СЂРѕРєСѓ (РѕРїРёСЃР°РЅРёРµ) СЃРѕСЃС‚СЏРЅРёСЏ Рє СѓР¶Рµ РёРјСЋС‰РµР№СЃСЏ
  */
 public function addStateString($StateString) {
     $this->StateString .= PHP_EOL . $StateString;
 }
 
 /**
- * устанавливает код состяния в 0 и очищает строку состояния
+ * СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РєРѕРґ СЃРѕСЃС‚СЏРЅРёСЏ РІ 0 Рё РѕС‡РёС‰Р°РµС‚ СЃС‚СЂРѕРєСѓ СЃРѕСЃС‚РѕСЏРЅРёСЏ
  */
 public function clearState()
 {
