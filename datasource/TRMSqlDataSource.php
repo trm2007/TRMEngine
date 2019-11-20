@@ -294,11 +294,11 @@ private function generateFieldsString( TRMSafetyFields $SafetyFields )
     $fieldstr = "";
     foreach( $SafetyFields as $TableName => $Table )
     {        
-        $TableAlias = $Table->Alias;
-        $tn = empty($TableAlias) ? $TableName : $TableAlias;
+        $TableAlias = empty($Table->Alias) ? $TableName : $Table->Alias;
+
         foreach( $Table as $FieldName => $Field )
         {
-            if( !empty($tn) ) { $fieldstr .= "`" . $tn . "`."; }
+            if( !empty($TableAlias) ) { $fieldstr .= "`" . $TableAlias . "`."; }
 
             if( $Field->Quote == TRMDataMapper::NEED_QUOTE )
             {
@@ -306,7 +306,7 @@ private function generateFieldsString( TRMSafetyFields $SafetyFields )
             }
             else { $fieldstr .= $FieldName; }
 
-            if( strlen($Field->Alias)>0 )
+            if( !empty($Field->Alias)>0 )
             {
                 $fieldstr .= (" AS ".$Field->Alias);
             }
@@ -826,14 +826,11 @@ protected function generateParamsFromArrayFor($tablename, array $param, array &$
     }
 
     /* VALUE */
-    if( is_string($value["value"]) || is_numeric($value["value"]) || is_bool($value["value"]) )
-    {
-        // для строчных значений экранируем одинарные кавычки, что бы не было конфликта в запросе
-        if( is_string($value["value"]) )
-        {
-            $value["value"] = str_replace("'", "\\'", $value["value"]);
-        }
-    }
+    // для строчных значений экранируем одинарные кавычки, что бы не было конфликта в запросе
+//    if( is_string($value["value"]) )
+//    {
+//        $value["value"] = addcslashes(trim($value["value"], "'"), "'"); // str_replace("'", "\\'", $value["value"]);
+//    }
     
     /* OPERATOR - для простого value это может быть = или НЕ = */
     if( isset($param["operator"]) )
@@ -844,7 +841,7 @@ protected function generateParamsFromArrayFor($tablename, array $param, array &$
     /* AND OR */
     if( isset($param["andor"]) )
     {
-        $value["andor"] = trim(strtoupper($param["andor"]));
+        $value["andor"] = strtoupper(trim($param["andor"]));
         if( !($value["andor"] == "AND") && !($value["andor"] == "OR") )
         {
             $value["andor"] = "AND";
