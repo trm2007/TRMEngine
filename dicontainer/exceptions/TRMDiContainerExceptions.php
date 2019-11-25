@@ -5,10 +5,22 @@ namespace TRMEngine\DiContainer\Exceptions;
 use TRMEngine\Exceptions\TRMException;
 
 /**
+ * Общие исключения для DIContainer и фабрик
+ */
+class TRMDiExceptions extends TRMException
+{
+    public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
+    {
+        $message .= PHP_EOL . " Ошибка инъекции зависимости, или создания объекта! " . PHP_EOL;
+        parent::__construct($message, $code, $previous);
+    }
+}
+
+/**
  * Должно выбрасываться в контейнере,
  * если в приложении не найден запращиваемый класс
  */
-class TRMDiClassNotFoundedException extends TRMException
+class TRMDiClassNotFoundedException extends TRMDiExceptions
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
@@ -22,7 +34,7 @@ class TRMDiClassNotFoundedException extends TRMException
  * Должно выбрасываться в контейнере,
  * если у объекта НЕ публичный конструктор и нет других доступных методов для создания
  */
-class TRMDiNotPublicConstructorException extends TRMException
+class TRMDiNotPublicConstructorException extends TRMDiExceptions
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
@@ -36,7 +48,7 @@ class TRMDiNotPublicConstructorException extends TRMException
  * Должно выбрасываться в контейнере,
  * если объект не удалось создать какими-либо способами
  */
-class TRMDiCanNotCreateObjectException extends TRMException
+class TRMDiCanNotCreateObjectException extends TRMDiExceptions
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {
@@ -51,7 +63,7 @@ class TRMDiCanNotCreateObjectException extends TRMException
  * если в метод объекта (__constructor, hasInstance, или другой для создания)
  * должны переаваться какие-то аргументы, но нет значений по умолчанию
  */
-class TRMDiNoDefaultArgsException extends TRMException
+class TRMDiNoDefaultArgsException extends TRMDiExceptions
 {
     public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
     {

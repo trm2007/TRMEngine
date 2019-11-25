@@ -2,7 +2,7 @@
 
 namespace TRMEngine\Repository;
 
-use TRMEngine\DataMapper\TRMDataMapper;
+use TRMEngine\DataMapper\Interfaces\TRMDataMapperInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\DataObject\TRMDataObjectsCollection;
@@ -44,7 +44,7 @@ protected $CollectionToInsert;
  */
 protected $CollectionToDelete;
 /**
- * @var TRMDataMapper 
+ * @var TRMDataMapperInterface 
  */
 protected $DataMapper;
 /**
@@ -56,8 +56,11 @@ protected $KeepQueryParams = false;
 
 /**
  * @param string $objectclassname - имя класса для объектов, за которые отвечает этот Repository
+ * @param TRMDataSourceInterface $DataSource - источник данных (работа с запросами БД)
+ * 
+ * @throws TRMRepositoryUnknowDataObjectClassException
  */
-public function __construct($objectclassname)
+public function __construct($objectclassname, TRMDataSourceInterface $DataSource)
 {
     if( !class_exists($objectclassname) )
     {
@@ -68,6 +71,8 @@ public function __construct($objectclassname)
     $this->CollectionToInsert = new TRMDataObjectsCollection();
     $this->CollectionToUpdate = new TRMDataObjectsCollection();
     $this->CollectionToDelete = new TRMDataObjectsCollection();
+    
+    $this->DataSource = $DataSource;
 }
 
 /**
@@ -88,20 +93,19 @@ public function setKeepQueryParams($KeepQueryParams)
 }
 
 /**
- * @return TRMDataMapper
+ * @return TRMDataMapperInterface
  */
 public function getDataMapper()
 {
     return $this->DataMapper;
 }
 /**
- * @param TRMDataMapper $DataMapper
+ * @param TRMDataMapperInterface $DataMapper
  */
-public function setDataMapper(TRMDataMapper $DataMapper)
+public function setDataMapper(TRMDataMapperInterface $DataMapper)
 {
     $this->DataMapper = $DataMapper;
 }
-
 
 /**
  * @param TRMDataSourceInterface $datasource - источник данных - объект для работы с данными в постоянном хранилище, в данном случае в БД
@@ -182,12 +186,21 @@ public function clearCondition()
     $this->DataSource->clearParams();
 }
 /**
+ * очищает условия для выборки (в SQL-запросах секция HAVING)
+ */
+public function clearHaving()
+{
+    $this->DataSource->clearHavingParams();
+}
+/**
  * очищает все параметры для запроса (выборки),
- * условия выборки, количество выбираемых значений, поля сортировки...
+ * условия выборки, количество выбираемых значений, поля сортировки и группировки...
  */
 public function clearQueryParams()
 {
     $this->DataSource->clearParams();
+    $this->DataSource->clearHavingParams();
+    $this->DataSource->clearGroup();
     $this->DataSource->clearLimit();
     $this->DataSource->clearOrder();
 }
@@ -233,7 +246,8 @@ public function getOne( TRMDataObjectInterface $DataObject = null )
 
     // должна вернуться только одна строка,
     // из нее создается объект данных
-    return $this->getDataObjectFromDataArray($result->fetch_row(), $DataObject);
+    $Row = $result->fetch_row();
+    return $this->getDataObjectFromDataArray($Row, $DataObject);
 }
 
 /**
@@ -336,7 +350,7 @@ public function getAll( TRMDataObjectsCollectionInterface $Collection = null )
  * 
  * @return TRMDataObjectInterface - созданный объект данных, который обрабатывает этот экземпляр репозитория
  */
-protected function getDataObjectFromDataArray( array $DataArray, TRMDataObjectInterface $DataObject = null )
+protected function getDataObjectFromDataArray( array &$DataArray, TRMDataObjectInterface $DataObject = null )
 {
     if( !$DataObject )
     {
@@ -346,7 +360,9 @@ protected function getDataObjectFromDataArray( array $DataArray, TRMDataObjectIn
     // преобразуем одномерный массив в многомерный согласно DataMapper-у
     foreach( $this->DataMapper as $TableName => $Table )
     {
-        foreach( $Table->getArrayKeys() as $FieldName )
+        // что бы функция getArrayKeys не вызывалась на каждой итерации foreach сохранем результат
+        $FieldsNames = $Table->getArrayKeys();
+        foreach( $FieldsNames as $FieldName )
         {
             $DataObject->setData( $TableName, $FieldName, $DataArray[$k++]);
         }

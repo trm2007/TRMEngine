@@ -2,6 +2,7 @@
 
 namespace TRMEngine\Repository;
 
+use TRMEngine\DataMapper\Exceptions\TRMDataMapperEmptyParentIdFieldException;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
 use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 
@@ -23,11 +24,11 @@ static protected $ParentRelationIdFieldName = array();
 /**
  * @return array -  array( имя родительского объекта, имя поля для связи )
  */
-public function getParentRelationIdFieldName()
-{
-    $type = $this->ObjectTypeName;
-    return $type::getParentIdFieldName();
-}
+//public function getParentRelationIdFieldName()
+//{
+//    $type = $this->ObjectTypeName;
+//    return $type::getParentIdFieldName();
+//}
 
 /**
  * возвращает коллекцию объектов, которые зависят от заданного родителя
@@ -38,8 +39,12 @@ public function getParentRelationIdFieldName()
  */
 public function getByParent( TRMIdDataObjectInterface $ParentObject, TRMDataObjectsCollectionInterface $Collection = null )
 {
-    $ParentRelationIdFieldName = static::getParentRelationIdFieldName();
+    $ParentRelationIdFieldName = $this->DataMapper->getParentIdFieldName(); //static::getParentRelationIdFieldName();
 
+    if( empty($ParentRelationIdFieldName) )
+    {
+        throw new TRMDataMapperEmptyParentIdFieldException();
+    }
     return $this->getBy(
             $ParentRelationIdFieldName[0], 
             $ParentRelationIdFieldName[1], 

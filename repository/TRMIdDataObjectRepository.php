@@ -30,8 +30,9 @@ protected static $IdDataObjectContainer = array();
  */
 public function getIdFieldName()
 {
-    $type = $this->ObjectTypeName;
-    return $type::getIdFieldName();
+    return $this->DataMapper->getIdFieldName();
+//    $type = $this->ObjectTypeName;
+//    return $type::getIdFieldName();
 }
 
 /**
@@ -64,7 +65,7 @@ private function addIdDataObjectToContainer(TRMIdDataObjectInterface $DataObject
  */
 public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface $DataObject = null)
 {
-    $IdArr = $this->getIdFieldName();
+    $IdArr = $this->DataMapper->getIdFieldName();
     // если запрос объекта по Id-полю
     if( $objectname === $IdArr[0] && $fieldname === $IdArr[1] )
     {
@@ -106,9 +107,9 @@ public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface
  * то вернется он,
  * иначе созданный объект данных, который обрабатывает этот экземпляр репозитория
  */
-protected function getDataObjectFromDataArray(array $DataArray, TRMDataObjectInterface $DataObject = null)
+protected function getDataObjectFromDataArray(array &$DataArray, TRMDataObjectInterface $DataObject = null)
 {
-    $IdArr = $this->getIdFieldName();
+    $IdArr = $this->DataMapper->getIdFieldName();
     // проверяем, есть ли данные в поле с ID для данного объекта
     // если это новый объект, то у него нет ID 
     if( isset($DataArray[$IdArr[0]][$IdArr[1]]) )
@@ -142,7 +143,7 @@ protected function getDataObjectFromDataArray(array $DataArray, TRMDataObjectInt
  */
 public function getById($id, TRMDataObjectInterface $DataObject = null)
 {
-    $IdArr = $this->getIdFieldName();
+    $IdArr = $this->DataMapper->getIdFieldName();
     return $this->getOneBy( $IdArr[0], $IdArr[1], $id, $DataObject );
 }
 

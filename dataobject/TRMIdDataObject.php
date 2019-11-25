@@ -11,7 +11,6 @@ use TRMEngine\Exceptions\TRMException;
  * а так же возможно обращаться к свойствам объекта через $object->properties (реализованы методы __get и __set)
  *
  * @author TRM
-
  */
 abstract class TRMIdDataObject extends TRMDataObject implements TRMIdDataObjectInterface
 {

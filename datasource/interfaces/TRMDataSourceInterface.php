@@ -6,12 +6,22 @@ use TRMEngine\DataMapper\TRMSafetyFields;
 use TRMEngine\DataObject\TRMDataObjectsCollection;
 use TRMEngine\DataSource\TRMSqlDataSource;
 use TRMEngine\Exceptions\TRMSqlQueryException;
+use TRMEngine\TRMDBObject;
 
 /**
  *  абстрактный класс, общий для всех классов обработки записей из таблицы БД - TableName
  */
 interface TRMDataSourceInterface
 {
+/**
+ * @return TRMDBObject
+ */
+public function getDBObject();
+/**
+ * @param TRMDBObject $DBObject
+ */
+public function setDBObject(TRMDBObject $DBObject);
+
 /**
  * устанавливает с какой записи начинать выборку - StartPosition
  * и какое количество записей выбирать - Count

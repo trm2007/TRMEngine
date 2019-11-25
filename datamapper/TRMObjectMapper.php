@@ -23,7 +23,6 @@ const TRM_OBJECT_STATE_READ_ONLY = 512;
 const TRM_OBJECT_STATE_UPDATABLE = 256;
 
 /**
- *
  * @var string - имя объекта-таблицы
  */
 public $Name;
@@ -103,19 +102,51 @@ public function setFields( array $Fields )
 }
 
 /**
+ * @return array - массив с именами полей содержащих первичные ключи (PRI)
+ */
+public function getPriFields()
+{
+    $FieldsArr = array();
+    foreach( $this->DataArray as $FieldName => $Field )
+    {
+        if( $Field->isPri() )
+        {
+            $FieldsArr[] = $FieldName;
+        }
+    }
+    
+    return $FieldsArr;
+}
+
+/**
+ * @return array - массив с именами полей содержащих уникальные ключи (UNI)
+ */
+public function getUniFields()
+{
+    $FieldsArr = array();
+    foreach( $this->DataArray as $FieldName => $Field )
+    {
+        if( $Field->isUni() )
+        {
+            $FieldsArr[] = $FieldName;
+        }
+    }
+    
+    return $FieldsArr;
+}
+
+/**
  * устанавливает объекты полей из массива $Fields,
  * существующие данные удаляются
  * 
  * @param array $Fields - массив с массивами с информацией о поле
  */
-public function setFieldsArray( array $Fields )
+public function setFieldsArray( array &$Fields )
 {
     $this->DataArray = array();
     foreach( $Fields as $FieldName => $Field )
     {
-        $FieldObject = new TRMFieldMapper();
-        $FieldObject->Name = $FieldName;
-        
+        $FieldObject = new TRMFieldMapper($FieldName);
         $FieldObject->initializeFromArray($Field);
         $this->setField($FieldObject);
     }

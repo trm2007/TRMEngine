@@ -3,8 +3,11 @@
 namespace TRMEngine\DataMapper;
 
 use TRMEngine\DataArray\TRMDataArray;
+use TRMEngine\DataMapper\Exceptions\TRMDataMapperEmptyIdFieldException;
+use TRMEngine\DataMapper\Exceptions\TRMDataMapperEmptyMainObjectException;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperNotStringFieldNameException;
 use TRMEngine\DataMapper\Exceptions\TRMDataMapperRelationException;
+use TRMEngine\DataMapper\Exceptions\TRMDataMapperTooManyMainObjectException;
 use TRMEngine\DataMapper\Interfaces\TRMDataMapperInterface;
 
 
@@ -35,6 +38,18 @@ const OBJECT_NAME_INDEX = "ObjectName"; // имя объекта, на кото�
 const FIELD_NAME_INDEX  = "FieldName"; // имя поля, на которое ссылается другое поле в разделе RELATION
 const FIELDS_INDEX      = "Fields"; // индекс для массива с полями и их состояниями в объекте
 
+/** константа показывающая, что нужно брать имена полей в кавычки */
+const NEED_QUOTE = 32000;
+/** константа показывающая, что брать имена полей в кавычки НЕ нужно */
+const NOQUOTE = 32001;
+
+/**
+ * константы определяющие уровень доступа к полям
+ */
+const READ_ONLY_FIELD = 512;
+const UPDATABLE_FIELD = 256;
+const FULL_ACCESS_FIELD = 768;
+
 /**
  * @var array - массив индексов для FieldState и значений для этих параметров по умолчанию
  */
@@ -51,17 +66,31 @@ protected static $IndexArray = array(
     TRMDataMapper::RELATION_INDEX => null,
 );
 
-/** константа показывающая, что нужно брать имена полей в кавычки */
-const NEED_QUOTE = 32000;
-/** константа показывающая, что брать имена полей в кавычки НЕ нужно */
-const NOQUOTE = 32001;
+/**
+ * @var array - массив с ID-полем для "главеого" объекта (на который нет ссылок)
+ */
+protected $IdFieldName = array();
+
 
 /**
- * константы определяющие уровень доступа к полям
+ * @return array - массив array("имя главного объекта", "имя его ID-поля")
  */
-const READ_ONLY_FIELD = 512;
-const UPDATABLE_FIELD = 256;
-const FULL_ACCESS_FIELD = 768;
+public function getIdFieldName()
+{
+    if(empty($this->IdFieldName))
+    {
+        $this->generateIdFieldName();
+    }
+    return $this->IdFieldName;
+}
+
+/**
+ * @param array $IdFieldName - массив array("имя главного объекта", "имя его ID-поля")
+ */
+public function setIdFieldName(array $IdFieldName)
+{
+    $this->IdFieldName = $IdFieldName;
+}
 
 /**
  * добавляет данные из другого объекта $DataMapper,
@@ -84,17 +113,22 @@ public function getFieldsArray()
     return $this->DataArray;
 }
 /**
+ * Формирует DataMapper из массива $FieldsArray, 
+ * в котором указана информация для всех полей, всех объектов
+ * 
  * @param array $FieldsArray
+ * @param int $DefaultState - статус доступа будет установлен по умолчанию, 
+ * если не задан для каждого объекта и каждого поля
  */
-public function setFieldsArray( array $FieldsArray )
+public function setFieldsArray( array &$FieldsArray, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
     $this->DataArray = array();
-    foreach( $FieldsArray as $ObjectName => $FieldsArray )
+    foreach( $FieldsArray as $ObjectName => $ObjectFieldsArray )
     {
         $this->setFieldsArrayFor(
             $ObjectName, 
-            $FieldsArray[TRMDataMapper::FIELDS_INDEX], 
-            isset($FieldsArray[TRMDataMapper::STATE_INDEX]) ? $FieldsArray[TRMDataMapper::STATE_INDEX] : TRMDataMapper::READ_ONLY_FIELD 
+            $ObjectFieldsArray[TRMDataMapper::FIELDS_INDEX], 
+            isset($ObjectFieldsArray[TRMDataMapper::STATE_INDEX]) ? $ObjectFieldsArray[TRMDataMapper::STATE_INDEX] : $DefaultState
         );
     }
 }
@@ -111,7 +145,7 @@ public function setFieldsArray( array $FieldsArray )
  * если у него явно не задан параметр "State",
  * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
  */
-public function setField( $ObjectName, $FieldName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+public function setField( $ObjectName, $FieldName, array &$FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
     $this->validateAndCreateObjectField($ObjectName, $FieldName, $DefaultState);
     $Field = $this->DataArray[$ObjectName]->getField( $FieldName ) ;
@@ -134,7 +168,7 @@ public function setField( $ObjectName, $FieldName, array $FieldState, $DefaultSt
  * если у него явно не задан параметр "State",
  * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
  */
-protected function completeField( $ObjectName, $FieldName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+protected function completeField( $ObjectName, $FieldName, array &$FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
     $this->validateAndCreateObjectField($ObjectName, $FieldName, $DefaultState);
     $Field = $this->DataArray[$ObjectName]->getField( $FieldName );
@@ -175,8 +209,7 @@ protected function validateAndCreateObjectField( $ObjectName, $FieldName, $Defau
     // если для поля еще не установлен объект параметров, создаем новый объект
     if( !$this->DataArray[$ObjectName]->hasField($FieldName) )
     {
-        $Field = new TRMFieldMapper();
-        $Field->Name = $FieldName;
+        $Field = new TRMFieldMapper($FieldName);
         $Field->State = $DefaultState;
         $this->DataArray[$ObjectName]->setField( $Field ) ;
     }
@@ -209,6 +242,7 @@ public function setFieldsFor( $ObjectName, array $Fields, $DefaultState = TRMDat
     {
         $this->DataArray[$ObjectName] = new TRMObjectMapper();
         $this->DataArray[$ObjectName]->Name = $ObjectName;
+        $this->DataArray[$ObjectName]->State = $DefaultState;
     }
 
     $this->DataArray[$ObjectName]->setFields($Fields);
@@ -223,7 +257,7 @@ public function setFieldsFor( $ObjectName, array $Fields, $DefaultState = TRMDat
  * если у них явно не задан параметр "State",
  * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
  */
-public function setFieldsArrayFor( $ObjectName, array $Fields, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
+public function setFieldsArrayFor( $ObjectName, array &$Fields, $DefaultState = TRMDataMapper::READ_ONLY_FIELD )
 {
     if( !isset($this->DataArray[$ObjectName]) )
     {
@@ -281,9 +315,7 @@ public function setFieldState( $ObjectName, $FieldName, $State = TRMDataMapper::
     }
     if( !$this->DataArray[$ObjectName]->hasField($FieldName) )
     {
-        $Field = new TRMFieldMapper();
-        $Field->Name = $FieldName;
-        $Field->State = $State;
+        $Field = new TRMFieldMapper($FieldName);
         $this->DataArray[$ObjectName]->setField( $Field ) ;
     }
     else
@@ -314,6 +346,43 @@ public function getFieldState( $ObjectName, $FieldName )
         return null;
     }
     return $this->DataArray[$ObjectName]->getField($FieldName)->State;
+}
+
+/**
+ * @return array - возвращает массив array(имя объекта, имя поля) 
+ * для поля содержащего ID главного объекта, т.е. объекта без обратных ссылок на него
+ * 
+ * @throws TRMDataMapperEmptyMainObjectException
+ * @throws TRMDataMapperTooManyMainObjectException
+ * @throws TRMDataMapperEmptyIdFieldException
+ */
+public function generateIdFieldName()
+{
+    $this->IdFieldName = array();
+    // получаем массив объектов без ссылок на них, т.е. главные объекты
+    $MainObjects = $this->getObjectsNamesWithoutBackRelations();
+    // если массив пуст или таких объектов больше 1, то выбрасываем исключение
+    if( empty($MainObjects) )
+    {
+        throw new TRMDataMapperEmptyMainObjectException();
+    }
+    if( count($MainObjects) > 1 )
+    {
+        throw new TRMDataMapperTooManyMainObjectException();
+    }
+
+    $MainObject = $MainObjects[0];
+    
+    $ObjectsIds = $this->DataArray[$MainObject]->getPriFields();
+    if( empty($ObjectsIds ) )
+    {
+        throw new TRMDataMapperEmptyIdFieldException("Объект-таблица: {$MainObject}...");
+    }
+    $ObjectId = $ObjectsIds[0];
+
+    // сохраняем информацию об ID для объекта
+    $this->IdFieldName = array( $MainObject, $ObjectId );
+    return $this->IdFieldName;
 }
 
 /**
@@ -406,7 +475,7 @@ private function compareTwoTablesRelation( $Table1Name, $Table2Name )
             }
         }
     }
-    // если ссылок из Т1 на Т2 не нйдено проверяем наоборот, ссылки из Т2 на Т1
+    // если ссылок из Т1 на Т2 не найдено, проверяем наоборот, ссылки из Т2 на Т1
     // проверяем ссылается ли таблица 1 на таблицу 2
     foreach( $this->DataArray[$Table2Name] as $FieldName => $Field )
     {
@@ -434,7 +503,7 @@ private function compareTwoTablesRelation( $Table1Name, $Table2Name )
     }
 
     // если ничего не найдено, значит таблицы идентичны
-    // с точки зрения порядка обнавления
+    // с точки зрения порядка обновления
     return 0;
 }
 /**

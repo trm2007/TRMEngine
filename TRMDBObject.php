@@ -2,6 +2,7 @@
 
 namespace TRMEngine;
 
+use TRMEngine\DataArray\TRMDataArray;
 use TRMEngine\Exceptions\TRMConfigArrayException;
 use TRMEngine\Exceptions\TRMConfigFileException;
 use TRMEngine\Exceptions\TRMSqlQueryException;
@@ -11,7 +12,7 @@ use TRMEngine\Exceptions\TRMSqlQueryException;
  *
  * @author TRM
  */
-class TRMDBObject // extends TRMConfigSingleton
+class TRMDBObject
 {
 /**
  * кодировка работы с БД по умолчанию, если в настройках не задан параметр "dbcharset"
@@ -63,57 +64,56 @@ const COLLATION_CHARSET_INDEX = "collationcharst";
 /**
  * @var string - кодировка БД на сервере
  */
-protected static $DBCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
+protected $DBCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
 /**
  * @var string - кодировка клиента
  */
-protected static $ClientCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
+protected $ClientCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
 /**
  * @var string - кодировка для сравнения данных в таблицах БД на сервере
  */
-protected static $CollationCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
+protected $CollationCharset = TRMDBObject::TRM_DB_DEFAULT_CHARSET;
 
-/*
-	use TRMSingleton;
-	use TRMConfigSingleton;
-*/
-
-/**
- * @var TRMDBObject - экземпляр данного объекта Singleton
- */
-protected static $Instance = null;
-
-/**
- * возвращает экземпляр данного класса, если он еще не создан, то создает его
- * @return TRMDBObject - экземпляр данного класса
- */
-public static function getInstance()
-{
-    if( !isset(static::$Instance) )
-    {
-        $ClassName = get_called_class();
-        static::$Instance = new $ClassName();
-    }
-
-    return static::$Instance;
-}
 /**
  * @var array - конфигурационные данные
  */
-protected static $ConfigArray = array();
+protected $ConfigArray = array();
+/**
+ * @var \mysqli - объект MySQLi - подключение к БД
+ */
+public $newlink = null;
+/**
+ * @var int - ID последней добавленной записи после запроса
+ */
+public $LastId = null;
+
+/**
+ * подключение к базе в конструкторе объекта
+ * 
+ * @param array $ConfigArray - массив с настройками подключения и кодировками
+ */
+public function __construct( array $ConfigArray = array() )
+{
+    if( !empty($ConfigArray) )
+    {
+        $this->setConfigArray($ConfigArray);
+        $this->connect();
+    }
+}
+
 
 /**
  * загружает конфигурационные данные из файла $filename - должны возвращаться в виде массива
  *
  * @param string $filename - имя файла с конфигурацией
  */
-public static function setConfig( $filename )
+public function setConfigFromFile( $filename )
 {
     if( !is_file($filename) )
     {
         throw new TRMConfigFileException("Файл с настройками получить на удалось [{$filename}]!");
     }
-    return self::setConfigArray( require_once($filename) );
+    return $this->setConfigArray( require_once($filename) );
 }
 
 /**
@@ -121,62 +121,62 @@ public static function setConfig( $filename )
  *
  * @param array $arr - массив с конфигурацией
  */
-public static function setConfigArray( array $arr )
+public function setConfigArray( array $arr )
 {
     if( empty($arr) )
     {
         throw new TRMConfigArrayException("Массив конфигурации данных пустой!");
     }
 
-    static::$ConfigArray = $arr;
+    $this->ConfigArray = $arr;
     
-    static::setCharSetsFromConfigArray();
+    $this->setCharSetsFromConfigArray();
 
     return true;
 }
 /**
  * устанавливает кодировки, если данные под соответсвующими индексами есть в массиве настроек (конфигурации)
  */
-private static function setCharSetsFromConfigArray()
+private function setCharSetsFromConfigArray()
 {
-    if( empty(static::$ConfigArray) ) { return; }
+    if( empty($this->ConfigArray) ) { return; }
     
-    if(array_key_exists(static::SERVER_DB_CHARSET_INDEX, static::$ConfigArray) )
+    if(array_key_exists(TRMDBObject::SERVER_DB_CHARSET_INDEX, $this->ConfigArray) )
     {
-        static::setDBCharset( static::$ConfigArray[static::SERVER_DB_CHARSET_INDEX] );
+        $this->setDBCharset( $this->ConfigArray[TRMDBObject::SERVER_DB_CHARSET_INDEX] );
     }
-    if(array_key_exists(static::CLIENT_CHARSET_INDEX, static::$ConfigArray) )
+    if(array_key_exists(TRMDBObject::CLIENT_CHARSET_INDEX, $this->ConfigArray) )
     {
-        static::setClientCharset( static::$ConfigArray[static::CLIENT_CHARSET_INDEX] );
+        $this->setClientCharset( $this->ConfigArray[TRMDBObject::CLIENT_CHARSET_INDEX] );
     }
-    if(array_key_exists(static::COLLATION_CHARSET_INDEX, static::$ConfigArray) )
+    if(array_key_exists(TRMDBObject::COLLATION_CHARSET_INDEX, $this->ConfigArray) )
     {
-        static::setCollationCharset( static::$ConfigArray[static::COLLATION_CHARSET_INDEX] );
+        $this->setCollationCharset( $this->ConfigArray[TRMDBObject::COLLATION_CHARSET_INDEX] );
     }
 }
 /**
  * @param string $charset - указывает, в какую кодировку следует преобразовать данные 
  * полученые от клиента перед выполнением запроса,
  */
-public static function setDBCharset( $charset )
+public function setDBCharset( $charset )
 {
-    static::$DBCharset = static::correctCharset($charset);
+    $this->DBCharset = $this->correctCharset($charset);
 }
 /**
  * @param string $charset - указывает, в какой кодировке будут поступать данные от клиента,
  * а так же указывает серверу не необходимость перекодировать результаты запроса 
  * в эту кодировку перед выдачей их клиенту
  */
-public static function setClientCharset( $charset )
+public function setClientCharset( $charset )
 {
-    static::$ClientCharset = static::correctCharset($charset);
+    $this->ClientCharset = $this->correctCharset($charset);
 }
 /**
  * @param string $charset - указывает, каким образом сравнивать между собой строки в запроса
  */
-public static function setCollationCharset( $charset )
+public function setCollationCharset( $charset )
 {
-    static::$CollationCharset = static::correctCharset($charset);
+    $this->CollationCharset = $this->correctCharset($charset);
 }
 /**
  * убирает знаки тире из кодировки, так как в MySQL они не используются,
@@ -187,7 +187,7 @@ public static function setCollationCharset( $charset )
  * 
  * @return string - возвращает исправленную строку с названием кодировки
  */
-private static function correctCharset( $charset )
+private function correctCharset( $charset )
 {
     $charset = strtolower($charset);
     switch ($charset)
@@ -204,23 +204,9 @@ private static function correctCharset( $charset )
  * 
  * @return array - массив с конфигурацией
  */
-public static function getConfigArray()
+public function getConfigArray()
 {
-    return static::$ConfigArray;
-}
-
-
-/**
- * @var \mysqli - объект MySQLi - подключение к БД
- */
-static public $newlink = null;
-
-/**
- * подключение к базе в конструкторе объекта, если соединение уже есть, то оставляем его
- */
-protected function __construct()
-{
-    static::ping();
+    return $this->ConfigArray;
 }
 
 /**
@@ -229,13 +215,15 @@ protected function __construct()
  * @return \mysqli_result - возвращает результат запроса $Query через MySQLi, 
  * либо null, если соединение еще не установлено
  */
-public static function query($Query)
+public function query($Query)
 {
-    if( static::$newlink )
+    if( $this->newlink )
     {
-        return static::$newlink->query($Query);
+        $res = $this->newlink->query($Query);
+        if( !$res ) { return null; }
     }
-    return null;
+    $this->LastId = $this->newlink->insert_id;
+    return $res;
 }
 
 /**
@@ -244,48 +232,48 @@ public static function query($Query)
  * @return boolean - в случае успеха вернет true
  * @throws \Exception - в случае неудачи - исключение
  */
-public static function connect()
+public function connect()
 {
     $trycounts = 0;
 
-    while(!static::$newlink)
+    while(!$this->newlink)
     {
         if( $trycounts == TRMDBObject::TRM_DB_TRY_TO_CONNECT_TIMES )
         {
             throw new \Exceptions( __METHOD__ . " Не удалось установить начальное соединение с БД " 
-                    . static::$ConfigArray["dbserver"] 
-                    . " - " . static::$ConfigArray["dbuser"] );
+                    . $this->ConfigArray["dbserver"] 
+                    . " - " . $this->ConfigArray["dbuser"] );
         }
-        static::$newlink = new \mysqli( isset(static::$ConfigArray["dbserver"]) ? static::$ConfigArray["dbserver"] : null,
-                                isset(static::$ConfigArray["dbuser"]) ? static::$ConfigArray["dbuser"] : null,
-                                isset(static::$ConfigArray["dbpassword"]) ? static::$ConfigArray["dbpassword"] : null,
-                                isset(static::$ConfigArray["dbname"]) ? static::$ConfigArray["dbname"] : null,
-                                isset(static::$ConfigArray["dbport"]) ? static::$ConfigArray["dbport"] : null );
-        if( !static::$newlink->connect_error )
+        $this->newlink = new \mysqli( isset($this->ConfigArray["dbserver"]) ? $this->ConfigArray["dbserver"] : null,
+                                isset($this->ConfigArray["dbuser"]) ? $this->ConfigArray["dbuser"] : null,
+                                isset($this->ConfigArray["dbpassword"]) ? $this->ConfigArray["dbpassword"] : null,
+                                isset($this->ConfigArray["dbname"]) ? $this->ConfigArray["dbname"] : null,
+                                isset($this->ConfigArray["dbport"]) ? $this->ConfigArray["dbport"] : null );
+        if( !$this->newlink->connect_error )
         {
             break;
         }
         usleep(TRMDBObject::TRM_DB_TRY_TO_CONNECT_SLEEPTIME);
         $trycounts++;
     }
-    if( static::$ClientCharset == static::$DBCharset )
+    if( $this->ClientCharset == $this->DBCharset )
     {
-        static::$newlink->set_charset( static::$DBCharset );
+        $this->newlink->set_charset( $this->DBCharset );
     }
     else
     {
-        static::$newlink->set_charset( static::$ClientCharset );
+        $this->newlink->set_charset( $this->ClientCharset );
 
         // указывает, в какой кодировке будут поступать данные от клиента
-        static::$newlink->query( "SET character_set_client='" . static::$ClientCharset . "'" );
+        $this->newlink->query( "SET character_set_client='" . $this->ClientCharset . "'" );
         // указывает, в какую кодировку следует преобразовать данные 
         // полученые от клиента перед выполнением запроса,
-        static::$newlink->query( "SET character_set_connection='" . static::$DBCharset . "'" ); 
+        $this->newlink->query( "SET character_set_connection='" . $this->DBCharset . "'" ); 
         //  указывает серверу не необходимость перекодировать результаты запроса 
         //  в определенную кодировку перед выдачей их клиенту
-        static::$newlink->query( "SET character_set_results='" . static::$ClientCharset . "'" ); 
+        $this->newlink->query( "SET character_set_results='" . $this->ClientCharset . "'" ); 
         // указывает, каким образом сравнивать между собой строки в запросах
-        static::$newlink->query( "SET collation_connection='" . static::$CollationCharset . "'" );
+        $this->newlink->query( "SET collation_connection='" . $this->CollationCharset . "'" );
     }
     return true;
 }
@@ -295,46 +283,80 @@ public static function connect()
  * 
  * @return boolean - true в случае успешного соединения с БД , иначе функциЯ connect выбрасывает исключение \Exception
  */
-public static function reconnect()
+public function reconnect()
 {
-    if( static::$newlink )
+    if( $this->newlink )
     {
-        static::$newlink->close();
+        $this->newlink->close();
     }
-    static::$newlink = null;
-    return static::connect();
+    $this->newlink = null;
+    return $this->connect();
 }
 
-
 /**
- * делает запрос к БД. если вернулась ошибка 2006 (server has gone away), то пытается подключиться заново
+ * делает запрос к БД,
+ * если вернулась ошибка 2006 (server has gone away), то пытается подключиться повторно
  *  
- * @return boolean - true в случае успешного соединения с БД , иначе функции connect и reconnect выбрасывают исключение \Exception
+ * @return boolean - true в случае успешного соединения с БД , 
+ * иначе функции connect и reconnect выбрасывают исключение \Exception
  */
-public static function ping()
+public function ping()
 {
-    if( static::$newlink )
+    if( $this->newlink )
     {
-        static::$newlink->query('SELECT LAST_INSERT_ID()');
+        $this->newlink->query('SELECT LAST_INSERT_ID()');
     }
     else
     {
-        return static::connect();
+        return $this->connect();
     }
 
-    if (static::$newlink->errno == 2006)
+    if ($this->newlink->errno == 2006)
     {
-        return static::reconnect();
+        return $this->reconnect();
     }
     return true;
 }
 
 /**
- * принудительное отключение, закрывает подключение к БД
+ * принудительное отключение, закрывает соединение с БД
  */
-public static function close()
+public function close()
 {
-    static::$newlink->close();
+    $this->newlink->close();
+}
+
+/**
+ * выполняет запрос из нескольких (или одного) SQL-выражений
+ * и завершает выполнение, очищает буфер для возможности выполнения следующих запросов, 
+ * перебирает все результаты
+ * 
+ * @param string $querystring - строка SQL-запроса
+ * @throws TRMSqlQueryException - в случае неудачного запроса выбрасывается исключение!
+ */
+public function multiQuery($querystring)
+{
+    if( !$this->newlink->multi_query($querystring) )
+    {
+        throw new TRMSqlQueryException( 
+                __METHOD__ 
+                . " Запрос выполнить не удалось [{$querystring}] - Ошибка #(" 
+                . $this->newlink->sqlstate . "): " 
+                . $this->newlink->error 
+            );
+    }
+
+    $ResArr = new TRMDataArray();
+    // перебор всех результатов для мультизапроса, и сохранение в массив
+    do
+    {
+        $ResArr->setRow( "result", $this->newlink->store_result() );
+        $this->LastId = $this->newlink->insert_id;
+
+        if( $this->newlink->insert_id ) { $ResArr->setRow( "insert_id", $this->newlink->insert_id ); }
+    }while( $this->newlink->more_results() && $this->newlink->next_result() );
+    
+    return $ResArr;
 }
 
 /**
@@ -346,15 +368,15 @@ public static function close()
  * 
  * @throws TRMSqlQuery\Exception - если запрос выполнен с ошибкой, вбрасывается исключение
  */
-public static function getTableColumnsInfo($TableName, $ExtendFlag = false)
+public function getTableColumnsInfo($TableName, $ExtendFlag = false)
 {
     if(!$ExtendFlag)
     {
-        $Result = self::$newlink->query("SHOW COLUMNS FROM `{$TableName}`");
+        $Result = $this->newlink->query("SHOW COLUMNS FROM `{$TableName}`");
     }
     else
     {
-        $Result = self::$newlink->query("SELECT *
+        $Result = $this->newlink->query("SELECT *
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME LIKE '{$TableName}'");
     }
@@ -362,20 +384,20 @@ WHERE TABLE_NAME LIKE '{$TableName}'");
     {
         throw new TRMSqlQueryException( __METHOD__ 
                 . " Ощибка получения схемы для таблицы [{$TableName}]"
-                . " (#" . self::$newlink->errno . "): " . self::$newlink->error);
+                . " (#" . $this->newlink->errno . "): " . $this->newlink->error);
     }
-    return self::fetchAll($Result);
+    return $this->fetchAll($Result);
 }
 
 /**
  * получает массив данных для результата запроса $res,
- * это полифил, в какой-то версии PHP не работал mysqli_result::fetch_all
+ * это полифил, в версии PHP < 5.3 не работал \mysqli_result::fetch_all
  * 
  * @param mysqli_result $res - объект с результатом выполненя SQL-запроса через mysqli_result::query
  * @param int $stat - в каком виде получать результат (MYSQLI_NUM - нумерованный массив, MYSQLI_ASSOC - массив с индексами как поля в таблице БД, MYSQLI_BOTH - вернутся оба варианта)
  * @return array - массив строк с данными запроса
  */
-public static function fetchAll($res, $stat = MYSQLI_ASSOC)
+public function fetchAll($res, $stat = MYSQLI_ASSOC)
 {
     if(method_exists($res, "fetch_all") )
     {
@@ -389,5 +411,6 @@ public static function fetchAll($res, $stat = MYSQLI_ASSOC)
     }
     return $arr;
 }
+
 
 } // TRMDBObject

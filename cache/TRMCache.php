@@ -2,15 +2,13 @@
 
 namespace TRMEngine\Cache;
 
-use TRMEngine\DiContainer\TRMDIContainer;
-
 /**
  *  класс для кэширования данных в файлы на диске по заданным ключам-именам данных
  */
 class TRMCache 
 {
 /**
- * @var TRMDIContainer - ндинственный экземпляр объекта типа TRMDIContainer
+ * @var TRMCache - единственный экземпляр объекта типа TRMCache
  */
 protected static $instance;
 

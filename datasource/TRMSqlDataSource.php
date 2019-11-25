@@ -14,6 +14,7 @@ use TRMEngine\DataSource\Exceptions\TRMDataSourceWrongTableSortException;
 use TRMEngine\DataSource\Interfaces\TRMDataSourceInterface;
 use TRMEngine\Exceptions\TRMSqlQueryException;
 use TRMEngine\Helpers\TRMState;
+use TRMEngine\TRMDBObject;
 
 /**
  * общий для всех классов обработки записей из таблиц БД MySQL,
@@ -81,18 +82,34 @@ protected $GroupFields = array();
 protected $HavingParams = array();
 
 /**
- * @var \mysqli - объект MySQLi для работы с БД MySQL, внедряется как зависимость через конструктор
+ * @var TRMDBObject - объект TRMDBObject для работы с БД MySQL, внедряется как зависимость через конструктор
  */
-protected $MySQLiObject;
+protected $DBObject;
 
 
 /**
- * @param \mysqli $MySQLiObject - драйвер для работы с MySQL
+ * @param TRMDBObject $DBObject - драйвер для работы с MySQL
  */
-public function __construct( \mysqli $MySQLiObject ) //$MainTableName, array $MainIndexFields, array $SecondTablesArray = null, $MainAlias = null )
+public function __construct( TRMDBObject $DBObject )
 {
-    $this->MySQLiObject = $MySQLiObject; // TRMDBObject::$newlink; // TRMDIContainer::getStatic("TRMDBObject")->$newlink;
+    $this->DBObject = $DBObject; //::$newlink;
 }
+
+/**
+ * @return TRMDBObject
+ */
+public function getDBObject()
+{
+    return $this->DBObject;
+}
+/**
+ * @param TRMDBObject $DBObject
+ */
+public function setDBObject(TRMDBObject $DBObject)
+{
+    $this->DBObject = $DBObject;
+}
+
 
 /**
  * устанавливает с какой записи начинать выборку - StartPosition
@@ -906,7 +923,7 @@ public function generateParamsFrom( $tablename, array $params )
  */
 public function executeQuery($query)
 {
-    $result = $this->MySQLiObject->query($query);
+    $result = $this->DBObject->query($query);
 
     if( !$result )
     {
@@ -1267,11 +1284,11 @@ private function insertRowToOneTable( $TableName, TRMDataObjectInterface $DataOb
     $InsertQuery = $this->generateInsertRowToOneTableSQLString($TableName, $DataObject, $FieldsNames);
 
     // не можем вызвать completeMultiQuery, так как надо отслеживать insert_id для каждой таблицы!!!
-    if( !$this->MySQLiObject->query($InsertQuery) )
+    if( !$this->DBObject->query($InsertQuery) )
     {
         throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " . get_class($this) );
     }
-    return $this->MySQLiObject->insert_id;
+    return $this->DBObject->LastId;
 }
 
 /**
@@ -1319,11 +1336,11 @@ private function insertODKURowToOneTable( $TableName, TRMDataObjectInterface $Da
 {
     $InsertQuery = $this->generateInsertODKURowToOneTableSQLString($TableName, $DataObject, $FieldsNames);
     // не можем вызвать completeMultiQuery, так как надо отслеживать insert_id для каждой таблицы!!!
-    if( !$this->MySQLiObject->query($InsertQuery) )
+    if( !$this->DBObject->query($InsertQuery) )
     {
         throw new TRMDataSourceSQLInsertException( __METHOD__ . " [{$InsertQuery}] " . get_class($this) );
     }
-    return $this->MySQLiObject->insert_id;
+    return $this->DBObject->LastId;
 }
 
 /**
@@ -1628,29 +1645,18 @@ public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
 /**
  * выполняет запрос из нескольких (или одного) SQL-выражений
  * и завершает выполнение, очищает буфер для возможности выполнения следующих запросов, 
- * перебирает все результаты
+ * перебирает все результаты и сохраняет объект с результатом каждого запроса в массив
+ * TRMDataArray( array( "result" => \mysqli_result, "insert_id" => int ), ... )
  * 
  * @param string $querystring - строка SQL-запроса
+ * 
+ * @return TRMDataArray
+ * 
  * @throws TRMSqlQueryException - в случае неудачного запроса выбрасывается исключение!
  */
 public function completeMultiQuery($querystring)
 {
-    if( !$this->MySQLiObject->multi_query($querystring) )
-    {
-        throw new TRMSqlQueryException( 
-                __METHOD__ 
-                . " Запрос выполнить не удалось [{$querystring}] - Ошибка #(" 
-                . $this->MySQLiObject->sqlstate . "): " 
-                . $this->MySQLiObject->error 
-            );
-    }
-    if( $this->MySQLiObject->insert_id ) { $this->LastId = $this->MySQLiObject->insert_id; }
-
-    // очистка после multi_query($query), иначе следующие запросы не сработают
-    while($this->MySQLiObject->more_results())
-    {
-        $this->MySQLiObject->next_result();
-    }
+    return $this->DBObject->multiQuery($querystring);
 }
 
 

@@ -4,6 +4,7 @@ namespace TRMEngine\DataMapper;
 
 use TRMEngine\DataArray\Interfaces\InitializibleFromArray;
 use TRMEngine\DataMapper\TRMDataMapper;
+use TRMEngine\Exceptions\TRMObjectCreateException;
 
 /**
  * Класс для работы с DataMapper одного поля объекта данных,
@@ -77,6 +78,19 @@ public $Comment = "";
  * который должен содержать array( OBJECT_NAME_INDEX => имя объекта, FIELD_NAME_INDEX => имя поля в объекте)
  */
 public $Relation = array();
+
+
+/**
+ * @param string $Name - имя создаваемого поля
+ */
+public function __construct($Name)
+{
+    if(!is_string($Name))
+    {
+        throw new TRMObjectCreateException("Ошибка в имени поля при создании объекта TRMFieldMapper!");
+    }
+    $this->Name = $Name;
+}
 
 public function setRelation($ObjectName, $FieldName)
 {
@@ -175,6 +189,30 @@ public function initializeFromArray( array $Array, $ClearFlag = true )
             );
     }
 
+}
+
+/**
+ * @return boolean - является ли это поле PRI, в MySQL с таким ключом ID-поля
+ */
+public function isPri()
+{
+    if(strtoupper($this->Key) === "PRI")
+    {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @return boolean - является ли это поле UNI, в MySQL поля с уникальными значениями
+ */
+public function isUni()
+{
+    if(strtoupper($this->Key) === "PRI")
+    {
+        return true;
+    }
+    return false;
 }
 
 

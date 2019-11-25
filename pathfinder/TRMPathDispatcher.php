@@ -5,6 +5,7 @@ namespace TRMEngine\PathFinder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TRMEngine\Controller\Exceptions\TRMMustStartOtherActionException;
+use TRMEngine\DiContainer\TRMDIContainer;
 use TRMEngine\PathFinder\Exceptions\TRMActionNotFoundedException;
 use TRMEngine\PathFinder\Exceptions\TRMControllerNotFoundedException;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
@@ -14,6 +15,15 @@ use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
  */
 class TRMPathDispatcher implements RequestHandlerInterface
 {
+/**
+ * @var TRMDIContainer 
+ */
+protected $DIC;
+    
+public function __construct(TRMDIContainer $DIC)
+{
+    $this->DIC = $DIC;
+}
 
 /**
  * {@inheritDoc}
@@ -24,7 +34,7 @@ class TRMPathDispatcher implements RequestHandlerInterface
  */
 public function handle( Request $Request )
 {
-    $Controller = $Request->attributes->get('controller') . "Controller";
+    $Controller = $Request->attributes->get('controller'); // . "Controller";
     
     if( !class_exists($Controller) )
     {
@@ -35,13 +45,13 @@ public function handle( Request $Request )
     {
         // если для выбранного Action требуется выполнить функцию отличную от имени actionAction,
         // то выбрасывается исключение, где контроллер сообщает какая функция должна быть вызвана...
-        $TRMObject = new $Controller( $Request );
+        $TRMObject = $this->DIC->get($Controller); // new $Controller( $Request );
     }
     catch (TRMMustStartOtherActionException $e)
     {
         $Request->attributes->set( 'relevant-action', $Request->attributes->get( 'action' ) );
         $Request->attributes->set( 'action', $e->getActionName() );
-        $TRMObject = new $Controller( $Request );
+        $TRMObject = $this->DIC->get($Controller); // new $Controller( $Request );
     }
 
     $Action = "action" . $Request->attributes->get('action');

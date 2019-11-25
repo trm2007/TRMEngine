@@ -10,6 +10,14 @@ namespace TRMEngine\DataMapper\Interfaces;
 interface TRMDataMapperInterface
 {
 /**
+ * @return array - массив array("имя главного объекта", "имя его ID-поля")
+ */
+public function getIdFieldName();
+/**
+ * @param array $IdFieldName - массив array("имя главного объекта", "имя его ID-поля")
+ */
+public function setIdFieldName(array $IdFieldName);
+/**
  * добавляет данные из другого объекта $DataMapper,
  * если в массиве текущего объекта уже есть данные (совпадают индексы)
  * об одном из добавляемых sub-объектов,
@@ -24,9 +32,14 @@ public function addDataMapper(self $DataMapper);
  */
 public function getFieldsArray();
 /**
- * @param array $SafetyFieldsArray
+ * Формирует DataMapper из массива $FieldsArray, 
+ * в котором указана информация для всех полей, всех объектов
+ * 
+ * @param array $FieldsArray
+ * @param int $DefaultState - статус доступа будет установлен по умолчанию, 
+ * если не задан для каждого объекта и каждого поля
  */
-public function setFieldsArray( array $SafetyFieldsArray );
+public function setFieldsArray( array &$SafetyFieldsArray, $DefaultState );
 
 /**
  * устанавливает характеристики поля для объекта $ObjectName,
@@ -40,7 +53,7 @@ public function setFieldsArray( array $SafetyFieldsArray );
  * если у него явно не задан параметр "State",
  * по умолчанию установлено значение TRMDataMapper::READ_ONLY_FIELD
  */
-public function setField( $ObjectName, $FieldName, array $FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD );
+public function setField( $ObjectName, $FieldName, array &$FieldState, $DefaultState = TRMDataMapper::READ_ONLY_FIELD );
 
 /**
  * Проверяет есть ли данные для объекта $ObjectName в текущем DataMapper-e
@@ -142,3 +155,18 @@ public function getObjectsNamesWithoutBackRelations();
 
 
 } // TRMDataMapperInterface
+
+
+ interface TRMParentedDataMapperInterface extends TRMDataMapperInterface
+ {
+ /**
+ * @return array - имя поля, ссылающееся (содержащее значение) Id родителя
+ */
+public function getParentIdFieldName();
+/**
+ * @param array $ParentIdFieldName - имя поля, ссылающееся (содержащее значение) Id родителя
+ */
+public function setParentIdFieldName(array $ParentIdFieldName);
+
+
+} // TRMParentedDataMapper

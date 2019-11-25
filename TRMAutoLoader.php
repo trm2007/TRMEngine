@@ -10,45 +10,18 @@ namespace TRMEngine;
  */
 class TRMAutoLoader
 {
-public static $TRMENGINE_PATH;
 /**
 * @type array - массив классов для подключения [ ClassName => Path ]
 */
 private static $MyClasses = array();
-/**
- * @var string - текущая корневая папка для всего проекта (сайта)
- */
-private $CurrentRootDirectory;
 
 /**
  * Автоматически подключает все классы TRMEngine
- * 
- * @param string $CurrentRootDirectory - текущая корневая папка для всего проекта (сайта), 
- * относительно которой будут задаваться маршруты к php-файлам
  */
 public function __construct( $CurrentRootDirectory = "")
 {
-    if( empty($CurrentRootDirectory) )
-    {
-        if( key_exists("DOCUMENT_ROOT", $_SERVER) && !empty($_SERVER["DOCUMENT_ROOT"]) )
-        {
-            $this->CurrentRootDirectory = filter_var($_SERVER["DOCUMENT_ROOT"], FILTER_SANITIZE_URL);
-        }
-        else
-        {
-            $this->CurrentRootDirectory = getcwd();
-        }
-    }
-    else
-    {
-        $this->CurrentRootDirectory = $CurrentRootDirectory;
-    }
-    $this->CurrentRootDirectory = rtrim($this->CurrentRootDirectory, "/\\");
-    self::$TRMENGINE_PATH = str_replace($this->CurrentRootDirectory, "", __DIR__);
-
     // общие классы для работы TRMEngine
     $this->setClassArray( require __DIR__ . "/config/classespath.php" );
-
     spl_autoload_register(array($this, "loadClass"));
 }
 
@@ -61,7 +34,7 @@ public function loadClass($class)
 {
     if( isset(self::$MyClasses[$class]) )
     {
-        $Path = $this->CurrentRootDirectory . "/" . ltrim(self::$MyClasses[$class], "/\\");
+        $Path = self::$MyClasses[$class];
         if( is_file( $Path ) )
         {
             require_once( $Path );
@@ -73,7 +46,7 @@ public function loadClass($class)
  * добавляет один класс для автозагрузки как пара - ( имя класса => путь к фалу .php )
  * 
  * @param string $name - имя класса
- * @param string $path - путь к php файлу
+ * @param string $path - полный путь к php файлу в системе
  * 
  * @throws TRMException
  */

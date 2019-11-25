@@ -4,7 +4,6 @@ namespace TRMEngine\Repository;
 
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DiContainer\TRMDIContainer;
-use TRMEngine\Helpers\TRMLib;
 use TRMEngine\Repository\Exceptions\TRMRepositoryGetObjectException;
 use TRMEngine\Repository\Interfaces\TRMRepositoryInterface;
 
@@ -16,8 +15,19 @@ class TRMRepositoryManager
 /**
  * @var array - массив соответствий типов объектов (сущностей) их классам репозиториев (Repository)
  */
-protected $RepositoryNameArray = array();
+protected $RepositoryNamesArray = array();
+/**
+ * @var TRMDIContainer 
+ */
+protected $DIC;
 
+/**
+ * @param TRMDIContainer $DIC
+ */
+public function __construct(TRMDIContainer $DIC)
+{
+    $this->DIC = $DIC;
+}
 
 /**
  * устанавливает массив соответсвий типов объектов (сущностей) их калассам хранлищ (Repository) -
@@ -25,7 +35,7 @@ protected $RepositoryNameArray = array();
  * 
  * @param array $arr - массив соответсвий типов объектов (сущностей) их калассам хранлищ (Repository)
  */
-public function setRepositoryNameArray(array $arr)
+public function setRepositoryNamesArray(array &$arr)
 {
     foreach($arr as $objectclassname => $repositoryclassname)
     {
@@ -46,7 +56,7 @@ public function addRepositoryName($objectclassname, $repositoryclassname)
     {
         throw new TRMRepositoryGetObjectException( "Не найден класс репозитория {$repositoryclassname} для объектов тип {$objectclassname}!");
     }
-    $this->RepositoryNameArray[$objectclassname] = $repositoryclassname;
+    $this->RepositoryNamesArray[$objectclassname] = $repositoryclassname;
 }
 
 /**
@@ -54,25 +64,29 @@ public function addRepositoryName($objectclassname, $repositoryclassname)
  * 
  * @param string $objectclassname - имя типа объектов, для которых нужно получить объект хранилища
  * @return TRMRepositoryInterface
+ * 
+ * @throws TRMRepositoryGetObjectException
  */
 public function getRepository($objectclassname)
 {
-    if( !$objectclassname )
+    if( !is_string($objectclassname) )
     {
-        throw new TRMRepositoryGetObjectException("Неправильно указан тип объектов {$objectclassname}!");
+        throw new TRMRepositoryGetObjectException("Неправильно указан тип объектов для создания репозитория!");
     }
-    if( !isset($this->RepositoryNameArray[$objectclassname]) )
+    if( !isset($this->RepositoryNamesArray[$objectclassname]) )
     {
-        if( !class_exists($objectclassname."Repository") )
-        {
-            ob_start();
-            TRMLib::ap($this->RepositoryNameArray);
-            $debinf = ob_get_clean();
-            throw new TRMRepositoryGetObjectException( $debinf . "Не найден класс репозитория для объектов тип {$objectclassname}!");
-        }
-        $this->RepositoryNameArray[$objectclassname] = $objectclassname."Repository";
+        throw new TRMRepositoryGetObjectException( " Не указан класс репозитория для объектов типа {$objectclassname}!");
     }
-    return TRMDIContainer::getStatic($this->RepositoryNameArray[$objectclassname], array($objectclassname));
+
+    $Rep = $this->DIC->get( $this->RepositoryNamesArray[$objectclassname] );
+
+    if( !$Rep )
+    {
+        unset($this->RepositoryNamesArray[$objectclassname]);
+        throw new TRMRepositoryGetObjectException( "Репозиторий для объектов типа {$objectclassname} создать не удалось!");
+    }
+
+    return $Rep;
 }
 
 /**
