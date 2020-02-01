@@ -199,7 +199,7 @@ return array(
 "TRMEngine\Cookies\TRMAuthCookie" => __DIR__ . "/../cookie/TRMAuthCookie.php",
 "TRMEngine\Cookies\TRMCookie" => __DIR__ . "/../cookie/TRMCookie.php",
 
-"TRMEngine\Cookies\Exceptions\TRMAuthCookieException" => __DIR__ . "/../cookie/TRMCookieExceptions.php",
+"TRMEngine\Cookies\Exceptions\TRMAuthCookieException" => __DIR__ . "/../cookie/exceptions/TRMCookieExceptions.php",
 "TRMEngine\File\TRMStringsFile" => __DIR__ . "/../file/TRMStringsFile.php",
 
 

@@ -79,12 +79,12 @@ public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface
     // будет произведен поиск в постоянном хранилище DataSource, в данной реализации в БД
     $NewDataObject = parent::getOneBy( $objectname, $fieldname, $value, $DataObject);
     
-    // если из БД получить объект не удалось, то getId вернет null
+    // если из БД получить объект не удалось, то возвращает null
     if( $NewDataObject === null ) { return null; }
     
     // Если полученный объект уже есть в локальном хранилище, 
     // то нужно вернуть оттуда, 
-    // приоритет на стороне клинета, так как в локальном объетке могут быть на записанные изменения,
+    // приоритет на стороне клинета, так как в локальном объетке могут быть не записанные изменения,
     // их нельзя тереть
     $id = $NewDataObject->getId();
     if( null !== $id && isset(static::$IdDataObjectContainer[$this->ObjectTypeName][$id]) )
@@ -109,23 +109,10 @@ public function getOneBy($objectname, $fieldname, $value, TRMDataObjectInterface
  */
 protected function getDataObjectFromDataArray(array &$DataArray, TRMDataObjectInterface $DataObject = null)
 {
-    $IdArr = $this->DataMapper->getIdFieldName();
-    // проверяем, есть ли данные в поле с ID для данного объекта
-    // если это новый объект, то у него нет ID 
-    if( isset($DataArray[$IdArr[0]][$IdArr[1]]) )
-    {
-        // если есть, получаем ID
-        $id = $DataArray[$IdArr[0]][$IdArr[1]];
-        // если в локальном реползитории уже есть объект с таким Id, то веренем его...
-        if( isset( static::$IdDataObjectContainer[$this->ObjectTypeName][$id] ) )
-        {
-            return $DataObject = static::$IdDataObjectContainer[$this->ObjectTypeName][$id];
-        }
-    }
-    // если не найден в локальном хранилище, то вызываем родительский метод,
-    // где будет создан новый объект с эти данными
+    // вызываем родительский метод,
+    // где будет создан новый объект данными
     $NewDataObject = parent::getDataObjectFromDataArray($DataArray, $DataObject);
-    
+    // добавляем в локальный массив
     $this->addIdDataObjectToContainer($NewDataObject);
     
     return $NewDataObject;

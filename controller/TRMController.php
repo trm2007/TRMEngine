@@ -5,12 +5,13 @@ namespace TRMEngine\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use TRMEngine\Controller\Exceptions\TRMNoActionException;
 use TRMEngine\Controller\Exceptions\TRMNoControllerException;
+use TRMEngine\Helpers\TRMState;
 use TRMEngine\View\TRMView;
 
 /**
  * базовый класс для всех контроллеров
  */
-abstract class TRMController
+abstract class TRMController extends TRMState
 {
 /**
  * @var string - указывает какой аргумент добавляется к запросу для указания номера страницы при пагинации
