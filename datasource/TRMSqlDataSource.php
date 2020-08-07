@@ -1124,7 +1124,7 @@ protected function generateUpdateQueryString(
             // и где потом должны быть обновлены автоинкрементные поля,
             // если такие обнаружатся,
             // а так же передаем массив с полями доступными для обновления ,
-            // что бы не получать его заново рпсходуя ресурсы...
+            // что бы не получать его заново расходуя ресурсы...
             // в этой реализации массив передается по ссылке!!!
             $CurrentInsertId = $this->insertRowToOneTable($TableName, $DataObject, $FieldsNames);
 
@@ -1225,7 +1225,7 @@ private function generateUpdateRowForOneTableSQLString( $TableName, TRMDataObjec
     }
     $UpdateQuery = rtrim($UpdateQuery, ",");
 
-    // все вызовы этой функуии только из цикла по массиву с заполненными полями
+    // все вызовы этой функции только из цикла по массиву с заполненными полями
 //    if( !empty($WhereFieldsNamesForTable) )
     {
         $UpdateQuery .= " WHERE ";

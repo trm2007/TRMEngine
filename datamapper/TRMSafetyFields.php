@@ -130,14 +130,12 @@ public function completeOnlyExistsFieldsFromDB($Extends = false)
         {
             // если для объекта не указано ни одно поле, 
             // то будут заполнены все поля, полученные для объекта-таблицы из БД
-            if( $AllFieldFlag )
+            // или, если поле есть уже в массиве, информация о нем заполняется из полученной (из БД),
+            // при этом сохраняется статус поля (для чтения или для записи)
+            if( $AllFieldFlag || in_array($Field[$COLUMN_NAME_INDEX], $FieldsNamesArr))
             {
-                $OnlyFieldsInfo[] = $Field;
-                continue;
-            }
-            
-            if( in_array($Field[$COLUMN_NAME_INDEX], $FieldsNamesArr) )
-            {
+                $Field[TRMDataMapper::STATE_INDEX] = 
+                        $this->DataArray[$TableName]->getField($Field[$COLUMN_NAME_INDEX])->State;
                 $OnlyFieldsInfo[] = $Field;
             }
         }
@@ -184,7 +182,7 @@ private function completeSafetyFieldsFromDBFor( $TableName, array &$Cols, $Statu
                     TRMDataMapper::TYPE_INDEX => $Column['COLUMN_TYPE'],
                 ),    
 //    `COLUMN_NAME`,`COLUMN_DEFAULT`,`IS_NULLABLE`,`DATA_TYPE`,`CHARACTER_MAXIMUM_LENGTH`,`NUMERIC_PRECISION`,`CHARACTER_SET_NAME`,`COLUMN_TYPE`,`COLUMN_KEY`,`EXTRA`,`COLUMN_COMMENT``        . `);                
-            $Status);
+            isset($Column[TRMDataMapper::STATE_INDEX]) ? $Column[TRMDataMapper::STATE_INDEX] : $Status);
         }
     }
 }

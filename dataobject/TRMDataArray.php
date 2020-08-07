@@ -267,6 +267,9 @@ public function jsonSerialize()
     return $this->getDataArray();
 }
 
+/**
+ * @param array $Array - массив, который будет скопирован в данные без изменения
+ */
 public function initializeFromArray(array $Array)
 {
     $this->DataArray = $Array;
