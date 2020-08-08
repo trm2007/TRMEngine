@@ -62,7 +62,8 @@ public function handle( Request $Request )
     }
 
     ob_start();
-    $Res = $TRMObject->$Action();
+    //if( $Request->attributes->get('param') )
+    $Res = $TRMObject->$Action( $Request->attributes->get('param') );
     // методы могут возвращать готовый объект Response
     if( is_a($Res, Response::class) )
     {
