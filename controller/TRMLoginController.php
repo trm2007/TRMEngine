@@ -67,13 +67,13 @@ public function actionLogin()
     $this->setHeaders();
 
     $cookie = new TRMAuthCookie( $this->AuthCookieName );
-    
-    $name = $cookie->getUser();
-    
-    if( empty($name) )
-    {
-        $name = $this->Request->request->get("name");
 
+    // проверяем наличие имени пользователя в запросе 
+    // это приоритетно, должно приходить из формы авторизации
+    $name = $this->Request->request->get("name");
+    if( !empty($name) )
+    {
+        $cookie->logout();
         $password = $this->Request->request->get("password");
         // проверка пользователя и пароля
         // как правило checkPassword пробует в базе найти пользователя с таким паролем
@@ -83,10 +83,23 @@ public function actionLogin()
             return true;
         }
         // если этот код выполняется, значит авторизовались
-
-        // сохраняем cookie с текущим пользователем
-        $cookie->setauth($name);
     }
+    // если имя пользователя на пришло из форма,
+    // пытаемся получить из cookie
+    else
+    {
+        $name = $cookie->getUser();
+    }
+    
+    // проверка пользователя и пароля
+    // как правило checkUser пробует в базе найти пользователя с таким именем
+    if( empty($name) || !$this->checkUser($name) )
+    {
+        $this->renderLoginView();
+        return true;
+    }
+    // сохраняем cookie с текущим пользователем при каждом удачном входе
+    $cookie->setauth($name);
 
     // при входе originating_uri передается через GET-запрос,
     // если такого аргумента нет, то происходит переадресация на DefaultUri
@@ -172,6 +185,15 @@ abstract public function renderLoginView();
  * @return boolean
  */
 abstract protected function checkPassword($name, $password);
+
+/**
+ * пользовательская реализация функции,
+ * должна проверять наличие пользователя в системе
+ * 
+ * @param string $name
+ * @return boolean
+ */
+abstract protected function checkUser($name);
 
 
 } // TRMLoginController
