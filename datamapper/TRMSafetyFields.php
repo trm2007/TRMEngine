@@ -12,13 +12,25 @@ use TRMEngine\TRMDBObject;
  *
  * @author TRM - 2018-08-26
  */
-class TRMSafetyFields extends TRMDataMapper
+class TRMSafetyFields extends TRMParentedDataMapper
 {
 /**
  * индекс в массиве для псевдонима таблицы
  */
 const TABLEALIAS_INDEX  = "TableAlias";
+/**
+ * @var TRMDBObject - объект для работы с БД, 
+ * так как TRMSafetyFields должен получать информацию о полях таблицы из БД
+ */
+protected $_DBO;
 
+/**
+ * @param TRMDBObject $DBO
+ */
+public function __construct(TRMDBObject $DBO)
+{
+    $this->_DBO = $DBO;
+}
 
 /**
  * устанавливает псевдоним для таблицы $TableName, если он установлен
@@ -66,9 +78,10 @@ public function completeSafetyFieldsFromDB($Extends = false)
     foreach( $ObjectsNames as $TableName )
     {
         $Status = $this->DataArray[$TableName]->State;
+        $FieldsInfo = $this->_DBO->getTableColumnsInfo($TableName);
         $this->completeSafetyFieldsFromDBFor(
             $TableName, 
-            TRMDBObject::getTableColumnsInfo($TableName), 
+            $FieldsInfo, 
             $Status, 
             $Extends
         );
@@ -92,13 +105,19 @@ public function completeOnlyExistsFieldsFromDB($Extends = false)
     $ObjectsNames = $this->getArrayKeys();
     foreach( $ObjectsNames as $TableName )
     {
+        $AllFieldFlag = false;
+        // без параметров getAllFieldsNamesForCondition возвращает все поля,
+        // установленные в DataMapper-e на данный момент для объекта $TableName
         $FieldsNamesArr = $this->DataArray[$TableName]->getAllFieldsNamesForCondition();
+        // если в конфигурации DataMapper-а ни одно поле не устанвлено,
+        // то будут получены все поля из БД
         if( empty($FieldsNamesArr) )
         {
-            throw new TRMDataMapperEmptySafetyFieldsArrayException( 
-                __METHOD__ . " Нет полей для объекта {$TableName} " );
+            $AllFieldFlag = true;
+//            throw new TRMDataMapperEmptySafetyFieldsArrayException( 
+//                __METHOD__ . " Нет полей для объекта {$TableName} " );
         }
-        $FieldsInfo = TRMDBObject::getTableColumnsInfo($TableName);
+        $FieldsInfo = $this->_DBO->getTableColumnsInfo($TableName, $Extends);
         $OnlyFieldsInfo = array();
         // в зависимости от метода получения мета-данных, 
         // из расширенного запроса (из схемы таблицы), 
@@ -109,8 +128,14 @@ public function completeOnlyExistsFieldsFromDB($Extends = false)
         
         foreach( $FieldsInfo as $Field )
         {
-            if(in_array($Field[$COLUMN_NAME_INDEX], $FieldsNamesArr) )
+            // если для объекта не указано ни одно поле, 
+            // то будут заполнены все поля, полученные для объекта-таблицы из БД
+            // или, если поле есть уже в массиве, информация о нем заполняется из полученной (из БД),
+            // при этом сохраняется статус поля (для чтения или для записи)
+            if( $AllFieldFlag || in_array($Field[$COLUMN_NAME_INDEX], $FieldsNamesArr))
             {
+                $Field[TRMDataMapper::STATE_INDEX] = 
+                        $this->DataArray[$TableName]->getField($Field[$COLUMN_NAME_INDEX])->State;
                 $OnlyFieldsInfo[] = $Field;
             }
         }
@@ -140,7 +165,7 @@ public function completeOnlyExistsFieldsFromDB($Extends = false)
  * @param int $Status - состояние, по умолчанию = TRM_AR_READ_ONLY_FIELD
  * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
  */
-private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
+private function completeSafetyFieldsFromDBFor( $TableName, array &$Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false )
 {
     foreach( $Cols as $Column )
     {
@@ -157,7 +182,7 @@ private function completeSafetyFieldsFromDBFor( $TableName, array $Cols, $Status
                     TRMDataMapper::TYPE_INDEX => $Column['COLUMN_TYPE'],
                 ),    
 //    `COLUMN_NAME`,`COLUMN_DEFAULT`,`IS_NULLABLE`,`DATA_TYPE`,`CHARACTER_MAXIMUM_LENGTH`,`NUMERIC_PRECISION`,`CHARACTER_SET_NAME`,`COLUMN_TYPE`,`COLUMN_KEY`,`EXTRA`,`COLUMN_COMMENT``        . `);                
-            $Status);
+            isset($Column[TRMDataMapper::STATE_INDEX]) ? $Column[TRMDataMapper::STATE_INDEX] : $Status);
         }
     }
 }

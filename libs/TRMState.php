@@ -55,14 +55,14 @@ public function addStateCode($StateCode) {
 }
 
 /**
- * @param string $StateString - добавляет строку (описание) состяния к уже имющейся
+ * @param string $StateString - добавляет строку (описание) состяния к уже имеющейся
  */
 public function addStateString($StateString) {
     $this->StateString .= PHP_EOL . $StateString;
 }
 
 /**
- * устанавливает код состяния в 0 и очищает строку состояния
+ * устанавливает код состояния в 0 и очищает строку состояния
  */
 public function clearState()
 {

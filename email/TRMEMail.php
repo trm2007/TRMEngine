@@ -803,64 +803,70 @@ protected function sendSMTP($mailTo, $subject, $message, $headers)
     }
     if (!$this->_parseServer($socket, "220"))
     {
-        throw new TRMEMailSendingExceptions('Connection error');
+        throw new TRMEMailSendingExceptions('Не удалось установить соединение с SMTP-сервером');
     }
 
     $server_name = filter_input(INPUT_SERVER, "SERVER_NAME", FILTER_SANITIZE_STRING); //$_SERVER["SERVER_NAME"];
-    fputs($socket, "HELO TRMEngine\r\n");
+    if( !$server_name ) { $server_name = "TRMEngine"; }
+    fputs($socket, "EHLO {$server_name}\r\n");
     if (!$this->_parseServer($socket, "250"))
     {
-        fclose($socket);
-        throw new TRMEMailSendingExceptions('Error of command sending: HELO');
+        // если сервер не ответил на EHLO, то отправляем HELO
+        fputs($socket, "HELO {$server_name}\r\n");
+        if (!$this->_parseServer($socket, "250"))
+        {
+            fclose($socket);
+            throw new TRMEMailSendingExceptions('Ошибка команды SMTP: EHLO/HELO');
+        }
     }
 
     fputs($socket, "AUTH LOGIN\r\n");
     if (!$this->_parseServer($socket, "334"))
     {
         fclose($socket);
-        throw new TRMEMailSendingExceptions('Autorization error');
+        throw new TRMEMailSendingExceptions('Ошибка авторизации: AUTH LOGIN');
     }
 
     fputs($socket, base64_encode($this->config["login"]) . "\r\n");
     if (!$this->_parseServer($socket, "334"))
     {
         fclose($socket);
-        throw new TRMEMailSendingExceptions('Autorization error');
+        throw new TRMEMailSendingExceptions('Ошибка авторизации: не верный login');
     }
 
     fputs($socket, base64_encode($this->config["password"]) . "\r\n");
     if (!$this->_parseServer($socket, "235"))
     {
         fclose($socket);
-        throw new TRMEMailSendingExceptions('Autorization error');
+        throw new TRMEMailSendingExceptions('Ошибка авторизации: не верный пароль');
     }
 
     fputs($socket, "MAIL FROM: <".$this->config["login"].">\r\n");
     if (!$this->_parseServer($socket, "250"))
     {
         fclose($socket);
-        throw new TRMEMailSendingExceptions('Error of command sending: MAIL FROM');
+        throw new TRMEMailSendingExceptions('Ошибка команды SMTP: MAIL FROM');
     }
 
     fputs($socket, "RCPT TO: <" . $mailTo . ">\r\n");     
     if (!$this->_parseServer($socket, "250"))
     {
         fclose($socket);
-        throw new TRMEMailSendingExceptions('Error of command sending: RCPT TO');
+        throw new TRMEMailSendingExceptions('Ошибка команды SMTP: RCPT TO');
     }
 
     fputs($socket, "DATA\r\n");     
     if (!$this->_parseServer($socket, "354"))
     {
         fclose($socket);
-        throw new TRMEMailSendingExceptions('Error of command sending: DATA');
+        throw new TRMEMailSendingExceptions('Ошибка команды SMTP: DATA');
     }
 
     fputs($socket, $contentMail);
     if (!$this->_parseServer($socket, "250"))
     {
         fclose($socket);
-        throw new TRMEMailSendingExceptions("E-mail didn't sent");
+        throw new TRMEMailSendingExceptions("Отправить письмо не удалось");
     }
 
     fputs($socket, "QUIT\r\n");

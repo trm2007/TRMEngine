@@ -2,8 +2,10 @@
 
 namespace TRMEngine\Repository\Interfaces;
 
+use TRMEngine\DataMapper\Interfaces\TRMDataMapperInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 use TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface;
+use TRMEngine\DataSource\Interfaces\TRMDataSourceInterface;
 use TRMEngine\DataSource\TRMSqlDataSource;
 
 /**
@@ -11,6 +13,22 @@ use TRMEngine\DataSource\TRMSqlDataSource;
  */
 interface TRMRepositoryInterface
 {
+/**
+ * @return TRMDataMapperInterface
+ */
+public function getDataMapper();
+/**
+ * @param TRMDataMapperInterface $DataMapper
+ */
+public function setDataMapper(TRMDataMapperInterface $DataMapper);
+/**
+ * @param TRMDataSourceInterface $datasource - источник данных - объект для работы с данными в постоянном хранилище, в данном случае в БД
+ */
+public function setDataSource(TRMDataSourceInterface $datasource);
+/**
+ * @return TRMDataSourceInterface - источник данных - объект для работы с данными в постоянном хранилище, в данном случае в БД
+ */
+public function getDataSource();
 /**
  * @return boolean - значение условия сохранения параметров запроса после его выполнения
  */

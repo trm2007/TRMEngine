@@ -4,6 +4,7 @@ namespace TRMEngine;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use TRMEngine\DiContainer\TRMDIContainer;
 use TRMEngine\PipeLine\Interfaces\MiddlewareInterface;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 use TRMEngine\PipeLine\TRMNoPathMiddlewareDecorator;
@@ -20,14 +21,36 @@ class TRMApplication implements RequestHandlerInterface
  * @var TRMPipeLine - Цепочка посредников (Middleware)
  */
 private $PipeLine;
+/**
+ * @var TRMDIContainer
+ */
+protected $DIC;
 
 /**
  * @param RequestHandlerInterface $LastAction - послдений Action-Middleware,
  * который будет вызван, если очередь уже пуста, 
+ * @param TRMDIContainer $DIC - контейнер зависимостей, если не передан, то будет создан новый эеземпляр,
+ * получть его можно через getDIContainer()
  */
-public function __construct( RequestHandlerInterface $LastAction )
+public function __construct( RequestHandlerInterface $LastAction, TRMDIContainer $DIC = null )
 {
+    if( !$DIC )
+    {
+        $this->DIC = new TRMDIContainer();
+    }
+    else
+    {
+        $this->DIC = $DIC;
+    }
     $this->PipeLine = new TRMPipeLine( $LastAction );
+}
+
+/**
+ * @return TRMDIContainer - возвращает контейнер зависимостей
+ */
+public function getDIContainer()
+{
+    return $this->DIC;
 }
 
 /**

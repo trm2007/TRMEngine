@@ -67,13 +67,13 @@ public function actionLogin()
     $this->setHeaders();
 
     $cookie = new TRMAuthCookie( $this->AuthCookieName );
-    
-    $name = $cookie->getUser();
-    
-    if( empty($name) )
-    {
-        $name = $this->Request->request->get("name");
 
+    // проверяем наличие имени пользователя в запросе 
+    // это приоритетно, должно приходить из формы авторизации
+    $name = $this->Request->request->get("name");
+    if( !empty($name) )
+    {
+        $cookie->logout();
         $password = $this->Request->request->get("password");
         // проверка пользователя и пароля
         // как правило checkPassword пробует в базе найти пользователя с таким паролем
@@ -83,21 +83,34 @@ public function actionLogin()
             return true;
         }
         // если этот код выполняется, значит авторизовались
-
-        // сохраняем cookie с текущим пользователем
-        $cookie->setauth($name);
     }
+    // если имя пользователя на пришло из форма,
+    // пытаемся получить из cookie
+    else
+    {
+        $name = $cookie->getUser();
+    }
+    
+    // проверка пользователя и пароля
+    // как правило checkUser пробует в базе найти пользователя с таким именем
+    if( empty($name) || !$this->checkUser($name) )
+    {
+        $this->renderLoginView();
+        return true;
+    }
+    // сохраняем cookie с текущим пользователем при каждом удачном входе
+    $cookie->setauth($name);
 
     // при входе originating_uri передается через GET-запрос,
     // если такого аргумента нет, то происходит переадресация на DefaultUri
-    $uri = $this->Request->request->get( $this->OriginatingUriArgumentName, $this->DefaultUri );
+    $uri = $this->Request->query->get( $this->OriginatingUriArgumentName, $this->DefaultUri );
     // теперь переадресуем на запрашиваемую страницу
     header("Location: {$uri}");
     exit;
 }
 
 /**
- * выход - удаление Cookie с авторизацией
+ * выход - удаление Cookie с авторизацией и закрытие сессии
  */
 public function actionLogout()
 {
@@ -108,6 +121,12 @@ public function actionLogout()
     
     $cookie = new TRMAuthCookie($this->AuthCookieName);
     $cookie->logout();
+
+    if( PHP_SESSION_ACTIVE === session_status() )
+    {
+        $this->stopSession();
+    }
+
     //отключаем кэширование!
     header("Last-Modified: " . gmdate("D, d M Y H:i:s")." GMT");
     $this->setHeaders();
@@ -127,6 +146,30 @@ protected function setHeaders()
 }
 
 /**
+ * удаляет данные о сессии,
+ * так же при использовании сессий через куки удаляет информацию из них
+ */
+protected function stopSession()
+{
+    // Unset all of the session variables.
+    $_SESSION = array();
+
+    // If it's desired to kill the session, also delete the session cookie.
+    // Note: This will destroy the session, and not just the session data!
+    if (ini_get("session.use_cookies"))
+    {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+
+    // Finally, destroy the session.
+    session_destroy();
+}
+
+/**
  * пользовательская реализация,
  * в ней должны предприниматься действия, когда пользователь не авторизован и,
  * например, должен отображаться вид с формой входа
@@ -142,6 +185,15 @@ abstract public function renderLoginView();
  * @return boolean
  */
 abstract protected function checkPassword($name, $password);
+
+/**
+ * пользовательская реализация функции,
+ * должна проверять наличие пользователя в системе
+ * 
+ * @param string $name
+ * @return boolean
+ */
+abstract protected function checkUser($name);
 
 
 } // TRMLoginController
