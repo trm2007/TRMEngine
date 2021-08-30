@@ -14,6 +14,18 @@ return array(
 "TRMEngine\Exceptions\TRMConfigFileException" => __DIR__ . "/../exceptions/TRMExceptions.php",
 "TRMEngine\Exceptions\TRMConfigArrayException" => __DIR__ . "/../exceptions/TRMExceptions.php",
 
+/**
+ * TRMEngine\Cors
+ */
+"TRMEngine\Cors\TRMCorsHelpers" => __DIR__ . "/../cors/TRMCorsHelpers.php",
+
+"TRMEngine\Cors\Interfaces\TRMSupportedHostInterface" => __DIR__ . "/../cors/interfaces/TRMSupportedHostInterface.php",
+"TRMEngine\Cors\TRMSupportedHost" => __DIR__ . "/../cors/TRMSupportedHost.php",
+
+"TRMEngine\Cors\Interfaces\TRMCorsHeadersFactoryInterface" => __DIR__ . "/../cors/interfaces/TRMCorsHeadersFactoryInterface.php",
+"TRMEngine\Cors\TRMCorsHeadersFactory" => __DIR__ . "/../cors/TRMCorsHeadersFactory.php",
+
+"TRMEngine\Cors\TRMSupportedHosts" => __DIR__ . "/../cors/TRMSupportedHosts.php",
 
 /**
  * TRMEngine\PathFinder
