@@ -2,6 +2,7 @@
 
 namespace TRMEngine;
 
+use Exception;
 use TRMEngine\DataArray\TRMDataArray;
 use TRMEngine\Exceptions\TRMConfigArrayException;
 use TRMEngine\Exceptions\TRMConfigFileException;
@@ -240,7 +241,7 @@ public function connect()
     {
         if( $trycounts == TRMDBObject::TRM_DB_TRY_TO_CONNECT_TIMES )
         {
-            throw new \Exceptions( __METHOD__ . " Не удалось установить начальное соединение с БД " 
+            throw new Exception( __METHOD__ . " Не удалось установить начальное соединение с БД " 
                     . $this->ConfigArray["dbserver"] 
                     . " - " . $this->ConfigArray["dbuser"] );
         }

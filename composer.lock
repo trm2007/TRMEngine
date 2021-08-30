@@ -4,9 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c5a2738fca77c64488525bf5835c3f5",
-    "packages": [],
-    "packages-dev": [
+    "content-hash": "53b41089ae5ce0a7f3bccf5a8c484fc2",
+    "packages": [
         {
             "name": "paragonie/random_compat",
             "version": "v2.0.18",
@@ -58,16 +57,16 @@
         },
         {
             "name": "symfony/http-foundation",
-            "version": "3.4.x-dev",
+            "version": "v3.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/http-foundation.git",
-                "reference": "2d5d1f07e02269f6f5cd5a7e6b8f3a2f38552ef6"
+                "reference": "d9625c8abb907e0ca2d7506afd7a719a572c766f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/2d5d1f07e02269f6f5cd5a7e6b8f3a2f38552ef6",
-                "reference": "2d5d1f07e02269f6f5cd5a7e6b8f3a2f38552ef6",
+                "url": "https://api.github.com/repos/symfony/http-foundation/zipball/d9625c8abb907e0ca2d7506afd7a719a572c766f",
+                "reference": "d9625c8abb907e0ca2d7506afd7a719a572c766f",
                 "shasum": ""
             },
             "require": {
@@ -108,7 +107,10 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "https://symfony.com",
-            "time": "2019-03-12T14:29:13+00:00"
+            "support": {
+                "source": "https://github.com/symfony/http-foundation/tree/3.4"
+            },
+            "time": "2017-11-30T14:56:21+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -305,14 +307,17 @@
             "time": "2019-03-11T10:46:25+00:00"
         }
     ],
+    "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "symfony/http-foundation": 20,
         "symfony/routing": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": []
+    "platform": {
+        "php": ">=5.6.0"
+    },
+    "platform-dev": [],
+    "plugin-api-version": "2.1.0"
 }
