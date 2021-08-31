@@ -73,12 +73,12 @@ protected $Vars = array();
  */
 protected $Contents = array();
 /**
- * @var sting - скомпилированный контент в виде строки
+ * @var string - скомпилированный контент в виде строки
  */
 protected $FullContent = "";
 
 /**
- * @var sting скрипты найденные в тексте в тегах <script.*>...</script>, 
+ * @var string скрипты найденные в тексте в тегах <script.*>...</script>, 
  * объединенные в один блок, заполняется функцией cutScripts,
  * как правило используется для размещения скриптов в конце
  */
@@ -433,8 +433,8 @@ function setKeyWords($keywords)
 /**
  * устанавливает для метатега $tagname значение $tagvalue
  * 
- * @param sring $tagname
- * @param sring $tagvalue
+ * @param string $tagname
+ * @param string $tagvalue
  */
 function setMeta($tagname, $tagvalue)
 {
@@ -443,7 +443,7 @@ function setMeta($tagname, $tagvalue)
 /**
  * возвращает значение метатега $name
  * 
- * @param sring $name - имя META-тега
+ * @param string $name - имя META-тега
  * @return string|null
  */
 function getMeta($name)
