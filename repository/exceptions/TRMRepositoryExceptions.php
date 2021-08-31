@@ -9,11 +9,11 @@ use TRMEngine\Exceptions\TRMException;
  */
 class TRMRepositoryGetObjectException extends TRMException
 {
-    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
-    {
-        $message .= PHP_EOL . " Ошика при работе с репозиториями! " . PHP_EOL;
-        parent::__construct($message, $code, $previous);
-    }
+  public function __construct($message = "", $code = 0, \Throwable $previous = NULL)
+  {
+    $message .= PHP_EOL . " Ошика при работе с репозиториями! " . PHP_EOL;
+    parent::__construct($message, $code, $previous);
+  }
 }
 
 
@@ -22,11 +22,11 @@ class TRMRepositoryGetObjectException extends TRMException
  */
 class TRMRepositoryNoDataObjectException extends TRMException
 {
-    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
-    {
-        $message .= PHP_EOL . " Не установлен объект с данными в репозитории! " . PHP_EOL;
-        parent::__construct($message, $code, $previous);
-    }
+  public function __construct($message = "", $code = 0, \Throwable $previous = NULL)
+  {
+    $message .= PHP_EOL . " Не установлен объект с данными в репозитории! " . PHP_EOL;
+    parent::__construct($message, $code, $previous);
+  }
 }
 
 
@@ -35,9 +35,9 @@ class TRMRepositoryNoDataObjectException extends TRMException
  */
 class TRMRepositoryUnknowDataObjectClassException extends TRMException
 {
-    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
-    {
-        $message .= PHP_EOL . " Объект неизвестного класса передан в репозиторий! " . PHP_EOL;
-        parent::__construct($message, $code, $previous);
-    }
+  public function __construct($message = "", $code = 0, \Throwable $previous = NULL)
+  {
+    $message .= PHP_EOL . " Объект неизвестного класса передан в репозиторий! " . PHP_EOL;
+    parent::__construct($message, $code, $previous);
+  }
 }
