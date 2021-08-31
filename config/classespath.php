@@ -8,11 +8,11 @@ return array(
 "TRMEngine\TRMApplication" => __DIR__ . "/../TRMApplication.php",
 "TRMEngine\TRMDBObject" => __DIR__ . "/../TRMDBObject.php",
 
-"TRMEngine\Exceptions\TRMException" => __DIR__ . "/../exceptions/TRMExceptions.php",
-"TRMEngine\Exceptions\TRMObjectCreateException" => __DIR__ . "/../exceptions/TRMExceptions.php",
-"TRMEngine\Exceptions\TRMSqlQueryException" => __DIR__ . "/../exceptions/TRMExceptions.php",
-"TRMEngine\Exceptions\TRMConfigFileException" => __DIR__ . "/../exceptions/TRMExceptions.php",
-"TRMEngine\Exceptions\TRMConfigArrayException" => __DIR__ . "/../exceptions/TRMExceptions.php",
+"TRMEngine\Exceptions\TRMException" => __DIR__ . "/../exceptions/TRMException.php",
+"TRMEngine\Exceptions\TRMObjectCreateException" => __DIR__ . "/../exceptions/TRMObjectCreateException.php",
+"TRMEngine\Exceptions\TRMSqlQueryException" => __DIR__ . "/../exceptions/TRMSqlQueryException.php",
+"TRMEngine\Exceptions\TRMConfigFileException" => __DIR__ . "/../exceptions/TRMConfigFileException.php",
+"TRMEngine\Exceptions\TRMConfigArrayException" => __DIR__ . "/../exceptions/TRMConfigArrayException.php",
 
 /**
  * TRMEngine\Cors
@@ -56,10 +56,16 @@ return array(
 
 
 /** 
+ * TRMEngine\DataArray\ 
+ */
+"TRMEngine\DataArray\Interfaces\TRMDataArrayInterface" => __DIR__ . "/../dataarray/interfaces/TRMDataArrayInterface.php",
+"TRMEngine\DataArray\TRMDataArray" => __DIR__ . "/../dataarray/TRMDataArray.php",
+
+
+/** 
  * TRMEngine\DataObject\ 
  */
 "TRMEngine\DataArray\Interfaces\InitializibleFromArray" => __DIR__ . "/../dataobject/interfaces/TRMDataArrayInterface.php",
-"TRMEngine\DataArray\Interfaces\TRMDataArrayInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataArrayInterface.php",
 "TRMEngine\DataObject\Interfaces\TRMDataObjectInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataObjectInterface.php",
 "TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataObjectInterface.php",
 "TRMEngine\DataObject\Interfaces\TRMParentedDataObjectInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataObjectInterface.php",
@@ -67,7 +73,6 @@ return array(
 "TRMEngine\DataObject\Interfaces\TRMDataObjectsCollectionInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataObjectsCollectionInterface.php",
 "TRMEngine\DataObject\Interfaces\TRMParentedCollectionInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataObjectsCollectionInterface.php",
 
-"TRMEngine\DataArray\TRMDataArray" => __DIR__ . "/../dataobject/TRMDataArray.php",
 "TRMEngine\DataObject\TRMDataObject" => __DIR__ . "/../dataobject/TRMDataObject.php",
 "TRMEngine\DataObject\TRMIdDataObject" => __DIR__ . "/../dataobject/TRMIdDataObject.php",
 "TRMEngine\DataObject\TRMParentedDataObject" => __DIR__ . "/../dataobject/TRMParentedDataObject.php",
@@ -90,8 +95,8 @@ return array(
 /** 
  * TRMEngine\Repository\ 
  */
-"TRMEngine\Repository\Interfaces\TRMRepositoryInterface" => __DIR__ . "/../repository/interfaces/TRMRepositoryInterfaces.php",
-"TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface" => __DIR__ . "/../repository/interfaces/TRMRepositoryInterfaces.php",
+"TRMEngine\Repository\Interfaces\TRMRepositoryInterface" => __DIR__ . "/../repository/interfaces/TRMRepositoryInterface.php",
+"TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface" => __DIR__ . "/../repository/interfaces/TRMIdDataObjectRepositoryInterface.php",
 
 "TRMEngine\Repository\TRMRepository" => __DIR__ . "/../repository/TRMRepository.php",
 "TRMEngine\Repository\TRMIdDataObjectRepository" => __DIR__ . "/../repository/TRMIdDataObjectRepository.php",
@@ -146,8 +151,8 @@ return array(
 /**
  * TRMEngine\DiContainer
  */
-"TRMEngine\DiContainer\Interfaces\TRMSimpleFactoryInterface" =>  __DIR__ . "/../dicontainer/interfaces/TRMFactoryInterface.php",
-"TRMEngine\DiContainer\Interfaces\TRMStaticFactoryInterface" =>  __DIR__ . "/../dicontainer/interfaces/TRMFactoryInterface.php",
+"TRMEngine\DiContainer\Interfaces\TRMSimpleFactoryInterface" =>  __DIR__ . "/../dicontainer/interfaces/TRMSimpleFactoryInterface.php",
+"TRMEngine\DiContainer\Interfaces\TRMStaticFactoryInterface" =>  __DIR__ . "/../dicontainer/interfaces/TRMStaticFactoryInterface.php",
 
 "TRMEngine\DiContainer\TRMStaticFactory" =>  __DIR__ . "/../dicontainer/TRMStaticFactory.php",
 "TRMEngine\DiContainer\TRMDIContainer" => __DIR__ . "/../dicontainer/TRMDIContainer.php",
@@ -162,8 +167,8 @@ return array(
 /**
  * TRMEngine\PipeLine
  */
-"TRMEngine\PipeLine\Interfaces\RequestHandlerInterface" => __DIR__ . "/../pipeline/interfaces/TRMPipeLineInterface.php",
-"TRMEngine\PipeLine\Interfaces\MiddlewareInterface" => __DIR__ . "/../pipeline/interfaces/TRMPipeLineInterface.php",
+"TRMEngine\PipeLine\Interfaces\RequestHandlerInterface" => __DIR__ . "/../pipeline/interfaces/RequestHandlerInterface.php",
+"TRMEngine\PipeLine\Interfaces\MiddlewareInterface" => __DIR__ . "/../pipeline/interfaces/MiddlewareInterface.php",
 
 "TRMEngine\PipeLine\TRMPipeLine" => __DIR__ . "/../pipeline/TRMPipeLine.php",
 "TRMEngine\PipeLine\TRMNext" => __DIR__ . "/../pipeline/TRMNext.php",
@@ -195,8 +200,8 @@ return array(
 /**
  * TRMEngine\Helpers
  */    
-"TRMEngine\Helpers\TRMLib" => __DIR__ . "/../libs/TRMLib.php",
-"TRMEngine\Helpers\TRMState" => __DIR__ . "/../libs/TRMState.php",
+"TRMEngine\Helpers\TRMLib" => __DIR__ . "/../helpers/TRMLib.php",
+"TRMEngine\Helpers\TRMState" => __DIR__ . "/../helpers/TRMState.php",
 
 
 /**
@@ -208,10 +213,15 @@ return array(
 /**
  * TRMEngine\Cookies
  */
-"TRMEngine\Cookies\TRMAuthCookie" => __DIR__ . "/../cookie/TRMAuthCookie.php",
-"TRMEngine\Cookies\TRMCookie" => __DIR__ . "/../cookie/TRMCookie.php",
+"TRMEngine\Cookies\TRMAuthCookie" => __DIR__ . "/../cookies/TRMAuthCookie.php",
+"TRMEngine\Cookies\TRMCookie" => __DIR__ . "/../cookies/TRMCookie.php",
 
-"TRMEngine\Cookies\Exceptions\TRMAuthCookieException" => __DIR__ . "/../cookie/exceptions/TRMCookieExceptions.php",
+"TRMEngine\Cookies\Exceptions\TRMAuthCookieException" => __DIR__ . "/../cookies/exceptions/TRMCookieExceptions.php",
+
+
+/**
+ * TRMEngine\File
+ */
 "TRMEngine\File\TRMStringsFile" => __DIR__ . "/../file/TRMStringsFile.php",
 
 
