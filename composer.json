@@ -1,6 +1,7 @@
 {
   "name": "trm/trmengine",
   "description": "Start little framework TRMEngine.",
+  "version": "0.1.0",
   "authors": [
     {
       "name": "Sergey Kolesnikov",
