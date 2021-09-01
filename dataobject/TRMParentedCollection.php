@@ -18,7 +18,7 @@ abstract class TRMParentedCollection extends TRMTypedCollection implements TRMPa
    * @var array - массив = (имя объекта, имя свойства) содержащего Id родителя в коллекции,
    * должен определяться в каждом дочернем классе со своими именами
    */
-  // static protected $ParentIdFieldName;
+  static protected $ParentIdFieldName;
   /**
    * @var TRMIdDataObjectInterface - ссылка на объект родителя для набора из текущей коллекции...
    */
