@@ -65,7 +65,7 @@ return array(
 /** 
  * TRMEngine\DataObject\ 
  */
-"TRMEngine\DataArray\Interfaces\InitializibleFromArray" => __DIR__ . "/../dataobject/interfaces/TRMDataArrayInterface.php",
+"TRMEngine\DataArray\Interfaces\InitializibleFromArray" => __DIR__ . "/../dataobject/interfaces/InitializibleFromArray.php",
 "TRMEngine\DataObject\Interfaces\TRMDataObjectInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataObjectInterface.php",
 "TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface" => __DIR__ . "/../dataobject/interfaces/TRMIdDataObjectInterface.php",
 "TRMEngine\DataObject\Interfaces\TRMParentedDataObjectInterface" => __DIR__ . "/../dataobject/interfaces/TRMDataObjectInterface.php",

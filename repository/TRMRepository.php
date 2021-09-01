@@ -405,7 +405,8 @@ abstract class TRMRepository implements TRMRepositoryInterface
     $this->CollectionToUpdate->addDataObject($DataObject);
   }
   /**
-   * @param TRMDataObjectsCollectionInterface $Collection - коллекция, объекты которой будут добавлен в коллекцию сохраняемых
+   * @param TRMDataObjectsCollectionInterface $Collection - коллекция, 
+   * объекты которой будут добавлен в коллекцию сохраняемых
    */
   public function updateCollection(TRMDataObjectsCollectionInterface $Collection)
   {

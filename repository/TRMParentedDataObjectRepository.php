@@ -12,10 +12,18 @@ use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 abstract class TRMParentedDataObjectRepository extends TRMRepository
 {
   /**
+   * переопределение DataMapper с указанием новго типа,
+   * должен реализовывать интерфейс TRMParentedDataMapperInterface
+   *
+   * @var TRMParentedDataMapperInterface
+   */
+  protected $DataMapper;
+  /**
    * @var array - массив array( имя объект, имя поля ) родительского ID в связующей таблице,
    * в данной реализации это одна из зависимостей, играющая роль главной, 
    * для которой выбираются все записи коллекции именно с одним таким ID,
-   * например, для соотношения ( ID-товара-1 - [ID-товара-M, ID-характеристики-M] - ID-характеристики-1 )
+   * например, 
+   * для соотношения ( ID-товара-1 - [ID-товара-M, ID-характеристики-M] - ID-характеристики-1 )
    * такую роль играет ID-товара-M, для одного товара выбирается коллекция характеристик
    */
   static protected $ParentRelationIdFieldName = array();
