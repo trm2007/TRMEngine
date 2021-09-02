@@ -2,7 +2,7 @@
 
 namespace TRMEngine\Repository\Interfaces;
 
-use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
+use TRMEngine\DataObject\Interfaces\TRMIdDataObjectInterface;
 
 /**
  * интерфейс для объектов репозитория, используемых в системе TRMEngine
@@ -14,12 +14,12 @@ interface TRMIdDataObjectRepositoryInterface extends TRMRepositoryInterface
    * никакие условия кроме выборки по ID не срабатывают и удаляются!
    * 
    * @param scalar $id - идентификатор (Id) объекта
-   * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+   * @param TRMIdDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
    * будут заполняться свойства этого объекта
    * 
-   * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
+   * @return TRMIdDataObjectInterface - объект, заполненный данными из хранилища
    */
-  public function getById($id, TRMDataObjectInterface $DataObject = null);
+  public function getById($id, TRMIdDataObjectInterface $DataObject = null);
 
   /**
    * @return array - array(имя суб-объекта, имя поля) для ID у обрабатываемых данным репозиторием объектов

@@ -18,6 +18,12 @@ use TRMEngine\Repository\Interfaces\TRMIdDataObjectRepositoryInterface;
 abstract class TRMIdDataObjectRepository extends TRMRepository implements TRMIdDataObjectRepositoryInterface
 {
   /**
+   * переопределяем объект DataMapper с новым типом для работы с индексными полями
+   * 
+   * @var TRMIdDataMapperInterface 
+   */
+  protected $DataMapper;
+  /**
    * @var array(TRMIdDataObjectInterface) - массив объектов, получаемых и создаваемых через данный репозиторий, 
    * ссылки на все объекты хранятся в этом массиве, 
    * и при запросе уже считанного из БД (или другого хранилища) объекта он вернется из массива
@@ -83,7 +89,8 @@ abstract class TRMIdDataObjectRepository extends TRMRepository implements TRMIdD
 
     // Если полученный объект уже есть в локальном хранилище, 
     // то нужно вернуть оттуда, 
-    // приоритет на стороне клинета, так как в локальном объетке могут быть не записанные изменения,
+    // приоритет на стороне клинета, 
+    // так как в локальном объекте могут быть не записанные изменения,
     // их нельзя терять
     $id = $NewDataObject->getId();
     if (null !== $id && isset(static::$IdDataObjectContainer[$this->ObjectTypeName][$id])) {
@@ -121,12 +128,12 @@ abstract class TRMIdDataObjectRepository extends TRMRepository implements TRMIdD
    * никакие условия кроме выборки по ID не срабатывают и удаляются!
    * 
    * @param scalar $id - идентификатор (Id) объекта
-   * @param TRMDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
+   * @param TRMIdDataObjectInterface $DataObject - если задан объект, то новый создаваться не будет,
    * будут заполняться свойства этого объекта
    * 
-   * @return TRMDataObjectInterface - объект, заполненный данными из хранилища
+   * @return TRMIdDataObjectInterface - объект, заполненный данными из хранилища
    */
-  public function getById($id, TRMDataObjectInterface $DataObject = null)
+  public function getById($id, TRMIdDataObjectInterface $DataObject = null)
   {
     $IdArr = $this->DataMapper->getIdFieldName();
     return $this->getOneBy($IdArr[0], $IdArr[1], $id, $DataObject);

@@ -38,7 +38,8 @@ interface TRMDataObjectInterface extends TRMDataArrayInterface
   public function setData($objectname, $fieldname, $value);
 
   /**
-   * проверяет наличие данных в полях с именами из набора $fieldnames в строке с номером $rownum
+   * проверяет наличие данных в полях с именами из набора $fieldnames 
+   * в sub-объекте $objectname
    *
    * @param string $objectname - имя sub-объекта, для которого проверяется набор данных
    * @param &array $fieldnames - ссылка на массив с именами проверяемых полей

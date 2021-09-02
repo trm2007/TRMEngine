@@ -9,7 +9,7 @@ use TRMEngine\Exceptions\TRMException;
  */
 class TRMDataMapperExceptions extends TRMException
 {
-    public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
         $message .= PHP_EOL . " Ошибка в DataMapper! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
@@ -21,7 +21,7 @@ class TRMDataMapperExceptions extends TRMException
  */
 class TRMDataMapperNotStringFieldNameException extends TRMDataMapperExceptions
 {
-    public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
         $message .= PHP_EOL . " В качестве имени поля используется не строковое значение! " . PHP_EOL;
         parent::__construct($message, $code, $previous);
@@ -34,7 +34,7 @@ class TRMDataMapperNotStringFieldNameException extends TRMDataMapperExceptions
  */
 class TRMDataMapperEmptySafetyFieldsArrayException extends TRMDataMapperExceptions
 {
-    public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
         $message .= PHP_EOL . " Массив SafetyFieldsArray - пустой, "
                 . "необходимо указать хотябы имена таблиц как ключи массива array( TableName => array(...), ... )" . PHP_EOL;
@@ -49,7 +49,7 @@ class TRMDataMapperEmptySafetyFieldsArrayException extends TRMDataMapperExceptio
  */
 class TRMDataMapperRelationException extends TRMDataMapperExceptions
 {
-    public function __construct( $message = "", $code = 0, Throwable $previous = NULL)
+    public function __construct( $message = "", $code = 0, \Throwable $previous = NULL)
     {
         $message .= PHP_EOL . " В объекте данных обнаружены циклические связи! Нет внутренних объектов без ссылок на них!" . PHP_EOL;
         parent::__construct($message, $code, $previous);
