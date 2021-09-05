@@ -33,7 +33,7 @@ static public $DebugBlocksCounter = 0;
  * выводит отладочную тнформацию в виде таблицы стека вызовов
  * 
  * @param array $arr - должен передаваться массив возвращаемый debug_backtrace()
- * @param boolean $CLIFlag - если установлен в TRUE, 
+ * @param bool $CLIFlag - если установлен в TRUE, 
  * то будет производится вывод для Command Line интерфеса,
  * без HTML оформления
  */
@@ -153,8 +153,8 @@ protected static function printDebugTrace( array $arr, $CLIFlag = null )
  * 
  * @param string $str - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
- * @param boolean $traceflag - флаг, который указывает выводить или нет информацию из стека вызовов
- * @param boolean $CLIFlag - если установлен в TRUE, 
+ * @param bool $traceflag - флаг, который указывает выводить или нет информацию из стека вызовов
+ * @param bool $CLIFlag - если установлен в TRUE, 
  * то будет производится вывод для Command Line интерфеса,
  * без HTML оформления
  */
@@ -184,7 +184,7 @@ public static function dp($str, $color = self::DefaultDebugTextColor, $traceflag
  * 
  * @param string $str - строка для вывода
  * @param string $color - цвет текста
- * @param boolean $CLIFlag - если установлен в TRUE, 
+ * @param bool $CLIFlag - если установлен в TRUE, 
  * то будет производится вывод для Command Line интерфеса,
  * без HTML оформления
  */
@@ -206,7 +206,7 @@ public static function debugPrint($str, $color = self::DefaultDebugTextColor, $C
  * 
  * @param mixed $str - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
- * @param boolean $CLIFlag - если установлен в TRUE, 
+ * @param bool $CLIFlag - если установлен в TRUE, 
  * то будет производится вывод для Command Line интерфеса,
  * без HTML оформления
  */
@@ -225,7 +225,7 @@ public static function ip( $str, $color = self::DefaultInfoTextColor, $CLIFlag =
  * 
  * @param array $arr - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
- * @param boolean $CLIFlag - если установлен в TRUE, 
+ * @param bool $CLIFlag - если установлен в TRUE, 
  * то будет производится вывод для Command Line интерфеса,
  * без HTML оформления
  */
@@ -244,7 +244,7 @@ public static function ap( array $arr, $color = self::DefaultArrayTextColor, $CL
  * 
  * @param string $str - строка для вывода
  * @param string $color - цвет для вывода, red, yellow, blue... или #00ff00...
- * @param boolean $CLIFlag - если установлен в TRUE, 
+ * @param bool $CLIFlag - если установлен в TRUE, 
  * то будет производится вывод для Command Line интерфеса,
  * без HTML оформления
  */
@@ -262,7 +262,7 @@ public static function sp( $str, $color = self::DefaultStringTextColor, $CLIFlag
  * русские названия в английский транслит с заменой пробелов на минусы - 
  * 
  * @param string $s - строка с русскими буквами, которые будут заменены на английский аналог
- * @param boolean $specialforurl - если этот флаг установлен в true, тогда комбинация 100х100 с русским хэ, поменяется на 100x100 с английским икс!
+ * @param bool $specialforurl - если этот флаг установлен в true, тогда комбинация 100х100 с русским хэ, поменяется на 100x100 с английским икс!
  * @param string $charset - набор символов. поумолчанию устанавливается в "utf-8"
  * @return string - строка в траслитерации без кирилических символов
  */
@@ -436,7 +436,7 @@ public static function array_column($input = null, $columnKey = null, $indexKey 
 
 /**
  * проверяет выполняется текущий скрип в Command Line
- * @return boolean
+ * @return bool
  */
 public static function isCLI()
 {

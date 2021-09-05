@@ -34,7 +34,7 @@ interface TRMDataObjectsCollectionInterface extends TRMDataArrayInterface
    * даже если он дублирует уже присутсвующий,
    * по умолчанию - false (дубли не добавляются)
    * 
-   * @return boolean - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
+   * @return bool - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
    */
   public function addDataObject(TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false);
 
@@ -50,7 +50,7 @@ interface TRMDataObjectsCollectionInterface extends TRMDataArrayInterface
    * точнее ссылка на этот объект
    * 
    * @param TRMDataObjectInterface $Object
-   * @return boolean
+   * @return bool
    */
   public function hasDataObject(TRMDataObjectInterface $Object);
 

@@ -123,7 +123,7 @@ class TRMFieldMapper implements InitializibleFromArray
   /**
    * 
    * @param array $Array - массив из которого будут установлены занчения свойств поля
-   * @param boolean $ClearFlag - если этот флаг установлен в TRUE, 
+   * @param bool $ClearFlag - если этот флаг установлен в TRUE, 
    * то все старые значения перед инициализацией стираются,
    * если нужно сохранить отсутсвующие в $Array свойства со старыми значениями, 
    * то этот флаг нужно установить в FALSE

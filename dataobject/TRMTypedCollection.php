@@ -71,7 +71,7 @@ class TRMTypedCollection extends TRMDataObjectsCollection implements TRMTypedCol
    * даже если он дублирует уже присутсвующий,
    * по умолчанию - false (дубли не добавляются)
    * 
-   * @return boolean - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
+   * @return bool - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
    */
   public function addDataObject(TRMDataObjectInterface $DataObject, $AddDuplicateFlag = false)
   {

@@ -4,7 +4,6 @@ namespace TRMEngine\PipeLine;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use TRMEngine\Helpers\TRMLib;
 use TRMEngine\PipeLine\Interfaces\RequestHandlerInterface;
 
 /**

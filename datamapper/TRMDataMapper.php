@@ -187,7 +187,7 @@ class TRMDataMapper extends TRMDataArray implements TRMDataMapperInterface
    * Проверяет есть ли данные для объекта $ObjectName в текущем DataMapper-e
    * 
    * @param string $ObjectName - имя проверяемого объекта объекта
-   * @return boolean
+   * @return bool
    */
   public function hasObject($ObjectName)
   {

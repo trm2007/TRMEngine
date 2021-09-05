@@ -30,7 +30,7 @@ interface TRMParentedCollectionInterface extends TRMTypedCollectionInterface, TR
   //  * даже если он дублирует уже присутсвующий,
   //  * по умолчанию - false (дубли не добавляются)
   //  * 
-  //  * @return boolean - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
+  //  * @return bool - если объект добавлен в коллекцию, то вернется TRUE, иначе FALSE
   //  */
   // public function addDataObject(TRMParentedDataObjectInterface $DataObject, $AddDuplicateFlag = false);
   // /**
@@ -38,7 +38,7 @@ interface TRMParentedCollectionInterface extends TRMTypedCollectionInterface, TR
   //  * точнее ссылка на этот объект
   //  * 
   //  * @param TRMDataObjectInterface $Object
-  //  * @return boolean
+  //  * @return bool
   //  */
   // public function hasDataObject(TRMParentedDataObjectInterface $Object);
 }

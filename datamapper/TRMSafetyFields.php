@@ -63,7 +63,7 @@ class TRMSafetyFields extends TRMParentedDataMapper
    * если в массиве не заданы хотя бы ассоциативные ключи, соответвующие именам таблиц в БД, 
    * то будет выброщено исключение
    * 
-   * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+   * @param bool $Extends - true - данные из схемы БД, false - данные из show columns
    * 
    * @throws TRMDataMapperEmptySafetyFieldsArrayException - если данные о полях таблицы получить не удалось, то выбрасывается исключение
    */
@@ -92,7 +92,7 @@ class TRMSafetyFields extends TRMParentedDataMapper
   /**
    * Запрашивает полные метаданные из БД только для уже присутсвующих полей в DataMapper
    * 
-   * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+   * @param bool $Extends - true - данные из схемы БД, false - данные из show columns
    * 
    * @throws TRMDataMapperEmptySafetyFieldsArrayException - если данные о полях таблицы получить не удалось, то выбрасывается исключение
    */
@@ -163,7 +163,7 @@ class TRMSafetyFields extends TRMParentedDataMapper
    * @param string $TableName - имя таблицы, для которой устанавливается набор полей
    * @param array $Cols - параметры колонок в таблице БД, получается запросом SHOW COLUMNS FROM...
    * @param int $Status - состояние, по умолчанию = TRM_AR_READ_ONLY_FIELD
-   * @param boolean $Extends - true - данные из схемы БД, false - данные из show columns
+   * @param bool $Extends - true - данные из схемы БД, false - данные из show columns
    */
   private function completeSafetyFieldsFromDBFor($TableName, array &$Cols, $Status = TRMDataMapper::READ_ONLY_FIELD, $Extends = false)
   {
@@ -193,7 +193,7 @@ class TRMSafetyFields extends TRMParentedDataMapper
    * @param string $TableName - имя таблицы, для которй проверяется поле на auto_increment
    * @param string $FieldName - имя поля, проверяемого на auto_increment
    * 
-   * @return boolean - в случае, если поле является автоинкрементным вернется true, иначе - false
+   * @return bool - в случае, если поле является автоинкрементным вернется true, иначе - false
    */
   public function isFieldAutoIncrement($TableName, $FieldName)
   {

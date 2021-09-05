@@ -15,7 +15,7 @@ interface TRMDataObjectInterface extends TRMDataArrayInterface
    * @param string $objectname - имя sub-объекта, для которого проверяется наличие поля $fieldname
    * @param string $fieldname - имя искомого поля
    * 
-   * @return boolean - если найден, возвращает true, если ключ отсутствует - false
+   * @return bool - если найден, возвращает true, если ключ отсутствует - false
    */
   public function fieldExists($objectname, $fieldname);
 
@@ -44,7 +44,7 @@ interface TRMDataObjectInterface extends TRMDataArrayInterface
    * @param string $objectname - имя sub-объекта, для которого проверяется набор данных
    * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
    *
-   * @return boolean - если найдены поля и установлены значения, то возвращается true, иначе false
+   * @return bool - если найдены поля и установлены значения, то возвращается true, иначе false
    */
   public function presentDataIn($objectname, array &$fieldnames);
 }

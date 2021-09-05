@@ -107,7 +107,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
    * 
    * @param string $objectname - имя объекта, содержащее поле для сравнения
    * @param string $fieldname - имя поля для сравнения
-   * @param string|numeric|boolean $data - данные для сравнения
+   * @param string|numeric|bool $data - данные для сравнения
    * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
    * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
    * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::TRM_AR_QUOTE
@@ -146,7 +146,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
    * 
    * @param string $objectname - имя объекта, содержащее поле для сравнения
    * @param string $fieldname - имя поля для сравнения
-   * @param string|numeric|boolean $data - данные для сравнения
+   * @param string|numeric|bool $data - данные для сравнения
    * @param string $operator - оператор сравнения
    * 
    * @return $this
@@ -338,7 +338,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
    * @param TRMDataObjectInterface $Container - обновляемый объект-контейнер, 
    * на самом деле должен быть тип TRMDataObjectsContainerInterface
    * 
-   * @return boolean
+   * @return bool
    */
   function update(TRMDataObjectInterface $Container)
   {
@@ -403,7 +403,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
    * @param TRMDataObjectInterface $Container - удаляемый объект-контейнер, 
    * на самом деле должен быть тип TRMDataObjectsContainerInterface
    * 
-   * @return boolean
+   * @return bool
    */
   public function delete(TRMDataObjectInterface $Container)
   {
@@ -449,7 +449,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
    * 
    * @param TRMDataObjectsContainerInterface $Container - проверяемый объект
    * 
-   * @return boolean - в случае совпадения типов вернет true, иначе выбрасывается исключение
+   * @return bool - в случае совпадения типов вернет true, иначе выбрасывается исключение
    * 
    * @throws TRMRepositoryUnknowDataObjectClassException
    */
@@ -466,7 +466,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
    * 
    * @param TRMTypedCollection $ContainerCollection - коллеция для проверуи
    * 
-   * @return boolean - в случае совпадения типов вернет true, иначе выбрасывается исключение
+   * @return bool - в случае совпадения типов вернет true, иначе выбрасывается исключение
    * 
    * @throws TRMRepositoryUnknowDataObjectClassException
    */
@@ -510,7 +510,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
 
   /**
    * {@inheritDoc}
-   * @param boolean $ClearCollectionFlag - флаг, указывающий нужно ли очищать коллекцию
+   * @param bool $ClearCollectionFlag - флаг, указывающий нужно ли очищать коллекцию
    * объектов CollectionToInsert после вставки
    * 
    * @return void
@@ -541,7 +541,7 @@ class TRMDataObjectsContainerRepository implements TRMIdDataObjectRepositoryInte
   }
   /**
    * {@inheritDoc}
-   * @param boolean $ClearCollectionFlag - флаг, указывающий нужно ли очищать коллекцию
+   * @param bool $ClearCollectionFlag - флаг, указывающий нужно ли очищать коллекцию
    * объектов CollectionToUpdate после обновления
    * 
    * @return void

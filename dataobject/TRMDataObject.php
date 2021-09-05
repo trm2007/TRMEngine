@@ -7,107 +7,128 @@ use TRMEngine\DataObject\Interfaces\TRMDataObjectInterface;
 
 /**
  * класс для работы с объектами данных, 
- * фактически данные представлены таблицей в виде двумерного массива
+ * один объект данного класса является массивом,
+ * он составляется из нескольких sub-объектов,
+ * каждый из которых представлен массивом с полями и их значениями,
+ * не путать с коллекцией, гже собрано несколько объектов одного типа,
+ * здесь как раз собраны разнотипные объекты,
+ * но логически связанные,
+ * например, объект товара, объект его производитлея, объект группы,
+ * к которой принадлежит товар
  *
- * @author TRM
+ * @author Sergey Kolesnikov <trm@mail.ru>
  */
 class TRMDataObject extends TRMDataArray implements TRMDataObjectInterface
 {
-
-
-public function initializeFromArray(array $Array)
-{
-    foreach($Array as $ObjectName => $Object)
-    {
-        foreach( $Object as $FieldName => $FieldValue )
-        {
-            $this->setData($ObjectName, $FieldName, $FieldValue);
-        }
+  /**
+   * Инициализирует объект данных (перебирая все sub-объекты и их поля)
+   * из массива, который так же должен содержать массив sub-объектов и их поля
+   *
+   * @param array $Array
+   * @return void
+   */
+  public function initializeFromArray(array $Array)
+  {
+    foreach ($Array as $ObjectName => $Object) {
+      foreach ($Object as $FieldName => $FieldValue) {
+        $this->setData($ObjectName, $FieldName, $FieldValue);
+      }
     }
-}
+  }
 
-/**
- * проверяет наличие поля с именем fieldname в sub-объекте $objectname
- * 
- * @param string $objectname - имя sub-объекта, для которого проверяется наличие поля $fieldname
- * @param string $fieldname - имя искомого поля
- * 
- * @return boolean - если найден, возвращает true, если ключ отсутствует - false
- */
-public function fieldExists( $objectname, $fieldname )
-{
+  /**
+   * проверяет наличие поля с именем fieldname в sub-объекте $objectname
+   * 
+   * @param string $objectname - имя sub-объекта, для которого проверяется наличие поля $fieldname
+   * @param string $fieldname - имя искомого поля
+   * 
+   * @return bool - если найден, возвращает true, если ключ отсутствует - false
+   */
+  public function fieldExists($objectname, $fieldname)
+  {
     // Такого объекта нет
-    if( !isset($this->DataArray[$objectname]) ) { return false; }
+    if (!isset($this->DataArray[$objectname])) {
+      return false;
+    }
     // Такого поля нет
-    if( !array_key_exists($fieldname, $this->DataArray[$objectname]) ) { return false; }
+    if (!array_key_exists($fieldname, $this->DataArray[$objectname])) {
+      return false;
+    }
 
     // найдено !
     return true;
-}
+  }
 
-/**
- * записывает данные в конкретную ячейку
- *
- * @param string $objectname - имя sub-объекта, для которого устанавливаются данные
- * @param string $fieldname - имя поля (столбца), в которое производим запись значения
- * @param mixed $value - значение-данные поля 
- */
-public function setData( $objectname, $fieldname, $value )
-{
+  /**
+   * записывает данные в конкретную ячейку
+   *
+   * @param string $objectname - имя sub-объекта, для которого устанавливаются данные
+   * @param string $fieldname - имя поля (столбца), в которое производим запись значения
+   * @param mixed $value - значение-данные поля 
+   */
+  public function setData($objectname, $fieldname, $value)
+  {
     $this->DataArray[$objectname][$fieldname] = $value;
-}
+  }
 
-/**
- * получает данные из конкретной ячейки
- *
- * @param string $objectname - имя sub-объекта, для которого получаются данные
- * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
- *
- * @retrun mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
- */
-public function getData( $objectname, $fieldname )
-{
-    if( !isset($this->DataArray[$objectname][$fieldname]) ) { return null; }
-    
+  /**
+   * получает данные из конкретной ячейки
+   *
+   * @param string $objectname - имя sub-объекта, для которого получаются данные
+   * @param string $fieldname - имя поля (столбца), из которого производим чтение значения
+   *
+   * @return mixed|null - если нет записи с таким номером строки или нет поля с таким именем вернется null, если есть, то вернет значение
+   */
+  public function getData($objectname, $fieldname)
+  {
+    if (!isset($this->DataArray[$objectname][$fieldname])) {
+      return null;
+    }
+
     return $this->DataArray[$objectname][$fieldname];
-}
+  }
 
-/**
- * проверяет наличие данных в полях с именами из набора $fieldnames 
- * для объекта $objectname в строке с номером $rownum
- *
- * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
- * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
- *
- * @return boolean - если найдены поля и установлены значения, то возвращается true, иначе false
- */
-public function presentDataIn( $objectname, array &$fieldnames )
-{
-    if( empty( $this->DataArray ) ) { return false; }
-    if( !isset( $this->DataArray[$objectname] ) ) { return false; }
+  /**
+   * проверяет наличие данных в полях с именами из набора $fieldnames 
+   * для объекта $objectname в строке с номером $rownum
+   *
+   * @param string $objectname - имя объекта в строке с номером $rownum, для которого проверяется набор данных
+   * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
+   *
+   * @return bool - если найдены поля и установлены значения, то возвращается true, иначе false
+   */
+  public function presentDataIn($objectname, array &$fieldnames)
+  {
+    if (empty($this->DataArray)) {
+      return false;
+    }
+    if (!isset($this->DataArray[$objectname])) {
+      return false;
+    }
 
-    foreach( $fieldnames as $field )
-    {
-        if( !array_key_exists($field, $this->DataArray[$objectname]) ||
-            $this->DataArray[$objectname][$field] === "" ||
-            $this->DataArray[$objectname][$field] === array() ||
-            $this->DataArray[$objectname][$field] === null )
-//            empty( $this->DataArray[$objectname][$field] ) )
-        {
-            return false;
-        }
+    foreach ($fieldnames as $field) {
+      if (
+        !array_key_exists($field, $this->DataArray[$objectname]) ||
+        $this->DataArray[$objectname][$field] === "" ||
+        $this->DataArray[$objectname][$field] === array() ||
+        $this->DataArray[$objectname][$field] === null
+      )
+      //            empty( $this->DataArray[$objectname][$field] ) )
+      {
+        return false;
+      }
     }
     return true;
-}
+  }
 
-/**
- * получаем номер строки из локального массива DataArray где поля содержат передаваемые значения
- *
- * @param array $looking - массив значений для поиска array( FieldName1 => Value1, FieldName2 => Value2, ... )
- *
- * @return integer|null - возвращает номер строки-записи из общего массива или null
- */
-/*
+  /**
+   * получаем номер строки из локального массива DataArray где поля содержат передаваемые значения
+   *
+   * @param array $looking - массив значений для поиска array( FieldName1 => Value1, FieldName2 => Value2, ... )
+   *
+   * @return integer|null - возвращает номер строки-записи из общего массива или null
+   */
+  /*
 public function findBy( array $looking )
 {
 	if( empty($looking) ) { return false; }
@@ -128,14 +149,14 @@ public function findBy( array $looking )
  * 
  */
 
-/**
- * получаем значение строки из локального массива DataArray где поля содержат передаваемые значения
- *
- * @param array $looking - массив значений для поиска array( FieldName1 => Value1, FieldName2 => Value2, ... )
- *
- * @return array|null - возвращает массив-строчку записи из общего массива если найдена, или null в противном случае
- */
-/*
+  /**
+   * получаем значение строки из локального массива DataArray где поля содержат передаваемые значения
+   *
+   * @param array $looking - массив значений для поиска array( FieldName1 => Value1, FieldName2 => Value2, ... )
+   *
+   * @return array|null - возвращает массив-строчку записи из общего массива если найдена, или null в противном случае
+   */
+  /*
 public function getBy( array $looking )
 {
 	if( empty($looking) ) { return null; }
@@ -156,16 +177,16 @@ public function getBy( array $looking )
  * 
  */
 
-/**
- * проверяет наличие полей с заданными именами в строке данных с номером $rownum, 
- * значение в этом поле не важно, главное присутсвие ключа
- *
- * @param integer $rownum - номер строки, в которой происходит проверка, из локального набора данных, отсчет с 0
- * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
- *
- * @return boolean - если найдены все поля, то возвращается true, если хотя бы одно не найдено, то false
- */
-/*
+  /**
+   * проверяет наличие полей с заданными именами в строке данных с номером $rownum, 
+   * значение в этом поле не важно, главное присутсвие ключа
+   *
+   * @param integer $rownum - номер строки, в которой происходит проверка, из локального набора данных, отсчет с 0
+   * @param &array $fieldnames - ссылка на массив с именами проверяемых полей
+   *
+   * @return bool - если найдены все поля, то возвращается true, если хотя бы одно не найдено, то false
+   */
+  /*
 public function presentFieldNamesIn( $rownum, array &$fieldnames )
 {
 	if( !is_array($this->DataArray[$rownum]) ) { return false; }
@@ -179,16 +200,16 @@ public function presentFieldNamesIn( $rownum, array &$fieldnames )
  */
 
 
-/**
- * удаляет из массива записи, в которых поле $FieldName удовлетворяет значению $FieldValue
- *
- * @param string $FieldName - имя поля
- * @param mixed $FieldValue - искомое значение
- * @param integer $count - количество записей для поиска/удаления, поумолчанию 0 - все найденные
- *
- * @return integer - количество убранных записей из локальной коллекции
- */
-/*
+  /**
+   * удаляет из массива записи, в которых поле $FieldName удовлетворяет значению $FieldValue
+   *
+   * @param string $FieldName - имя поля
+   * @param mixed $FieldValue - искомое значение
+   * @param integer $count - количество записей для поиска/удаления, поумолчанию 0 - все найденные
+   *
+   * @return integer - количество убранных записей из локальной коллекции
+   */
+  /*
 public function removeBy( $FieldName, $FieldValue, $count = 0 )
 {
 	$start = $count;
@@ -207,7 +228,4 @@ public function removeBy( $FieldName, $FieldValue, $count = 0 )
 }
  * 
  */
-
-
-
 } // TRMDataObject

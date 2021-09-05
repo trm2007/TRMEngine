@@ -46,7 +46,7 @@ interface TRMDataArrayInterface extends InitializibleFromArray, \Countable, \Ite
    * 
    * @param string $Index - проверяемый индекс-ключ массива
    * 
-   * @return boolean - если найден, возвращает true, если ключ отсутствует - false
+   * @return bool - если найден, возвращает true, если ключ отсутствует - false
    */
   public function keyExists($Index);
 
@@ -54,10 +54,10 @@ interface TRMDataArrayInterface extends InitializibleFromArray, \Countable, \Ite
    * проверяет наличие данных в массиве
    * 
    * @param mixed $Data - данные для проверки
-   * @param boolean $CheckTypeFlag - если устанлвлен (по умолчанию), то 
+   * @param bool $CheckTypeFlag - если устанлвлен (по умолчанию), то 
    * проверятся так же соответсвие типов
    * 
-   * @return boolean - если найдены, возвращает true, если отсутствуют - false
+   * @return bool - если найдены, возвращает true, если отсутствуют - false
    */
   public function inArray($Data, $CheckTypeFlag = true);
 

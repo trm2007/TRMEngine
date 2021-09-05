@@ -255,7 +255,7 @@ public function addTableName($tagname, $tablename)
  * @param string $tablename - имя таблицы БД
  * @param string $fieldtype - тип данных в БД
  * @param string $callback - имя функции, которая вызывается с параметрами ($name, $data) и возвращает обработанные данные для сохранения в БД
- * @param boolean $saveflag - если true - должно добавляется это поле в SQL-запрос для обновления данных, если false поле не запишется в БД
+ * @param bool $saveflag - если true - должно добавляется это поле в SQL-запрос для обновления данных, если false поле не запишется в БД
  */
 public function addFieldName($tagname, $entityname, $datafieldname, $tablename, $fieldtype = "VARCHAR(1024)", $callback = null, $saveflag = true )
 {
@@ -280,7 +280,7 @@ public function addFieldName($tagname, $entityname, $datafieldname, $tablename, 
  * @param string $parenttagname - имя тега из этой же записи-entity, которое может быть задано как имя родительского элемента, 
  *   для которого и задается индекс
  * @param string $callback - имя функции, которая вызывается с параметрами ($name, $data) и возвращает обработанные данные для сохранения в БД
- * @param boolean $saveflag - если true - должно добавляется это поле в SQL-запрос для обновления данных, если false поле не запишется в БД
+ * @param bool $saveflag - если true - должно добавляется это поле в SQL-запрос для обновления данных, если false поле не запишется в БД
  */
 public function addIndexName($tagname, $entityname, $indexfieldname, $datafieldname, $tablename, $parenttagname = null, $callback = null, $saveflag = true )
 {
@@ -302,7 +302,7 @@ public function addIndexName($tagname, $entityname, $indexfieldname, $datafieldn
  * @param string $datafieldname - имя поля в таблице БД, если $tagname описывает только одно значение
  * @param string $tablename - имя таблицы БД
  * @param string $fieldtype - тип данных в БД
- * @param boolean $saveflag - если true - должно добавляется это поле в SQL-запрос для обновления данных, если false поле не запишется в БД
+ * @param bool $saveflag - если true - должно добавляется это поле в SQL-запрос для обновления данных, если false поле не запишется в БД
  */
 public function addEntityName($tagname, $datafieldname, $tablename, $fieldtype = "VARCHAR(1024)", $saveflag = true)
 {
@@ -342,7 +342,7 @@ protected function getCurrentTagIndex($tagname, $entityname )
  *   например, если $tagname - это имя поля, тогда $entityname - это название записи (виртуально)
  * @param string $dataindex - данные, которые нужно получить для тега
  * 
- * @return boolean|mixed - если в массиве есть данные для $tagname, возвращаются эти данные, 
+ * @return bool|mixed - если в массиве есть данные для $tagname, возвращаются эти данные, 
  * если не указано какие именно данные нужны $dataindex, то возвращается индекс из массива Tags,
  * если указан $dataindex, но такого индекса нет в XML, то вернется false
  */
@@ -379,7 +379,7 @@ public function getIndexValue($val)
  * 
  * @param resource $parser - объект парсера, созданный, например, xml_parser_create
  * @param mixed $data - данные, которые находятся внутри обрабатываемого в данный момент тега
- * @return boolean
+ * @return bool
  */
 function data ($parser, $data)
 {

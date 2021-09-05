@@ -46,7 +46,7 @@ interface TRMSupportedHostInterface
     /**
      * Сравнивает установленный адрес хоста с HTTP_ORIGIN из запроса, в данном случае сравнение URL
      *
-     * @return boolean
+     * @return bool
      */
     public function checkOrigin();
 }

@@ -544,7 +544,7 @@ public function rewind()
  * если счетчик превышает или равен размеру массива, значит в этом элеменет уже ничего нет,
  * $this->Position всегда должна быть < count($this->ChildCollectionsArray)
  * 
- * @return boolean
+ * @return bool
  */
 public function valid()
 {

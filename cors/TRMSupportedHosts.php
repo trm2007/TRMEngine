@@ -23,7 +23,7 @@ class TRMSupportedHosts
      * Флаг. устанавливаемый в true, если определен запрос методом OPTIONS,
      * т.е. preflight-запрос от браузера
      *
-     * @var boolean
+     * @var bool
      */
     protected $PreflightFlag = false;
     /**
@@ -54,19 +54,19 @@ class TRMSupportedHosts
     /**
      * Флаг указывающий, нужно ли проверять соответсвие хоста по значению REMOTE_ADDR
      *
-     * @var boolean
+     * @var bool
      */
     protected $CheckAddressFlag = false;
     /**
      * не реализован
      *
-     * @var boolean
+     * @var bool
      */
     protected $CheckMethodFlag = false;
     /**
      * не реализован
      *
-     * @var boolean
+     * @var bool
      */
     protected $CheckHeaderFlag = false;
 
@@ -85,7 +85,7 @@ class TRMSupportedHosts
     /**
      * Устанавливает флаг указывающий, нужно ли проверять соответсвие хоста по значению REMOTE_ADDR,
      *
-     * @param boolean $CheckAddressFlag значение. в которое будет установлен флаг, 
+     * @param bool $CheckAddressFlag значение. в которое будет установлен флаг, 
      * по умолчнию устанавливает в значение true,
      * если нужно отключить, то в аргумент нужно явно передать false
      * @return void
@@ -99,7 +99,7 @@ class TRMSupportedHosts
      * Возвращает флаг. указывающий является ли текущий запрос от клиента проверкой от браузера,
      * т.е. запрос с методом OPTIONS
      *
-     * @return boolean
+     * @return bool
      */
     public function isPreflight()
     {
@@ -170,7 +170,7 @@ class TRMSupportedHosts
      * Так же проверяет, если запрос preflight (с методом OPTIONS),
      * то устанавливает флаг, который можно проверить функцией isPreflight
      *
-     * @return boolean
+     * @return bool
      */
     public function check()
     {

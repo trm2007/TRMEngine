@@ -40,7 +40,7 @@ public function setOrder( array $orderfields );
  * Устанавливает тип сортировки для поле при запросе
  *
  * @param string $OrderFieldName - имя поля , по которому устанавливается сортировка
- * @param boolean $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
+ * @param bool $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
  * @param int $FieldQuoteFlag - если установлен в значение TRMSqlDataSource::NEED_QUOTE,
  * то имя поля будет браться в апострофы `FieldName` ASC
  */
@@ -88,7 +88,7 @@ public function clearHavingParams();
  * 
  * @param string $tablename - имя таблицы для поля, которое добавляется к условию
  * @param string $fieldname - имя поля для сравнения
- * @param string|numeric|boolean $data - данные для сравнения
+ * @param string|numeric|bool $data - данные для сравнения
  * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
  * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
  * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::NEED_QUOTE
@@ -122,7 +122,7 @@ public function addWhereParamFromArray($tablename, array $param);
  * 
  * @param string $tablename - имя таблицы для поля, которое добавляется к условию
  * @param string $fieldname - имя поля для сравнения
- * @param string|numeric|boolean $data - данные для сравнения
+ * @param string|numeric|bool $data - данные для сравнения
  * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), поумолчанию =
  * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
  * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::NEED_QUOTE
@@ -219,7 +219,7 @@ public function getDataFrom(TRMSafetyFields $SafetyFields);
  * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
  * 
- * @return boolean - если обновление прошло успешно, то вернет true, иначе - false
+ * @return bool - если обновление прошло успешно, то вернет true, иначе - false
  */
 public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection);
 /**
@@ -227,7 +227,7 @@ public function update(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $
  * 
  * @param TRMSafetyFields $SafetyFields - DataMapper, для которого добавляются данные в БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
- * @param boolean $ODKUFlag - если установлен в TRUE, 
+ * @param bool $ODKUFlag - если установлен в TRUE, 
  * то используется метод вставки с заменой, если встречаются дубликаты ключевых полей,
  * ON DUPLICATE KEY UPDATE, по умолчанию = FALSE - используется обычная вставка
  * 
@@ -245,7 +245,7 @@ public function insert( TRMSafetyFields $SafetyFields, TRMDataObjectsCollection 
  * @param TRMSafetyFields $SafetyFields - DataMapper, для которого формируется выборка из БД
  * @param TRMDataObjectsCollection $DataCollection - коллекция с объектами данных
  * 
- * @return boolean - возвращает результат запроса DELETE
+ * @return bool - возвращает результат запроса DELETE
  */
 public function delete(TRMSafetyFields $SafetyFields, TRMDataObjectsCollection $DataCollection);
 /**

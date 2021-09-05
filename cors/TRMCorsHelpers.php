@@ -40,7 +40,7 @@ class TRMCorsHelpers
      * в данной версии проверяет если есть HTTP_ORIGIN, 
      * то скорее всего запрос из другого источника
      *
-     * @return boolean
+     * @return bool
      */
     static public function detectCORS()
     {
@@ -52,7 +52,7 @@ class TRMCorsHelpers
      * если это он, то просто завершаем работу, 
      * такие запросы всегда отправляются с методом OPTIONS
      *
-     * @return boolean
+     * @return bool
      */
     static public function detectPreflight()
     {

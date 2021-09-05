@@ -123,7 +123,7 @@ class TRMSupportedHost implements TRMSupportedHostInterface
      * Проверяет (сравнивает) $HostName с текущим $this->Origin
      *
      * @param string $HostName URL или IP-адрес, который будет проверяться с текущим хостом
-     * @return boolean
+     * @return bool
      */
     protected function compareWith($HostName)
     {
@@ -133,7 +133,7 @@ class TRMSupportedHost implements TRMSupportedHostInterface
     /**
      * Сравнивает установленный адрес хоста с HTTP_ORIGIN из запроса, в данном случае сравнение URL
      *
-     * @return boolean
+     * @return bool
      */
     public function checkOrigin()
     {
@@ -143,7 +143,7 @@ class TRMSupportedHost implements TRMSupportedHostInterface
     /**
      * Сравнивает установленный адрес хоста с REMOTE_ADDR из запроса, в данном случае сравнение IP
      *
-     * @return boolean
+     * @return bool
      */
     public function checkAddress()
     {
@@ -157,7 +157,7 @@ class TRMSupportedHost implements TRMSupportedHostInterface
      * то метод все-равно вернет true
      * т.е. пустое значение проходит проверку
      *
-     * @return boolean
+     * @return bool
      */
     public function checkMethod()
     {
@@ -174,7 +174,7 @@ class TRMSupportedHost implements TRMSupportedHostInterface
      * то метод все-равно вернет true,
      * т.е. пустое значение проходит проверку
      *
-     * @return boolean
+     * @return bool
      */
     public function checkHeaders()
     {

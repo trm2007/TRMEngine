@@ -48,7 +48,7 @@ abstract class TRMRepository implements TRMRepositoryInterface
    */
   protected $DataMapper;
   /**
-   * @var boolean - после каждого запроса на получение коллекции (getAll, getBy) все параметры запроса обнуляются,
+   * @var bool - после каждого запроса на получение коллекции (getAll, getBy) все параметры запроса обнуляются,
    * очищаются поля сортировки, количество выбираемых значений, условия,
    * НО устанавливая KeepQueryParams в TRUE очистка переметров производится не будет
    */
@@ -75,14 +75,14 @@ abstract class TRMRepository implements TRMRepositoryInterface
   }
 
   /**
-   * @return boolean - значение условия сохранения параметров запроса после его выполнения
+   * @return bool - значение условия сохранения параметров запроса после его выполнения
    */
   public function getKeepQueryParams()
   {
     return $this->KeepQueryParams;
   }
   /**
-   * @param boolean $KeepQueryParams - после каждого запроса на получение коллекции (getAll, getBy) все параметры запроса обнуляются,
+   * @param bool $KeepQueryParams - после каждого запроса на получение коллекции (getAll, getBy) все параметры запроса обнуляются,
    * очищаются поля сортировки, количество выбираемых значений, условия,
    * НО устанавливая KeepQueryParams в TRUE очистка переметров производится не будет
    */
@@ -127,7 +127,7 @@ abstract class TRMRepository implements TRMRepositoryInterface
    * 
    * @param string $objectname - имя объекта, содержащее поле для сравнения
    * @param string $fieldname - имя поля для сравнения
-   * @param string|numeric|boolean $data - данные для сравнения
+   * @param string|numeric|bool $data - данные для сравнения
    * @param string $operator - оператор сравнения (=, !=, >, < и т.д.), по умолчанию =
    * @param string $andor - что ставить перед этим условием OR или AND ? по умолчанию AND
    * @param integer $quote - нужно ли брать в апострофы имена полей, по умолчанию нужно - TRMSqlDataSource::TRM_AR_QUOTE
@@ -148,7 +148,7 @@ abstract class TRMRepository implements TRMRepositoryInterface
    * 
    * @param string $objectname - имя объекта, содержащее поле для сравнения
    * @param string $fieldname - имя поля для сравнения
-   * @param string|numeric|boolean $data - данные для сравнения, должны передаваться вместе с оператором
+   * @param string|numeric|bool $data - данные для сравнения, должны передаваться вместе с оператором
    * @param string $operator - оператор сравнения, должен передаваться вместе с данными
    * 
    * @return $this
@@ -162,7 +162,7 @@ abstract class TRMRepository implements TRMRepositoryInterface
    * Устанавливает тип сортировки для поле при запросе
    *
    * @param string $OrderFieldName - имя поля , по которому устанавливается сортировка
-   * @param boolean $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
+   * @param bool $AscFlag - если true, то сортируется по этому полю как ASC, в противном случае, как DESC
    * @param int $FieldQuoteFlag - если установлен в значение TRMSqlDataSource::NEED_QUOTE,
    * то имя поля будет браться в апострофы `FieldName` ASC
    */

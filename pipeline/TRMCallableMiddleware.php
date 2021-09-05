@@ -29,7 +29,7 @@ public function __construct( callable $MiddleWare )
  * {@inheritDoc}
  * 
  * @param Request $Request
- * @param \TRMEngine\TRMPipeLine\RequestHandlerInterface $Handler
+ * @param RequestHandlerInterface $Handler
  * @return Response
  * @throws TRMMiddlewareBadResponseException
  */
