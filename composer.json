@@ -10,7 +10,7 @@
   ],
   "require": {
     "php": ">=5.6.0",
-    "symfony/http-foundation": "3.4.35",
+    "symfony/http-foundation": "5.4.46",
     "symfony/routing": "3.4"
   },
   "autoload": {
